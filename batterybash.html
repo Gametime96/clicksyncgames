@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BATTERY BASH: 8 STAGES OF DRAIN</title>
+    <style>
+        body { margin: 0; background: #000; color: #0f0; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
+        canvas { display: block; cursor: none; }
+        
+        #overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; z-index: 10; padding: 20px;
+        }
+
+        /* Faded Countdown Overlay */
+        #countdown-overlay {
+            position: absolute; inset: 0; display: none; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 5;
+            font-size: 6rem; font-weight: bold; color: rgba(255, 255, 255, 0.6); 
+            text-shadow: 0 0 20px rgba(255,255,255,0.4); pointer-events: none; text-align: center;
+        }
+
+        .icon-container { display: flex; gap: 40px; margin-bottom: 30px; }
+        .icon-box { display: flex; flex-direction: column; align-items: center; gap: 10px; font-weight: bold; }
+        .box-g { width: 30px; height: 30px; background: #0f0; outline: 2px solid #fff; }
+        .box-r { width: 30px; height: 30px; background: #f00; box-shadow: 0 0 10px #f00; }
+        .box-w { width: 30px; height: 30px; background: #fff; box-shadow: 0 0 15px #fff; }
+        
+        #ui { position: absolute; top: 20px; left: 20px; pointer-events: auto; z-index: 8; }
+        #timer-bar { position: absolute; top: 0; left: 0; height: 5px; background: #0f0; width: 100%; transition: width 1s linear; }
+        
+        button { 
+            background: #0f0; color: #000; border: none; padding: 15px 40px; 
+            font-weight: bold; cursor: pointer; font-family: inherit; font-size: 1.2rem;
+            margin-top: 10px;
+        }
+        button:hover { background: #fff; }
+
+        #pause-btn {
+            background: transparent; color: #0f0; border: 2px solid #0f0; 
+            padding: 5px 15px; font-size: 1rem; margin-top: 15px;
+        }
+        #pause-btn:hover { background: #0f0; color: #000; }
+        
+        .stat-val { font-size: 2rem; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <div id="timer-bar"></div>
+
+    <div id="ui">
+        LEVEL: <span id="lvl-display" class="stat-val">1</span> / 8<br>
+        HEALTH: <span id="hp-display" class="stat-val">100%</span><br>
+        TIME REMAINING: <span id="time-display" class="stat-val">60</span>s<br>
+        <button id="pause-btn">PAUSE (P)</button>
+    </div>
+
+    <div id="overlay">
+        <h1 id="msg-title" style="font-size: 3rem;">BATTERY BASH</h1>
+        <p id="msg-subtitle" style="font-size: 1.5rem; color: #fff; margin-top: 0;">A Game of 8 Levels</p>
+        <div class="icon-container">
+            <div class="icon-box"><div class="box-g"></div>YOU</div>
+            <div class="icon-box"><div class="box-r"></div>AVOID (-10%)</div>
+            <div class="icon-box"><div class="box-w"></div>LIFE (+10%)</div>
+        </div>
+        <p id="msg-desc">Survive 8 grueling levels. 60 seconds each. Collect white boxes to heal.</p>
+        <button id="start-btn">START LEVEL 1</button>
+    </div>
+
+    <div id="countdown-overlay">
+        <div id="cd-text"></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const countdownOverlay = document.getElementById('countdown-overlay');
+const cdText = document.getElementById('cd-text');
+const startBtn = document.getElementById('start-btn');
+const hpDisp = document.getElementById('hp-display');
+const lvlDisp = document.getElementById('lvl-display');
+const timeDisp = document.getElementById('time-display');
+const timerBar = document.getElementById('timer-bar');
+const pauseBtn = document.getElementById('pause-btn');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let gameState = 'START'; // START, COUNTDOWN, PLAYING, GAMEOVER, INTERMISSION, WIN
+let isPaused = false;
+let level = 1;
+let health = 100;
+let timeLeft = 60;
+let enemies = [];
+let lives = [];
+let particles = [];
+let player = { x: canvas.width/2, y: canvas.height/2, size: 20 };
+
+function initLevel() {
+    health = 100;
+    timeLeft = 60;
+    enemies = [];
+    lives = [];
+    particles = [];
+    isPaused = false;
+    pauseBtn.innerText = "PAUSE (P)";
+    
+    lvlDisp.innerText = level;
+    hpDisp.innerText = health + "%";
+    timeDisp.innerText = timeLeft;
+    timerBar.style.width = "100%";
+    
+    overlay.style.display = 'none';
+    startCountdown();
+}
+
+function startCountdown() {
+    gameState = 'COUNTDOWN';
+    countdownOverlay.style.display = 'flex';
+    
+    let count = 3;
+    cdText.innerHTML = `LEVEL ${level}<br><br>${count}`;
+    
+    let cdInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            cdText.innerHTML = `LEVEL ${level}<br><br>${count}`;
+        } else if (count === 0) {
+            cdText.innerHTML = `GO!`;
+        } else {
+            clearInterval(cdInterval);
+            countdownOverlay.style.display = 'none';
+            gameState = 'PLAYING';
+        }
+    }, 1000);
+}
+
+function togglePause() {
+    if (gameState === 'PLAYING') {
+        isPaused = !isPaused;
+        pauseBtn.innerText = isPaused ? "RESUME (P)" : "PAUSE (P)";
+        
+        if (isPaused) {
+            // Draw a subtle dark screen and PAUSED text immediately
+            ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 60px Courier New";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", canvas.width/2, canvas.height/2);
+            ctx.textAlign = "left"; // reset
+        }
+    }
+}
+
+function spawnBox(arrayToPush, speedBase, colorType) {
+    const side = Math.floor(Math.random() * 4);
+    let x, y;
+    if(side === 0) { x = Math.random() * canvas.width; y = -20; }
+    else if(side === 1) { x = canvas.width + 20; y = Math.random() * canvas.height; }
+    else if(side === 2) { x = Math.random() * canvas.width; y = canvas.height + 20; }
+    else { x = -20; y = Math.random() * canvas.height; }
+    
+    arrayToPush.push({ 
+        x: x, 
+        y: y, 
+        speed: speedBase, 
+        size: 15 + (Math.random() * 10),
+        color: colorType
+    });
+}
+
+function createExplosion(x, y, color) {
+    for (let i = 0; i < 15; i++) {
+        particles.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1.0,
+            color: color
+        });
+    }
+}
+
+function gameLoop() {
+    requestAnimationFrame(gameLoop);
+
+    // Stop updating if paused or not in an active gameplay state
+    if (isPaused || (gameState !== 'PLAYING' && gameState !== 'COUNTDOWN')) return;
+
+    // Solid Black Background for maximum contrast
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Render Player (Follows mouse even during countdown)
+    ctx.fillStyle = '#0f0';
+    ctx.shadowBlur = 0;
+    ctx.fillRect(player.x - 10, player.y - 10, 20, 20);
+
+    // Freeze entities during countdown
+    if (gameState === 'COUNTDOWN') return;
+
+    // Process Lives (White Boxes)
+    for (let i = lives.length - 1; i >= 0; i--) {
+        let life = lives[i];
+        let dx = player.x - life.x;
+        let dy = player.y - life.y;
+        let angle = Math.atan2(dy, dx);
+        
+        life.x += Math.cos(angle) * life.speed;
+        life.y += Math.sin(angle) * life.speed;
+
+        ctx.fillStyle = life.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = life.color;
+        ctx.fillRect(life.x, life.y, life.size, life.size);
+
+        if (Math.hypot(dx, dy) < 20) {
+            health = Math.min(100, health + 10);
+            hpDisp.innerText = health + "%";
+            createExplosion(life.x, life.y, life.color);
+            lives.splice(i, 1);
+        }
+    }
+
+    // Process Enemies (Red Boxes)
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        let enemy = enemies[i];
+        let dx = player.x - enemy.x;
+        let dy = player.y - enemy.y;
+        let angle = Math.atan2(dy, dx);
+        
+        enemy.x += Math.cos(angle) * enemy.speed;
+        enemy.y += Math.sin(angle) * enemy.speed;
+
+        ctx.fillStyle = enemy.color;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = enemy.color;
+        ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
+
+        if (Math.hypot(dx, dy) < 20) {
+            health -= 10;
+            hpDisp.innerText = health + "%";
+            createExplosion(enemy.x, enemy.y, enemy.color);
+            enemies.splice(i, 1);
+            if (health <= 0) gameOver();
+        }
+    }
+
+    // Process Particles (Explosions)
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+        
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 4, 4);
+        ctx.globalAlpha = 1.0;
+
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Dynamic Spawning based on Level
+    if (Math.random() < 0.02 + (level * 0.015)) spawnBox(enemies, 2 + (level * 0.8), '#f00');
+    if (Math.random() < 0.008) spawnBox(lives, 1.5 + (level * 0.5), '#fff'); 
+}
+
+function gameOver() {
+    gameState = 'GAMEOVER';
+    level = 1; 
+    overlay.style.display = 'flex';
+    document.getElementById('msg-title').innerText = "SYSTEM CRASHED";
+    document.getElementById('msg-title').style.color = "#f00";
+    document.getElementById('msg-subtitle').style.display = "none";
+    startBtn.innerText = "REBOOT FROM LEVEL 1";
+}
+
+function levelComplete() {
+    if (level === 8) {
+        gameState = 'WIN';
+        overlay.style.display = 'flex';
+        document.getElementById('msg-title').innerText = "SYSTEM SECURED";
+        document.getElementById('msg-title').style.color = "#0f0";
+        document.getElementById('msg-subtitle').style.display = "none";
+        document.getElementById('msg-desc').innerText = "8/8 Levels Cleared. You survived.";
+        startBtn.innerText = "PLAY AGAIN";
+        level = 1;
+    } else {
+        gameState = 'INTERMISSION';
+        level++;
+        overlay.style.display = 'flex';
+        document.getElementById('msg-title').innerText = `LEVEL ${level-1} CLEAR`;
+        document.getElementById('msg-title').style.color = "#fff";
+        document.getElementById('msg-subtitle').style.display = "none";
+        startBtn.innerText = `START LEVEL ${level}`;
+    }
+}
+
+// Global Timer
+setInterval(() => {
+    if (gameState === 'PLAYING' && !isPaused) {
+        timeLeft--;
+        timeDisp.innerText = timeLeft;
+        timerBar.style.width = (timeLeft / 60) * 100 + "%";
+        if (timeLeft <= 0) levelComplete();
+    }
+}, 1000);
+
+// Input Listeners
+window.addEventListener('mousemove', e => {
+    // Keep tracking mouse even while paused/countdown so it feels responsive
+    player.x = e.clientX;
+    player.y = e.clientY;
+});
+
+window.addEventListener('keydown', e => {
+    if (e.key.toLowerCase() === 'p') togglePause();
+});
+
+pauseBtn.addEventListener('click', () => {
+    togglePause();
+    // Re-focus the window so keyboard 'p' works after clicking the button
+    window.focus(); 
+});
+
+startBtn.addEventListener('click', () => {
+    initLevel();
+});
+
+// Start the drawing loop immediately (it handles states internally)
+requestAnimationFrame(gameLoop);
+
+</script>
+</body>
+</html>

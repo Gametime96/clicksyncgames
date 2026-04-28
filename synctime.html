@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synctime - Orbital Defense</title>
+    <style>
+        :root {
+            --bg-dark: #050510;
+            --panel-bg: #0a0a1a;
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff00ea;
+            --neon-yellow: #fffb00;
+            --text-main: #e5e7eb;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #gameWrapper {
+            width: 900px;
+            height: 650px;
+            background-color: var(--panel-bg);
+            border: 2px solid #1a1a3a;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+            position: relative;
+        }
+
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #111122;
+            border-bottom: 2px solid #2a2a4a;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .stat { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
+        .stat-bad { color: var(--neon-magenta); text-shadow: 0 0 8px var(--neon-magenta); }
+        .stat-good { color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); }
+
+        .pause-btn {
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #9ca3af;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .pause-btn:hover { background: #9ca3af; color: #000; }
+
+        #canvasContainer {
+            flex: 1;
+            position: relative;
+            cursor: crosshair;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- System Screens --- */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 16, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .overlay-screen h1 { font-size: 48px; color: var(--neon-cyan); letter-spacing: 6px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-cyan);}
+        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.6; margin-bottom: 30px;}
+        
+        .guide-container { display: flex; gap: 20px; margin-bottom: 30px; width: 85%; }
+        .guide-step { flex: 1; background: #111122; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #2a2a4a; }
+        .guide-step p { font-size: 14px; color: #d1d5db; margin: 10px 0 0 0; line-height: 1.4; }
+        .guide-step b { color: var(--neon-cyan); font-size: 16px; display: block; margin-bottom: 5px; }
+
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: var(--neon-cyan);
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            border-radius: 4px;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+        .start-btn:hover { box-shadow: 0 0 25px var(--neon-cyan); }
+
+        /* --- Transition Animations --- */
+        .fade-in-first {
+            opacity: 0;
+            animation: textFade 0.6s ease-out forwards;
+        }
+        
+        .fade-in-second {
+            opacity: 0;
+            animation: textFade 0.6s ease-out 1s forwards; /* 1 second delay */
+        }
+
+        @keyframes textFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="gameWrapper">
+        <div id="header">
+            <div>LEVEL: <span id="uiLevel" class="stat">1</span>/12</div>
+            <div>TIME: <span id="uiTime" class="stat">00:30</span></div>
+            <div>SCORE: <span id="uiEnergy" class="stat-good">0</span></div>
+            <div>INTEGRITY: <span id="uiIntegrity" class="stat-bad">100</span>%</div>
+            <button id="pauseBtn" class="pause-btn">PAUSE (P)</button>
+        </div>
+
+        <div id="canvasContainer">
+            <canvas id="gameCanvas" width="900" height="588"></canvas>
+        </div>
+
+        <div id="startScreen" class="overlay-screen">
+            <h1>SYNCTIME</h1>
+            <p class="subtitle">Survive 12 progressive levels (30 seconds each). Your mouse is the center point. <br><b>Your endpoints are vulnerable. Your center line is lethal.</b></p>
+            
+            <div class="guide-container">
+                <div class="guide-step">
+                    <b style="color: var(--neon-cyan);">THE TETHER (Weapon)</b>
+                    <p>The glowing line connecting your cores. Slice Magenta enemies with this line to destroy them and score points.</p>
+                </div>
+                <div class="guide-step">
+                    <b style="color: var(--neon-magenta);">THE CORES (Weakness)</b>
+                    <p>The dots at the end of your tether. If an enemy touches a Core, you lose 15% Integrity.</p>
+                </div>
+                <div class="guide-step">
+                    <b style="color: var(--neon-yellow);">CONTROLS</b>
+                    <p><b>Mouse:</b> Move Center<br><b>Left Click:</b> Reverse Spin Direction<br><b>Spacebar (Hold):</b> Expand Tether Radius</p>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn">Engage Systems</button>
+        </div>
+
+        <div id="levelTransitionScreen" class="overlay-screen" style="display: none;">
+            <div id="transitionContent" style="text-align: center;">
+                </div>
+        </div>
+
+        <div id="pauseScreen" class="overlay-screen" style="display: none;">
+            <h1 style="color: #9ca3af; text-shadow: none;">PAUSED</h1>
+            <button class="start-btn" id="continueBtn" style="background: #9ca3af; margin-top: 30px;">Continue</button>
+        </div>
+
+        <div id="gameOverScreen" class="overlay-screen" style="display: none;">
+            <h1 style="color: var(--neon-magenta); text-shadow: 0 0 20px var(--neon-magenta);">SYSTEM BREACH</h1>
+            <p style="color: #9ca3af;">Integrity compromised.</p>
+            <p id="survivalText" style="color: var(--neon-cyan); margin-top: 20px; font-size: 24px;">Reached Level: 1</p>
+            <button class="start-btn" id="restartBtn" style="background: var(--neon-magenta); margin-top: 30px;">Reboot Sequence</button>
+        </div>
+
+        <div id="victoryScreen" class="overlay-screen" style="display: none;">
+            <h1 style="color: var(--neon-cyan); text-shadow: 0 0 20px var(--neon-cyan);">SYNC COMPLETE</h1>
+            <p style="color: #9ca3af;">You have mastered the dual-core mechanics and survived all 12 levels.</p>
+            <p id="finalScoreText" style="color: var(--neon-yellow); margin-top: 10px; font-size: 24px;">Final Score: 0</p>
+            <button class="start-btn" id="playAgainBtn" style="margin-top: 30px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- GAME STATE ---
+        const state = {
+            isRunning: false,
+            isTransitioning: false,
+            isPaused: false,
+            level: 1,
+            integrity: 100,
+            energy: 0, // Score
+            frames: 0,
+            levelFrames: 0,
+            
+            // Player Data
+            mouseX: canvas.width / 2,
+            mouseY: canvas.height / 2,
+            angle: 0,
+            spinSpeed: 0.05,
+            spinDirection: 1, // 1 = clockwise, -1 = counter-clockwise
+            baseRadius: 40,
+            targetRadius: 40,
+            currentRadius: 40,
+            
+            // Entities
+            enemies: [],
+            particles: []
+        };
+
+        const FRAMES_PER_LEVEL = 1800; // 30 seconds * 60fps
+        let animationId = null; // Used to kill the loop on restart
+        
+        // --- UI ELEMENTS ---
+        const uiLevel = document.getElementById('uiLevel');
+        const uiTime = document.getElementById('uiTime');
+        const uiEnergy = document.getElementById('uiEnergy');
+        const uiIntegrity = document.getElementById('uiIntegrity');
+
+        // --- INPUT HANDLING ---
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            state.mouseX = e.clientX - rect.left;
+            state.mouseY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0 && state.isRunning && !state.isPaused && !state.isTransitioning) {
+                state.spinDirection *= -1; // Reverse spin on left click
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') state.targetRadius = 100;
+            if (e.key.toLowerCase() === 'p') togglePause();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'Space') state.targetRadius = 40;
+        });
+
+        // --- MATH HELPERS ---
+        // Checks if a line segment (A to B) intersects a circle (center C, radius R)
+        function lineCircleCollide(A, B, C, r) {
+            const dx = B.x - A.x;
+            const dy = B.y - A.y;
+            const lenSq = dx * dx + dy * dy;
+            let t = 0;
+            if (lenSq !== 0) {
+                t = ((C.x - A.x) * dx + (C.y - A.y) * dy) / lenSq;
+                t = Math.max(0, Math.min(1, t)); // Clamp to segment
+            }
+            const closestX = A.x + t * dx;
+            const closestY = A.y + t * dy;
+            const distSq = (C.x - closestX) * (C.x - closestX) + (C.y - closestY) * (C.y - closestY);
+            return distSq < (r * r);
+        }
+
+        function circleCollide(A, B, rA, rB) {
+            const dist = Math.hypot(A.x - B.x, A.y - B.y);
+            return dist < (rA + rB);
+        }
+
+        // --- GAME LOGIC ---
+        function togglePause() {
+            if (!state.isRunning || state.isTransitioning) return;
+            state.isPaused = !state.isPaused;
+            document.getElementById('pauseScreen').style.display = state.isPaused ? 'flex' : 'none';
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('pauseScreen').style.display = 'none';
+            
+            // Kill any existing loops to prevent the speed-up glitch
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            state.isRunning = true;
+            state.isPaused = false;
+            state.level = 1;
+            state.integrity = 100;
+            state.energy = 0;
+            state.frames = 0;
+            state.levelFrames = 0;
+            state.enemies = [];
+            state.particles = [];
+            
+            state.mouseX = canvas.width / 2;
+            state.mouseY = canvas.height / 2;
+            state.targetRadius = 40;
+            
+            updateUI();
+            showTransition(state.level);
+            
+            // Start a fresh, clean loop
+            gameLoop();
+        }
+
+        function showTransition(level) {
+            state.isTransitioning = true;
+            const screen = document.getElementById('levelTransitionScreen');
+            const contentBox = document.getElementById('transitionContent');
+            
+            // Inject HTML dynamically so the CSS animations reset and replay perfectly
+            let html = `<h2 class="fade-in-first" style="color: #9ca3af; letter-spacing: 4px; font-size: 28px; margin-bottom: 10px;">Now entering</h2>`;
+            html += `<h1 class="fade-in-second" style="color: var(--neon-yellow); text-shadow: 0 0 20px var(--neon-yellow); font-size: 64px; margin: 0;">Level ${level}</h1>`;
+            
+            if (level === 12) {
+                html += `<h2 class="fade-in-second" style="color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); font-size: 32px; margin-top: 20px;">Final level. Good luck!</h2>`;
+            }
+            
+            contentBox.innerHTML = html;
+            screen.style.display = 'flex';
+            
+            setTimeout(() => {
+                screen.style.display = 'none';
+                state.isTransitioning = false;
+            }, 3500); // 3.5 seconds gives enough time for the 1s delay + reading time
+        }
+
+        function spawnEnemy() {
+            // Spawn from outside edges
+            let ex, ey;
+            if (Math.random() < 0.5) {
+                ex = Math.random() < 0.5 ? -20 : canvas.width + 20;
+                ey = Math.random() * canvas.height;
+            } else {
+                ex = Math.random() * canvas.width;
+                ey = Math.random() < 0.5 ? -20 : canvas.height + 20;
+            }
+
+            // Progressive Difficulty Scaling for 12 levels
+            // Level 1 = very slow (0.65), Level 12 = fast (2.3)
+            const speedBase = 0.5 + (state.level * 0.15);
+            const isChaser = state.level >= 5 && Math.random() < (state.level * 0.05); // Chasers start appearing level 5
+
+            state.enemies.push({
+                x: ex, y: ey,
+                radius: 8,
+                speed: speedBase + (Math.random() * 0.5), // Small variance so they don't clump
+                isChaser: isChaser
+            });
+        }
+
+        function spawnParticles(x, y, color, count) {
+            for(let i=0; i<count; i++) {
+                state.particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function takeDamage(amount) {
+            state.integrity -= amount;
+            uiIntegrity.classList.add('stat-bad');
+            setTimeout(() => uiIntegrity.classList.remove('stat-bad'), 200);
+            
+            if (state.integrity <= 0) {
+                state.integrity = 0;
+                state.isRunning = false; // Kills the loop
+                document.getElementById('survivalText').innerText = `Reached Level: ${state.level}`;
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            uiLevel.innerText = state.level;
+            uiEnergy.innerText = state.energy;
+            uiIntegrity.innerText = Math.floor(state.integrity);
+            
+            const remainingSecs = Math.max(0, Math.floor((FRAMES_PER_LEVEL - state.levelFrames) / 60));
+            const mins = Math.floor(remainingSecs / 60).toString().padStart(2, '0');
+            const secs = (remainingSecs % 60).toString().padStart(2, '0');
+            uiTime.innerText = `${mins}:${secs}`;
+        }
+
+        function updateMechanics() {
+            // Smoothly animate tether radius expansion/contraction
+            state.currentRadius += (state.targetRadius - state.currentRadius) * 0.1;
+            
+            // Update Rotation
+            state.angle += state.spinSpeed * state.spinDirection;
+
+            // Calculate Core Positions
+            const core1 = {
+                x: state.mouseX + Math.cos(state.angle) * state.currentRadius,
+                y: state.mouseY + Math.sin(state.angle) * state.currentRadius
+            };
+            const core2 = {
+                x: state.mouseX + Math.cos(state.angle + Math.PI) * state.currentRadius,
+                y: state.mouseY + Math.sin(state.angle + Math.PI) * state.currentRadius
+            };
+
+            // Spawn Enemies
+            // Level 1: Spawn every ~2.7 secs (165 frames). Level 12: Spawn every ~0.4 secs (25 frames)
+            const spawnInterval = Math.max(25, 180 - (state.level * 15));
+            if (state.frames % spawnInterval === 0) spawnEnemy();
+
+            // Update Enemies
+            for (let i = state.enemies.length - 1; i >= 0; i--) {
+                let e = state.enemies[i];
+                
+                // Movement logic
+                let targetX = state.mouseX;
+                let targetY = state.mouseY;
+
+                if (e.isChaser) {
+                    // Chasers aim for the closest core instead of the center
+                    const dist1 = Math.hypot(core1.x - e.x, core1.y - e.y);
+                    const dist2 = Math.hypot(core2.x - e.x, core2.y - e.y);
+                    if (dist1 < dist2) { targetX = core1.x; targetY = core1.y; } 
+                    else { targetX = core2.x; targetY = core2.y; }
+                }
+
+                const angleToTarget = Math.atan2(targetY - e.y, targetX - e.x);
+                e.x += Math.cos(angleToTarget) * e.speed;
+                e.y += Math.sin(angleToTarget) * e.speed;
+
+                // --- COLLISIONS ---
+                let destroyed = false;
+
+                // 1. Did it hit a vulnerable Core? (BAD)
+                if (circleCollide(e, core1, e.radius, 12) || circleCollide(e, core2, e.radius, 12)) {
+                    takeDamage(15);
+                    spawnParticles(e.x, e.y, '#ff00ea', 15);
+                    destroyed = true;
+                }
+                // 2. Did it hit the lethal Tether? (GOOD)
+                else if (lineCircleCollide(core1, core2, e, e.radius)) {
+                    state.energy += 10;
+                    spawnParticles(e.x, e.y, '#00f3ff', 8);
+                    updateUI();
+                    destroyed = true;
+                }
+
+                if (destroyed) state.enemies.splice(i, 1);
+            }
+
+            // Update Particles
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                let p = state.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.04;
+                if (p.life <= 0) state.particles.splice(i, 1);
+            }
+
+            // Check Level Progress
+            if (state.levelFrames >= FRAMES_PER_LEVEL) {
+                state.level++;
+                state.levelFrames = 0;
+                
+                if (state.level > 12) {
+                    state.isRunning = false;
+                    document.getElementById('finalScoreText').innerText = `Final Score: ${state.energy}`;
+                    document.getElementById('victoryScreen').style.display = 'flex';
+                } else {
+                    state.enemies = [];
+                    state.particles = [];
+                    state.integrity = 100; // Reset integrity to exactly 100% on every level up
+                    updateUI();
+                    showTransition(state.level);
+                }
+            }
+        }
+
+        function drawGame() {
+            // Slight trail effect
+            ctx.fillStyle = 'rgba(5, 5, 16, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const core1 = {
+                x: state.mouseX + Math.cos(state.angle) * state.currentRadius,
+                y: state.mouseY + Math.sin(state.angle) * state.currentRadius
+            };
+            const core2 = {
+                x: state.mouseX + Math.cos(state.angle + Math.PI) * state.currentRadius,
+                y: state.mouseY + Math.sin(state.angle + Math.PI) * state.currentRadius
+            };
+
+            // Draw Center Ghost Node
+            ctx.beginPath();
+            ctx.arc(state.mouseX, state.mouseY, 3, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.fill();
+
+            // Draw Tether (Lethal Line)
+            ctx.beginPath();
+            ctx.moveTo(core1.x, core1.y);
+            ctx.lineTo(core2.x, core2.y);
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00f3ff';
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset
+
+            // Draw Cores (Vulnerable Ends)
+            [core1, core2].forEach(c => {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 12, 0, Math.PI*2);
+                ctx.fillStyle = '#0a0a1a';
+                ctx.fill();
+                ctx.strokeStyle = '#00f3ff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Inner core dot
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 4, 0, Math.PI*2);
+                ctx.fillStyle = '#fffb00';
+                ctx.fill();
+            });
+
+            // Draw Enemies
+            state.enemies.forEach(e => {
+                ctx.save();
+                ctx.translate(e.x, e.y);
+                ctx.rotate(state.frames * 0.1); // Spin the diamond
+                ctx.beginPath();
+                ctx.moveTo(0, -e.radius);
+                ctx.lineTo(e.radius, 0);
+                ctx.lineTo(0, e.radius);
+                ctx.lineTo(-e.radius, 0);
+                ctx.closePath();
+                
+                // Chasers have a different visual style (hollow)
+                if (e.isChaser) {
+                    ctx.strokeStyle = '#ff00ea';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = '#ff00ea';
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            // Draw Particles
+            state.particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        function gameLoop() {
+            // Stop the loop completely if the game isn't running
+            if (!state.isRunning) return;
+
+            if (!state.isTransitioning && !state.isPaused) {
+                state.frames++;
+                state.levelFrames++;
+                updateMechanics();
+                if (state.frames % 60 === 0) updateUI();
+            }
+            
+            // We always draw so the background remains visible behind overlays
+            drawGame();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- BINDS ---
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('continueBtn').addEventListener('click', togglePause);
+
+    </script>
+</body>
+</html>

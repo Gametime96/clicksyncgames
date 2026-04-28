@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slide & Jump: Extreme Progression</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            transition: background-color 1s ease;
+        }
+
+        body.second-half {
+            background-color: #1a0505;
+        }
+
+        #gameContainer {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border-radius: 10px;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            transition: background 1s ease;
+        }
+
+        #gameContainer.second-half {
+            background: linear-gradient(to bottom, #2b0404, #4a0e0e, #5c1414);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #ui {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .highlight {
+            color: #fdcb6e;
+        }
+        
+        .lives-text {
+            color: #ff7675;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .overlay h1 {
+            color: #fff;
+            font-size: 54px;
+            margin: 0 0 10px 0;
+            text-shadow: 3px 3px 0 #e84393;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        #gameOverScreen h1 {
+            color: #ff7675;
+            text-shadow: 3px 3px 0 #d63031;
+        }
+
+        #levelCompleteScreen h1 {
+            color: #55efc4;
+            text-shadow: 3px 3px 0 #00b894;
+        }
+        
+        #gameWonScreen h1 {
+            color: #ffeaa7;
+            text-shadow: 3px 3px 0 #fdcb6e;
+            font-size: 48px;
+            line-height: 1.1;
+        }
+
+        .statText {
+            color: #dfe6e9;
+            font-size: 24px;
+            margin-bottom: 10px;
+            white-space: pre-line;
+        }
+
+        .finalScore {
+            color: #ffeaa7;
+            font-size: 32px;
+            margin-bottom: 30px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, #e84393, #0984e3);
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(232, 67, 147, 0.4);
+            margin-top: 20px;
+        }
+
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(232, 67, 147, 0.6);
+        }
+        button:active { transform: scale(0.95); }
+
+        #instructions {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+            color: #dfe6e9;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div id="ui">
+            Level: <span id="levelVal" class="highlight">1</span> | Lives: <span id="livesVal" class="lives-text">5</span><br>
+            Score: <span id="scoreVal">0</span> | Coins: <span id="coinVal">0</span>
+        </div>
+        <div id="instructions">Press Spacebar, Up Arrow, or Click to Jump!</div>
+        
+        <div id="startScreen" class="overlay">
+            <h1>SLIDE & JUMP<br>EXTREME</h1>
+            <div class="statText">Complete 10 levels to win. You have 5 lives.</div>
+            <button id="startBtn">Start Game</button>
+        </div>
+
+        <div id="gameOverScreen" class="overlay" style="display: none;">
+            <h1 id="deathTitle">YOU DIED</h1>
+            <div id="deathReason" class="statText">You fell!</div>
+            <div class="finalScore" id="gameOverScore" style="display:none;">Total Score: <span id="endScoreVal">0</span></div>
+            <button id="restartBtn">Respawn</button>
+        </div>
+
+        <div id="levelCompleteScreen" class="overlay" style="display: none;">
+            <h1 id="lcTitle">LEVEL 1 COMPLETE</h1>
+            <div class="statText">Level Cleared!</div>
+            <button id="nextLevelBtn">Next Level</button>
+        </div>
+
+        <div id="gameWonScreen" class="overlay" style="display: none;">
+            <h1>Congratulations!<br>All 10 levels complete!</h1>
+            <div class="statText">You are a platforming master.</div>
+            <div class="finalScore">Final Score: <span id="winScoreVal">0</span></div>
+            <button id="playAgainBtn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const levelEl = document.getElementById('levelVal');
+        const livesEl = document.getElementById('livesVal');
+        const scoreEl = document.getElementById('scoreVal');
+        const coinEl = document.getElementById('coinVal');
+        
+        const deathTitleEl = document.getElementById('deathTitle');
+        const deathReasonEl = document.getElementById('deathReason');
+        const gameOverScoreEl = document.getElementById('gameOverScore');
+        const endScoreVal = document.getElementById('endScoreVal');
+        const winScoreVal = document.getElementById('winScoreVal');
+        
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const levelCompleteScreen = document.getElementById('levelCompleteScreen');
+        const gameWonScreen = document.getElementById('gameWonScreen');
+        
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        let currentLevel = 1;
+        let score = 0;
+        let coinsCollected = 0;
+        let lives = 5;
+        
+        let gameSpeed = 4.0; // Slower base speed
+        let gravity = 0.5;
+        let isGameOver = false;
+        let isPlaying = false;
+        let animationId;
+        
+        let distanceTraveled = 0;
+        let targetDistance = 0;
+        let finishLineX = -1;
+
+        const ball = {
+            x: 150,
+            y: 200,
+            radius: 15,
+            vy: 0,
+            jumpPower: -13.5, 
+            isGrounded: false,
+            rotation: 0,
+            coyoteTimer: 0 
+        };
+
+        let slides = [];
+        let specialSlides = [];
+        let coins = [];
+        let barriers = []; 
+
+        startBtn.addEventListener('click', () => { resetFullGame(); startLevel(1); });
+        
+        restartBtn.addEventListener('click', () => { 
+            if (lives > 0) {
+                startLevel(currentLevel); 
+            } else {
+                resetFullGame(); 
+                startLevel(1); 
+            }
+        });
+        
+        playAgainBtn.addEventListener('click', () => { resetFullGame(); startLevel(1); });
+        nextLevelBtn.addEventListener('click', () => { startLevel(currentLevel + 1); });
+
+        function jump() {
+            if ((ball.isGrounded || ball.coyoteTimer > 0) && isPlaying && !isGameOver) {
+                ball.vy = ball.jumpPower;
+                ball.isGrounded = false;
+                ball.coyoteTimer = 0;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        canvas.addEventListener('mousedown', jump);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            jump();
+        });
+
+        function resetFullGame() {
+            score = 0;
+            coinsCollected = 0;
+            currentLevel = 1;
+            lives = 5;
+        }
+
+        function startLevel(level) {
+            currentLevel = level;
+            distanceTraveled = 0;
+            finishLineX = -1;
+            
+            // Explicitly set the durations as requested
+            let estimatedDurationSeconds = 15;
+            if (level >= 1 && level <= 3) estimatedDurationSeconds = 15;
+            else if (level === 4 || level === 5) estimatedDurationSeconds = 25;
+            else if (level >= 6 && level <= 8) estimatedDurationSeconds = 35;
+            else if (level === 9) estimatedDurationSeconds = 45;
+            else if (level === 10) estimatedDurationSeconds = 60;
+            
+            // Reduced speed scaling to make the game easier to control
+            gameSpeed = 4.0 + (level * 0.3); 
+            
+            targetDistance = estimatedDurationSeconds * 60 * gameSpeed;
+
+            const container = document.getElementById('gameContainer');
+            if (level >= 6) {
+                document.body.classList.add('second-half');
+                container.classList.add('second-half');
+            } else {
+                document.body.classList.remove('second-half');
+                container.classList.remove('second-half');
+            }
+
+            isGameOver = false;
+            isPlaying = true;
+            
+            ball.y = 100;
+            ball.vy = 0;
+            ball.rotation = 0;
+            ball.isGrounded = false;
+            ball.coyoteTimer = 0;
+
+            slides = [];
+            specialSlides = [];
+            coins = [];
+            barriers = [];
+            
+            slides.push({ x: 0, y: 350, width: 900, height: 25 });
+            
+            spawnSlide(950);
+            spawnSlide(1400);
+
+            levelEl.innerText = currentLevel;
+            scoreEl.innerText = score;
+            coinEl.innerText = coinsCollected;
+            livesEl.innerText = lives;
+            
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            levelCompleteScreen.style.display = 'none';
+            gameWonScreen.style.display = 'none';
+            gameOverScoreEl.style.display = 'none';
+
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function spawnSlide(startX) {
+            // Very wide platforms to start, shrinking much more gradually
+            let minWidth = Math.max(150, 300 - (currentLevel * 10));
+            let maxWidth = Math.max(250, 600 - (currentLevel * 15));
+            const width = Math.random() * (maxWidth - minWidth) + minWidth;
+            
+            const minHeight = 250;
+            const maxHeight = 430;
+            const y = Math.random() * (maxHeight - minHeight) + minHeight;
+
+            slides.push({ x: startX, y: y, width: width, height: 25 });
+
+            if (Math.random() > 0.4) {
+                spawnCoin(startX + width / 2, y - 40 - Math.random() * 30);
+            }
+
+            if (Math.random() > 0.7) {
+                spawnSpecialSlide(startX + width * 0.5, y - 130 - Math.random() * 50);
+            }
+
+            if (currentLevel >= 6) {
+                // Gentle barrier progression
+                let barrierChance = (currentLevel - 5) * 0.08; 
+                
+                if (width > 200 && Math.random() < barrierChance) { 
+                    barriers.push({
+                        x: startX + (width / 2) - 10, 
+                        y: y - 30, 
+                        width: 20,
+                        height: 30
+                    });
+                }
+            }
+        }
+
+        function spawnSpecialSlide(startX, y) {
+            const width = Math.random() * 100 + 120; 
+            specialSlides.push({
+                x: startX,
+                y: y,
+                width: width,
+                height: 15,
+                isActive: true,
+                timer: 0,
+                blinkInterval: Math.max(60, 120 - (currentLevel * 4)) // Slower blink
+            });
+
+            spawnCoin(startX + width/2, y - 50);
+        }
+
+        function spawnCoin(x, y) {
+            coins.push({
+                x: x,
+                y: y,
+                radius: 12,
+                collected: false
+            });
+        }
+
+        function triggerGameOver(reason) {
+            isPlaying = false;
+            lives--;
+            livesEl.innerText = lives;
+            
+            if (lives > 0) {
+                deathTitleEl.innerText = "YOU DIED";
+                deathReasonEl.innerText = `${reason}\n\nLives Remaining: ${lives}`;
+                restartBtn.innerText = "Respawn";
+                gameOverScreen.style.display = 'flex';
+            } else {
+                isGameOver = true;
+                deathTitleEl.innerText = "GAME OVER";
+                deathReasonEl.innerText = `${reason}\n\nYou are out of lives!`;
+                endScoreVal.innerText = score;
+                gameOverScoreEl.style.display = 'block';
+                restartBtn.innerText = "Try Again (Start Level 1)";
+                gameOverScreen.style.display = 'flex';
+            }
+        }
+
+        function triggerLevelComplete() {
+            isPlaying = false;
+            
+            score += 1000;
+            scoreEl.innerText = score;
+            
+            if (currentLevel >= 10) {
+                winScoreVal.innerText = score;
+                gameWonScreen.style.display = 'flex';
+            } else {
+                document.getElementById('lcTitle').innerText = `LEVEL ${currentLevel} COMPLETE`;
+                levelCompleteScreen.style.display = 'flex';
+            }
+        }
+
+        function drawBall() {
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(ball.rotation);
+
+            ctx.beginPath();
+            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#00cec9'; 
+            ctx.fill();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00cec9';
+            ctx.closePath();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, ball.radius - 5, 0, Math.PI);
+            ctx.fillStyle = '#81ecec';
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.restore();
+        }
+
+        function drawSlides() {
+            let topColor = currentLevel >= 6 ? '#d63031' : '#00b894';
+            let bottomColor = currentLevel >= 6 ? '#b33939' : '#009432';
+
+            slides.forEach(slide => {
+                ctx.fillStyle = topColor; 
+                ctx.beginPath();
+                ctx.roundRect(slide.x, slide.y, slide.width, slide.height, 8);
+                ctx.fill();
+                
+                ctx.fillStyle = bottomColor; 
+                ctx.beginPath();
+                ctx.roundRect(slide.x, slide.y + slide.height - 6, slide.width, 6, {bottomLeft: 8, bottomRight: 8});
+                ctx.fill();
+            });
+
+            specialSlides.forEach(slide => {
+                if (slide.isActive) {
+                    ctx.fillStyle = '#a29bfe'; 
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#a29bfe';
+                    ctx.beginPath();
+                    ctx.roundRect(slide.x, slide.y, slide.width, slide.height, 5);
+                    ctx.fill();
+                    ctx.shadowBlur = 0; 
+                } else {
+                    ctx.strokeStyle = 'rgba(162, 155, 254, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.roundRect(slide.x, slide.y, slide.width, slide.height, 5);
+                    ctx.stroke();
+                    ctx.setLineDash([]); 
+                }
+            });
+        }
+
+        function drawFinishLine() {
+            if (finishLineX !== -1) {
+                const blockSize = 25;
+                const columns = 3;
+                
+                for (let c = 0; c < columns; c++) {
+                    for (let r = 0; r < canvas.height / blockSize; r++) {
+                        ctx.fillStyle = (r + c) % 2 === 0 ? '#fff' : '#000';
+                        ctx.fillRect(finishLineX + (c * blockSize), r * blockSize, blockSize, blockSize);
+                    }
+                }
+            }
+        }
+
+        function drawBarriers() {
+            barriers.forEach(barrier => {
+                ctx.fillStyle = '#ff4757'; 
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ff4757';
+                
+                ctx.beginPath();
+                ctx.moveTo(barrier.x, barrier.y + barrier.height);
+                ctx.lineTo(barrier.x + (barrier.width / 2), barrier.y);
+                ctx.lineTo(barrier.x + barrier.width, barrier.y + barrier.height);
+                ctx.fill();
+                ctx.closePath();
+                ctx.shadowBlur = 0;
+            });
+        }
+
+        function drawCoins() {
+            coins.forEach(coin => {
+                if (!coin.collected) {
+                    ctx.beginPath();
+                    ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = '#fdcb6e'; 
+                    ctx.fill();
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#ffeaa7';
+                    ctx.stroke();
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#fdcb6e';
+                    ctx.closePath();
+                    ctx.shadowBlur = 0; 
+                }
+            });
+        }
+
+        function handleCollisions(platformArray, isSpecial) {
+            let onAnyPlatform = false;
+
+            for (let i = 0; i < platformArray.length; i++) {
+                let slide = platformArray[i];
+                slide.x -= gameSpeed; 
+
+                if (isSpecial) {
+                    slide.timer++;
+                    if (slide.timer >= slide.blinkInterval) {
+                        slide.timer = 0;
+                        slide.isActive = !slide.isActive;
+                    }
+                }
+
+                if (isSpecial && !slide.isActive) continue;
+
+                if (ball.vy >= 0 && 
+                    ball.x + ball.radius > slide.x - 10 && 
+                    ball.x - ball.radius < slide.x + slide.width + 10) {
+                    
+                    if (ball.y + ball.radius >= slide.y && ball.y + ball.radius - ball.vy <= slide.y + 15) {
+                        onAnyPlatform = true;
+                        ball.y = slide.y - ball.radius; 
+                        ball.vy = 0;
+                    }
+                }
+            }
+            return onAnyPlatform;
+        }
+
+        function handleBarrierCollisions() {
+            for (let i = 0; i < barriers.length; i++) {
+                let b = barriers[i];
+                b.x -= gameSpeed;
+
+                if (ball.x + ball.radius > b.x && 
+                    ball.x - ball.radius < b.x + b.width &&
+                    ball.y + ball.radius > b.y && 
+                    ball.y - ball.radius < b.y + b.height) {
+                    triggerGameOver("Hit a barrier!");
+                }
+            }
+        }
+
+        function update() {
+            ball.vy += gravity;
+            ball.y += ball.vy;
+            ball.rotation += (gameSpeed / ball.radius);
+
+            distanceTraveled += gameSpeed;
+
+            if (distanceTraveled >= targetDistance && finishLineX === -1) {
+                let lastSlide = slides[slides.length - 1];
+                let spawnX = (lastSlide ? lastSlide.x + lastSlide.width : canvas.width) + 200;
+                
+                finishLineX = spawnX + 400; 
+
+                slides.push({ x: spawnX, y: 350, width: 2000, height: 25 });
+            }
+
+            if (finishLineX !== -1) {
+                finishLineX -= gameSpeed;
+                
+                if (ball.x + ball.radius > finishLineX && ball.x - ball.radius < finishLineX + 75) {
+                    triggerLevelComplete();
+                    return; 
+                }
+            }
+
+            let groundedOnStandard = handleCollisions(slides, false);
+            let groundedOnSpecial = handleCollisions(specialSlides, true);
+            handleBarrierCollisions();
+            
+            ball.isGrounded = groundedOnStandard || groundedOnSpecial;
+
+            if (ball.isGrounded) {
+                ball.coyoteTimer = 10; 
+            } else {
+                ball.coyoteTimer--;
+            }
+
+            for (let i = 0; i < coins.length; i++) {
+                let coin = coins[i];
+                coin.x -= gameSpeed;
+
+                if (!coin.collected) {
+                    const dx = ball.x - coin.x;
+                    const dy = ball.y - coin.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < ball.radius + coin.radius + 5) { 
+                        coin.collected = true;
+                        coinsCollected++;
+                        score += 25; 
+                        coinEl.innerText = coinsCollected;
+                        scoreEl.innerText = score;
+                    }
+                }
+            }
+
+            if (slides[0] && slides[0].x + slides[0].width < -100) slides.shift();
+            if (specialSlides[0] && specialSlides[0].x + specialSlides[0].width < -100) specialSlides.shift();
+            if (coins[0] && coins[0].x + coins[0].radius < -100) coins.shift();
+            if (barriers[0] && barriers[0].x + barriers[0].width < -100) barriers.shift();
+
+            if (finishLineX === -1) {
+                let lastSlide = slides[slides.length - 1];
+                if (lastSlide && lastSlide.x + lastSlide.width < canvas.width + 200) {
+                    // Very small, forgiving gaps
+                    let minGap = 20 + (currentLevel * 5);
+                    let maxGap = 50 + (currentLevel * 10);
+                    let gap = Math.random() * (maxGap - minGap) + minGap; 
+                    spawnSlide(lastSlide.x + lastSlide.width + gap);
+                }
+            }
+
+            if (ball.y - ball.radius > canvas.height + 50) {
+                triggerGameOver("You fell into the abyss!");
+            }
+        }
+
+        function gameLoop() {
+            if (isPlaying && !isGameOver) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                update();
+                
+                drawFinishLine();
+                drawSlides();
+                drawCoins();
+                drawBarriers();
+                drawBall();
+
+                if (isPlaying) { 
+                    animationId = requestAnimationFrame(gameLoop);
+                }
+            }
+        }
+
+        drawSlides();
+        drawBall();
+
+    </script>
+</body>
+</html>

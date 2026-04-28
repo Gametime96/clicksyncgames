@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UFO Space Battle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #0a0a1a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+        }
+        canvas {
+            background-color: #000;
+            border: 3px solid #333;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .instructions {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>UFO Space Battle</h2>
+    <div class="instructions">
+        <strong>Player Controls:</strong> Arrow Up / Arrow Down to move. Spacebar to shoot.
+    </div>
+    
+    <canvas id="gameCanvas" width="900" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Game State
+        let gameOver = false;
+        let winner = "";
+
+        // Input
+        const keys = { ArrowUp: false, ArrowDown: false, " ": false };
+        
+        window.addEventListener("keydown", (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        });
+        window.addEventListener("keyup", (e) => {
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+
+        // Entities
+        const player = {
+            x: 50, y: 225, width: 60, height: 30, hp: 10, speed: 4, cooldown: 0
+        };
+
+        const computer = {
+            x: 790, y: 225, width: 60, height: 30, hp: 10, speed: 2.5, cooldown: 0, direction: 1
+        };
+
+        let lasers = [];
+        let aliens = [];
+        let particles = []; // For smoke
+
+        // Initialize Aliens (Middle Barrier)
+        function initAliens() {
+            const cols = 3;
+            const rows = 12;
+            const startX = (canvas.width / 2) - 45;
+            const startY = 40;
+            
+            for (let c = 0; c < cols; c++) {
+                for (let r = 0; r < rows; r++) {
+                    aliens.push({
+                        x: startX + (c * 30),
+                        y: startY + (r * 35),
+                        width: 25,
+                        height: 25,
+                        active: true
+                    });
+                }
+            }
+        }
+        initAliens();
+
+        // Utility: Collision Detection
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // --- DRAWING FUNCTIONS ---
+
+        function drawUFO(ufo, color) {
+            ctx.save();
+            
+            // Glitch effect logic for lights
+            let isGlitching = ufo.hp <= 5;
+            let lightColor = "cyan";
+            if (isGlitching && Math.random() < 0.3) {
+                lightColor = ["red", "yellow", "transparent", "white"][Math.floor(Math.random() * 4)];
+            }
+
+            // Draw Smoke if HP <= 5
+            if (isGlitching && Math.random() < 0.4 && !gameOver) {
+                particles.push({
+                    x: ufo.x + ufo.width / 2 + (Math.random() * 20 - 10),
+                    y: ufo.y + 10,
+                    vx: (Math.random() - 0.5),
+                    vy: -1 - Math.random() * 2,
+                    life: 40,
+                    maxLife: 40,
+                    size: Math.random() * 5 + 3
+                });
+            }
+
+            // Dome
+            ctx.fillStyle = "rgba(150, 200, 255, 0.7)";
+            ctx.beginPath();
+            ctx.arc(ufo.x + ufo.width / 2, ufo.y + 10, ufo.width / 3, Math.PI, 0);
+            ctx.fill();
+
+            // Base
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.ellipse(ufo.x + ufo.width / 2, ufo.y + 15, ufo.width / 2, ufo.height / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Lights
+            ctx.fillStyle = lightColor;
+            for (let i = -1; i <= 1; i++) {
+                ctx.beginPath();
+                ctx.arc(ufo.x + ufo.width / 2 + (i * 15), ufo.y + 20, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Health Bar
+            ctx.fillStyle = "red";
+            ctx.fillRect(ufo.x, ufo.y - 15, ufo.width, 5);
+            ctx.fillStyle = "lime";
+            ctx.fillRect(ufo.x, ufo.y - 15, (ufo.width * ufo.hp) / 10, 5);
+
+            ctx.restore();
+        }
+
+        function drawAliens() {
+            ctx.fillStyle = "#32CD32"; // Lime green aliens
+            aliens.forEach(alien => {
+                if (alien.active) {
+                    ctx.fillRect(alien.x, alien.y, alien.width, alien.height);
+                    // Alien eyes
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(alien.x + 5, alien.y + 5, 4, 4);
+                    ctx.fillRect(alien.x + 16, alien.y + 5, 4, 4);
+                    ctx.fillStyle = "#32CD32";
+                }
+            });
+        }
+
+        function drawSmoke() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                ctx.fillStyle = `rgba(150, 150, 150, ${p.life / p.maxLife})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Update smoke
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                p.size += 0.1;
+
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        // --- UPDATE LOOP ---
+
+        function update() {
+            if (gameOver) return;
+
+            // Player Movement
+            if (keys.ArrowUp && player.y > 0) player.y -= player.speed;
+            if (keys.ArrowDown && player.y < canvas.height - player.height) player.y += player.speed;
+
+            // Player Shooting
+            if (keys[" "] && player.cooldown <= 0) {
+                lasers.push({ x: player.x + player.width, y: player.y + 13, width: 20, height: 4, speed: 7, color: "red", owner: "player" });
+                player.cooldown = 20; // Frames until next shot
+            }
+            if (player.cooldown > 0) player.cooldown--;
+
+            // Computer AI Movement
+            computer.y += computer.speed * computer.direction;
+            if (computer.y <= 0 || computer.y >= canvas.height - computer.height) {
+                computer.direction *= -1; // Bounce off walls
+            }
+
+            // Computer AI Shooting (Randomized logic)
+            if (computer.cooldown <= 0 && Math.random() < 0.05) {
+                lasers.push({ x: computer.x - 20, y: computer.y + 13, width: 20, height: 4, speed: -7, color: "cyan", owner: "computer" });
+                computer.cooldown = 40; // Fires slightly slower than player
+            }
+            if (computer.cooldown > 0) computer.cooldown--;
+
+            // Laser Logic
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                let l = lasers[i];
+                l.x += l.speed;
+
+                let laserRemoved = false;
+
+                // Check collision with Aliens
+                for (let j = 0; j < aliens.length; j++) {
+                    if (aliens[j].active && checkCollision(l, aliens[j])) {
+                        aliens[j].active = false;
+                        lasers.splice(i, 1);
+                        laserRemoved = true;
+                        break;
+                    }
+                }
+                if (laserRemoved) continue;
+
+                // Check collision with UFOs
+                if (l.owner === "computer" && checkCollision(l, player)) {
+                    player.hp--;
+                    lasers.splice(i, 1);
+                    laserRemoved = true;
+                } else if (l.owner === "player" && checkCollision(l, computer)) {
+                    computer.hp--;
+                    lasers.splice(i, 1);
+                    laserRemoved = true;
+                }
+
+                if (laserRemoved) {
+                    if (player.hp <= 0) endGame("Computer Wins!");
+                    if (computer.hp <= 0) endGame("Player Wins!");
+                    continue;
+                }
+
+                // Remove off-screen lasers
+                if (l.x > canvas.width || l.x < -l.width) {
+                    lasers.splice(i, 1);
+                }
+            }
+        }
+
+        function endGame(winnerText) {
+            gameOver = true;
+            winner = winnerText;
+        }
+
+        // --- MAIN RENDER LOOP ---
+
+        function draw() {
+            // Clear Screen
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Game Elements
+            drawAliens();
+            
+            // Draw Lasers
+            lasers.forEach(l => {
+                ctx.fillStyle = l.color;
+                ctx.fillRect(l.x, l.y, l.width, l.height);
+            });
+
+            drawSmoke();
+            
+            // Draw UFOs if alive
+            if (player.hp > 0) drawUFO(player, "#555");
+            if (computer.hp > 0) drawUFO(computer, "#444");
+
+            // Game Over Text
+            if (gameOver) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "white";
+                ctx.font = "40px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(winner, canvas.width / 2, canvas.height / 2);
+                ctx.font = "20px sans-serif";
+                ctx.fillText("Refresh the page to play again.", canvas.width / 2, canvas.height / 2 + 40);
+            }
+
+            update();
+            requestAnimationFrame(draw);
+        }
+
+        // Start Loop
+        draw();
+    </script>
+</body>
+</html>

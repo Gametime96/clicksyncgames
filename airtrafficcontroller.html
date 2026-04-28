@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATC Madness: Command & Control</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #121212; color: #ecf0f1; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        #game-container { flex: 1; position: relative; background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; }
+        canvas { background-color: #1b3d16; box-shadow: 0 0 40px rgba(0,0,0,0.7); cursor: crosshair; }
+        
+        #sidebar { width: 320px; background-color: #2c3e50; padding: 20px; display: flex; flex-direction: column; border-left: 4px solid #3498db; box-sizing: border-box; }
+        .stat-box { background: #1a252f; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px solid #3498db; }
+        #level-display { font-size: 24px; color: #f1c40f; font-weight: bold; }
+        #timer-display { font-size: 18px; color: #bdc3c7; }
+        #quota-display { font-size: 14px; color: #2ecc71; margin-top: 5px; }
+
+        .panel { background-color: #34495e; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #95a5a6; min-height: 160px; }
+        .btn { display: block; width: 100%; padding: 12px; margin-top: 10px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background-color: #2980b9; }
+        .btn-pause { position: absolute; top: 15px; left: 15px; width: 110px; z-index: 10; background: #e67e22; }
+
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.97); display: flex; justify-content: center; align-items: center; z-index: 100; text-align: center; }
+        .modal { max-width: 700px; padding: 40px; background: #1c2833; border-radius: 20px; border: 2px solid #3498db; }
+        
+        .fade-text { animation: fadeInOut 4s infinite; font-size: 32px; color: #f1c40f; margin-bottom: 20px; font-weight: bold; }
+        @keyframes fadeInOut { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        .instruction-list { text-align: left; margin: 20px 0; font-size: 18px; line-height: 1.6; }
+        .instruction-list div { margin-bottom: 10px; padding-left: 15px; border-left: 4px solid #f1c40f; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <button class="btn btn-pause" onclick="togglePause()">Pause (P)</button>
+
+        <div id="menu-overlay" class="overlay">
+            <div class="modal" id="modal-content">
+                <div class="fade-text" id="menu-title">ATC Madness: Ground Operations</div>
+                <div class="instruction-list" id="menu-instructions">
+                    <div><b>Manual Departure:</b> Planes will wait at the gate when finished.</div>
+                    <div><b>Ready Signal:</b> Look for the yellow <b>"!"</b> bubble to authorize pushback.</div>
+                    <div><b>Altitude Rule:</b> Airborne (Large) vs Ground (Small) planes don't collide.</div>
+                    <div><b>Quota:</b> Meet the departure target before the 2-minute timer ends.</div>
+                </div>
+                <button class="btn" id="main-btn" style="background: #27ae60; font-size: 20px;" onclick="startGame()">START LEVEL 1</button>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="900" height="750"></canvas>
+    </div>
+
+    <div id="sidebar">
+        <div class="stat-box">
+            <div id="level-display">LEVEL 1</div>
+            <div id="timer-display">Time: 2:00</div>
+            <div id="quota-display">Quota: 0 / 3</div>
+        </div>
+        <div class="panel">
+            <div id="plane-id" style="font-size: 18px; font-weight: bold; color: #f1c40f;">No Selection</div>
+            <div id="plane-status" style="font-size: 14px; margin: 10px 0; color: #bdc3c7;">Awaiting radar contact...</div>
+            <div id="action-buttons"></div>
+        </div>
+        <div id="log" style="flex:1; background: #000; font-family: monospace; font-size: 11px; padding: 10px; color: #2ecc71; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const log = document.getElementById('log');
+        
+        let level = 1, timeLeft = 120, isPaused = false, isRunning = false, departures = 0;
+        let planes = [], selectedPlane = null, frameCount = 0;
+
+        const terminalX = 450, terminalY = 375;
+        const gates = [
+            { id: "A", x: terminalX - 50, y: terminalY - 50, occupied: null }, 
+            { id: "B", x: terminalX + 50, y: terminalY - 50, occupied: null }, 
+            { id: "C", x: terminalX + 50, y: terminalY + 50, occupied: null }, 
+            { id: "D", x: terminalX - 50, y: terminalY + 50, occupied: null }
+        ];
+
+        const runways = {
+            1: { label: "L1", x: 150, y: 70, w: 600, h: 40, approach: {x: 880, y: 70}, start: {x: 700, y: 70}, end: {x: 200, y: 70}, exit: {x: 200, y: 160} },
+            2: { label: "L2", x: 150, y: 640, w: 600, h: 40, approach: {x: 20, y: 640}, start: {x: 200, y: 640}, end: {x: 700, y: 640}, exit: {x: 700, y: 560} },
+            3: { label: "T3", x: 150, y: 190, w: 600, h: 40, hold: {x: 700, y: 190}, start: {x: 700, y: 190}, end: {x: 200, y: 190} },
+            4: { label: "T4", x: 150, y: 520, w: 600, h: 40, hold: {x: 200, y: 520}, start: {x: 200, y: 520}, end: {x: 700, y: 520} }
+        };
+
+        class Plane {
+            constructor() {
+                this.id = "FL-" + (100 + Math.floor(Math.random() * 899));
+                this.state = "CRUISING";
+                this.speed = 0.55; // Slightly slower as requested
+                this.isSmall = false; 
+                const left = Math.random() > 0.5;
+                this.x = left ? -50 : 950;
+                this.y = Math.random() * 200 + 150;
+                this.angle = left ? 0 : Math.PI;
+                this.waypoints = [];
+                this.timer = 0;
+            }
+
+            update() {
+                if (this.state === "LOADING") { 
+                    this.isSmall = true;
+                    this.timer--; 
+                    if (this.timer <= 0) {
+                        this.state = "READY_PUSHBACK";
+                        msg(`${this.id} is ready for takeoff clearance.`);
+                    }
+                    return; 
+                }
+                if (this.state === "READY_PUSHBACK" || this.state === "HOLDING") return;
+
+                if (["TAXI_IN", "TAXI_OUT"].includes(this.state)) {
+                    this.isSmall = true;
+                } else if (this.state === "TAKEOFF") {
+                    this.isSmall = false;
+                }
+
+                if (this.waypoints.length > 0) {
+                    let target = this.waypoints[0];
+                    let dx = target.x - this.x, dy = target.y - this.y, dist = Math.hypot(dx, dy);
+                    if (dist < 4) { 
+                        this.waypoints.shift(); 
+                        if (this.waypoints.length === 0) this.nextState(); 
+                    } else {
+                        let diff = Math.atan2(dy, dx) - this.angle;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        this.angle += diff * 0.04;
+                        let s = (this.isSmall) ? 0.35 : (this.state === "TAKEOFF" ? 2.8 : this.speed);
+                        this.x += Math.cos(this.angle) * s; this.y += Math.sin(this.angle) * s;
+                    }
+                } else {
+                    this.x += Math.cos(this.angle) * this.speed;
+                    this.y += Math.sin(this.angle) * this.speed;
+                }
+            }
+
+            nextState() {
+                if (this.state === "LANDING") {
+                    this.state = "TAXI_IN";
+                    this.isSmall = true;
+                    let g = gates.find(gate => !gate.occupied);
+                    if (g) { g.occupied = this; this.gate = g; this.waypoints = [{x: g.x, y: g.y}]; }
+                    else { this.state = "HOLDING"; }
+                } else if (this.state === "TAXI_IN") { 
+                    this.state = "LOADING"; 
+                    this.timer = 300; 
+                } else if (this.state === "TAXI_OUT") { 
+                    this.state = "HOLDING"; 
+                } else if (this.state === "TAKEOFF") { 
+                    this.state = "DEPARTED"; 
+                    departures++; 
+                    updateStats(); 
+                }
+            }
+
+            draw(tCtx) {
+                tCtx.save();
+                tCtx.translate(this.x, this.y);
+                tCtx.rotate(this.angle);
+                let scale = this.isSmall ? 0.6 : 1.0;
+                tCtx.scale(scale, scale);
+                
+                tCtx.fillStyle = "#dfe6e9";
+                tCtx.beginPath(); tCtx.ellipse(0, 0, 20, 7, 0, 0, Math.PI * 2); tCtx.fill();
+                tCtx.fillRect(-4, -22, 10, 44); tCtx.fillRect(-18, -10, 5, 20);
+                
+                if (selectedPlane === this && isRunning) {
+                    tCtx.strokeStyle = "#f1c40f"; tCtx.lineWidth = 3; tCtx.strokeRect(-28, -28, 56, 56);
+                }
+                tCtx.restore();
+
+                // Draw "Ready" Icon
+                if (this.state === "READY_PUSHBACK") {
+                    tCtx.fillStyle = "#f1c40f";
+                    tCtx.beginPath(); tCtx.arc(this.x + 15, this.y - 25, 10, 0, Math.PI*2); tCtx.fill();
+                    tCtx.fillStyle = "black"; tCtx.font = "bold 14px Arial";
+                    tCtx.fillText("!", this.x + 12, this.y - 20);
+                }
+
+                if (isRunning) {
+                    tCtx.fillStyle = "white"; tCtx.font = "bold 11px Arial";
+                    tCtx.fillText(this.id, this.x - 15, this.y - (this.isSmall ? 25 : 35));
+                }
+            }
+        }
+
+        function getQuota() { return Math.max(1, (5 + (level - 1) * 2) - 2); }
+
+        function startGame() {
+            document.getElementById('menu-overlay').classList.add('hidden');
+            isRunning = true;
+            if (!window.timerInt) window.timerInt = setInterval(() => {
+                if (!isPaused && isRunning) {
+                    timeLeft--;
+                    if (timeLeft <= 0) checkWinCondition();
+                    updateStats();
+                }
+            }, 1000);
+            loop();
+        }
+
+        function checkWinCondition() {
+            isRunning = false;
+            if (departures >= getQuota()) {
+                document.getElementById('menu-title').innerText = "SHIFT COMPLETE";
+                document.getElementById('menu-instructions').innerHTML = `<div>Departures: ${departures} / ${getQuota()}</div><div>Safe and efficient. Ready for Level ${level + 1}?</div>`;
+                document.getElementById('main-btn').innerText = "START LEVEL " + (level + 1);
+                document.getElementById('main-btn').onclick = () => { level++; timeLeft = 120; departures = 0; planes = []; gates.forEach(g=>g.occupied=null); startGame(); };
+            } else {
+                document.getElementById('menu-title').innerText = "LEVEL FAILED";
+                document.getElementById('menu-instructions').innerHTML = `<div>Quota missed! You needed ${getQuota()} departures, but only achieved ${departures}.</div>`;
+                document.getElementById('main-btn').innerText = "RETRY LEVEL";
+                document.getElementById('main-btn').onclick = () => { timeLeft = 120; departures = 0; planes = []; gates.forEach(g=>g.occupied=null); startGame(); };
+            }
+            document.getElementById('menu-overlay').classList.remove('hidden');
+        }
+
+        function togglePause() { isPaused = !isPaused; }
+        window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'p') togglePause(); });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            selectedPlane = planes.find(p => Math.hypot(p.x - mx, p.y - my) < 35) || null;
+            updateUI();
+        });
+
+        function updateUI() {
+            const btns = document.getElementById('action-buttons');
+            const status = document.getElementById('plane-status');
+            const id = document.getElementById('plane-id');
+            btns.innerHTML = '';
+            if (!selectedPlane) { id.innerText = "No Selection"; status.innerText = "Select target"; return; }
+            id.innerText = selectedPlane.id; status.innerText = "State: " + selectedPlane.state.replace('_', ' ');
+
+            if (selectedPlane.state === "CRUISING") {
+                addBtn("Land RWY 1 (Top)", () => { selectedPlane.state = "LANDING"; selectedPlane.waypoints = [runways[1].approach, runways[1].start, runways[1].end, runways[1].exit]; });
+                addBtn("Land RWY 2 (Bottom)", () => { selectedPlane.state = "LANDING"; selectedPlane.waypoints = [runways[2].approach, runways[2].start, runways[2].end, runways[2].exit]; });
+            } else if (selectedPlane.state === "READY_PUSHBACK") {
+                addBtn("Taxi to RWY 3 (Top)", () => { selectedPlane.gate.occupied = null; selectedPlane.state = "TAXI_OUT"; selectedPlane.waypoints = [runways[3].hold]; });
+                addBtn("Taxi to RWY 4 (Bottom)", () => { selectedPlane.gate.occupied = null; selectedPlane.state = "TAXI_OUT"; selectedPlane.waypoints = [runways[4].hold]; });
+            } else if (selectedPlane.state === "HOLDING") {
+                addBtn("CLEARED FOR TAKEOFF", () => { selectedPlane.state = "TAKEOFF"; selectedPlane.waypoints = [{x: selectedPlane.x > 450 ? -300 : 1200, y: selectedPlane.y}]; }, "#27ae60");
+            }
+        }
+
+        function addBtn(txt, fn, color="#3498db") {
+            const b = document.createElement('button'); b.className = 'btn'; b.innerText = txt; b.style.background = color;
+            b.onclick = () => { fn(); updateUI(); }; document.getElementById('action-buttons').appendChild(b);
+        }
+
+        function updateStats() {
+            document.getElementById('level-display').innerText = `LEVEL ${level}`;
+            document.getElementById('timer-display').innerText = `Time: ${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
+            document.getElementById('quota-display').innerText = `Quota: ${departures} / ${getQuota()}`;
+        }
+
+        function msg(m) { const d = document.createElement('div'); d.innerText = "> " + m; log.appendChild(d); log.scrollTop = log.scrollHeight; }
+
+        function loop() {
+            if (!isPaused && isRunning) {
+                ctx.clearRect(0,0,900,750);
+                
+                // Terminal Building
+                ctx.strokeStyle = "#4b6584"; ctx.lineWidth = 32;
+                ctx.beginPath(); ctx.moveTo(terminalX-65, terminalY-65); ctx.lineTo(terminalX+65, terminalY+65); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(terminalX+65, terminalY-65); ctx.lineTo(terminalX-65, terminalY+65); ctx.stroke();
+                ctx.fillStyle = "#2c3e50"; ctx.fillRect(terminalX-35, terminalY-35, 70, 70);
+                gates.forEach(g => { ctx.fillStyle = "#f1c40f"; ctx.font = "bold 13px Arial"; ctx.fillText(g.id, g.x-5, g.y+5); });
+
+                // Runways
+                Object.values(runways).forEach(r => {
+                    ctx.fillStyle = "#1e272e"; ctx.fillRect(r.x, r.y, r.w, r.h);
+                    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.setLineDash([10, 10]); ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(r.x + 20, r.y + 20); ctx.lineTo(r.x + r.w - 20, r.y + 20); ctx.stroke();
+                    ctx.setLineDash([]); ctx.fillStyle="white"; ctx.font="bold 14px Arial"; ctx.fillText(r.label, r.x+10, r.y+25);
+                });
+
+                // Spawn Logic
+                let totalToSpawn = 5 + (level - 1) * 2;
+                let spawnInterval = Math.floor(7200 / totalToSpawn);
+                frameCount++;
+                if (frameCount % spawnInterval === 0) {
+                    let spawnX = Math.random() > 0.5 ? -50 : 950;
+                    let isSafe = true;
+                    planes.forEach(p => { if(Math.hypot(p.x - spawnX, p.y - 375) < 150) isSafe = false; });
+                    if(isSafe) planes.push(new Plane());
+                }
+
+                for(let i=0; i<planes.length; i++) {
+                    planes[i].update(); planes[i].draw(ctx);
+                    for(let j=i+1; j<planes.length; j++) {
+                        let p1 = planes[i], p2 = planes[j];
+                        if (p1.isSmall === p2.isSmall && Math.hypot(p1.x - p2.x, p1.y - p2.y) < (p1.isSmall ? 18 : 30)) {
+                            isRunning = false;
+                            document.getElementById('menu-title').innerText = "CRASH!";
+                            document.getElementById('menu-instructions').innerHTML = "<div style='color:#e74c3c; font-weight:bold;'>Critical collision! ATC license revoked.</div>";
+                            document.getElementById('main-btn').innerText = "RESTART";
+                            document.getElementById('main-btn').onclick = () => location.reload();
+                            document.getElementById('menu-overlay').classList.remove('hidden');
+                        }
+                    }
+                    if (planes[i].x < -300 || planes[i].x > 1200) planes.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(loop);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Billiards</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        /* The JS handles the table border, so we keep the canvas clean */
+        canvas {
+            border: none; 
+            outline: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="880" height="640"></canvas>
+    <script src="billiardsgame.js"></script>
+</body>
+</html>

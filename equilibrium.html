@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equilibrium Protocol</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #gameWrapper {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            box-shadow: 0 0 50px rgba(0, 255, 204, 0.1);
+            border: 2px solid #113333;
+            border-radius: 4px;
+            background: radial-gradient(circle at center, #1a2a3a 0%, #050b14 100%);
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #uiLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .hud-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
+            line-height: 1.5;
+        }
+
+        .hud-left { text-align: left; }
+        .hud-right { text-align: right; }
+        .hud-center { 
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .warning-text { color: #ff3333 !important; text-shadow: 0 0 10px #ff3333 !important; }
+
+        #warningOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.2);
+            box-shadow: inset 0 0 100px red;
+            opacity: 0;
+            transition: opacity 0.1s;
+            pointer-events: none;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 11, 20, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            pointer-events: auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #00ffcc;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ffcc;
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: 18px;
+            color: #88ccbb;
+            max-width: 600px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+
+        button {
+            background: transparent;
+            color: #00ffcc;
+            border: 2px solid #00ffcc;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #00ffcc;
+            color: #050b14;
+            box-shadow: 0 0 30px #00ffcc;
+        }
+
+        .btn-danger { color: #ff3333; border-color: #ff3333; }
+        .btn-danger:hover { background: #ff3333; color: #050b14; box-shadow: 0 0 30px #ff3333; }
+        
+        .btn-success { color: #55efc4; border-color: #55efc4; }
+        .btn-success:hover { background: #55efc4; color: #050b14; box-shadow: 0 0 30px #55efc4; }
+
+    </style>
+</head>
+<body>
+
+    <div id="gameWrapper">
+        <canvas id="gameCanvas" width="900" height="600"></canvas>
+        
+        <div id="warningOverlay"></div>
+        
+        <div id="uiLayer">
+            <div class="hud-left hud-text">
+                LEVEL: <span id="levelVal">1</span><br>
+                LIVES: <span id="livesVal">3</span><br>
+                SCORE: <span id="scoreVal">0</span> kg
+            </div>
+            <div class="hud-center hud-text" id="timeVal">00:30</div>
+            <div class="hud-right hud-text">
+                STABILITY<br>
+                <span id="tiltVal">100</span>%
+            </div>
+        </div>
+
+        <div id="startScreen" class="screen">
+            <h1>Equilibrium</h1>
+            <p>Pilot the stabilization drone using your mouse.
+            Click and hold to deploy the magnetic tractor beam.
+            
+            Hold the scale steady for 30 seconds to pass the level.
+            If the scale tilts past 25 degrees, the system collapses.
+            You have 3 lives to clear 10 levels.</p>
+            <button id="startBtn">Initialize</button>
+        </div>
+
+        <div id="deathScreen" class="screen" style="display: none;">
+            <h1 style="color: #ff3333; text-shadow: 0 0 20px #ff3333;">COLLAPSE</h1>
+            <p id="deathReasonText" style="color: #fff;">Structural integrity compromised.</p>
+            <button id="respawnBtn" class="btn-danger">Reboot Protocol</button>
+        </div>
+
+        <div id="gameOverScreen" class="screen" style="display: none;">
+            <h1 style="color: #ff3333; text-shadow: 0 0 20px #ff3333;">SYSTEM FAILURE</h1>
+            <p style="color: #fff;">Out of lives. The mission has failed.</p>
+            <p id="finalScoreText" style="color: #88ccbb; font-size: 24px;">Final Cargo: 0 kg</p>
+            <button id="restartFullBtn" class="btn-danger">Restart from Level 1</button>
+        </div>
+
+        <div id="levelCompleteScreen" class="screen" style="display: none;">
+            <h1 id="lcTitle" style="color: #55efc4; text-shadow: 0 0 20px #55efc4;">LEVEL SECURED</h1>
+            <p style="color: #fff;">Equilibrium maintained.</p>
+            <button id="nextLevelBtn" class="btn-success">Proceed to Next Level</button>
+        </div>
+
+        <div id="gameWonScreen" class="screen" style="display: none;">
+            <h1 style="color: #ffeaa7; text-shadow: 0 0 20px #fdcb6e;">MISSION ACCOMPLISHED</h1>
+            <p style="color: #fff;">You have successfully stabilized all 10 sectors.</p>
+            <p id="winScoreText" style="color: #88ccbb; font-size: 24px;">Total Cargo: 0 kg</p>
+            <button id="playAgainBtn" style="color: #ffeaa7; border-color: #ffeaa7;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Matter.js Aliases ---
+        const Engine = Matter.Engine,
+              World = Matter.World,
+              Bodies = Matter.Bodies,
+              Body = Matter.Body,
+              Events = Matter.Events,
+              Vector = Matter.Vector,
+              Constraint = Matter.Constraint;
+
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = 900;
+        const height = 600;
+
+        let engine;
+        let isPlaying = false;
+        let animationFrame;
+        let mousePos = { x: width / 2, y: 100 };
+        let isMouseDown = false;
+        
+        let drone;
+        let scaleBeam;
+        let crates = [];
+        let tractorBeam = null;
+        
+        let currentLevel = 1;
+        let lives = 3;
+        let totalScore = 0;
+        let levelScore = 0;
+        
+        let frames = 0;
+        let timeRemaining = 30;
+        let spawnRate = 180; 
+        const MAX_TILT_RAD = 25 * (Math.PI / 180); 
+
+        // Solid Crate Colors
+        const CRATE_COLORS = ['#f1c40f', '#e67e22', '#2ecc71', '#ecf0f1']; // Yellow, Orange, Green, White
+
+        const levelEl = document.getElementById('levelVal');
+        const livesEl = document.getElementById('livesVal');
+        const scoreEl = document.getElementById('scoreVal');
+        const timeEl = document.getElementById('timeVal');
+        const tiltDisplay = document.getElementById('tiltVal');
+        const warningOverlay = document.getElementById('warningOverlay');
+        
+        const startScreen = document.getElementById('startScreen');
+        const deathScreen = document.getElementById('deathScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const levelCompleteScreen = document.getElementById('levelCompleteScreen');
+        const gameWonScreen = document.getElementById('gameWonScreen');
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+        });
+        canvas.addEventListener('mousedown', () => isMouseDown = true);
+        canvas.addEventListener('mouseup', () => isMouseDown = false);
+
+        document.getElementById('startBtn').addEventListener('click', () => { resetFullGame(); startLevel(1); });
+        document.getElementById('restartFullBtn').addEventListener('click', () => { resetFullGame(); startLevel(1); });
+        document.getElementById('playAgainBtn').addEventListener('click', () => { resetFullGame(); startLevel(1); });
+        document.getElementById('respawnBtn').addEventListener('click', () => startLevel(currentLevel));
+        document.getElementById('nextLevelBtn').addEventListener('click', () => startLevel(currentLevel + 1));
+
+        function resetFullGame() {
+            currentLevel = 1;
+            lives = 3;
+            totalScore = 0;
+        }
+
+        function startLevel(level) {
+            currentLevel = level;
+            levelScore = 0;
+            frames = 0;
+            timeRemaining = 30;
+            crates = [];
+            tractorBeam = null;
+            isPlaying = true;
+            
+            spawnRate = Math.max(70, 180 - (level * 10)); 
+
+            startScreen.style.display = 'none';
+            deathScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            levelCompleteScreen.style.display = 'none';
+            gameWonScreen.style.display = 'none';
+            warningOverlay.style.opacity = 0;
+
+            updateHUD();
+
+            if (engine) {
+                Events.off(engine, 'beforeUpdate', applyGameLogic);
+                Engine.clear(engine);
+                cancelAnimationFrame(animationFrame);
+            }
+
+            // ENABLE SLEEPING: This is the magic fix that stops boxes from vibrating/jumping once they land
+            engine = Engine.create({ enableSleeping: true });
+            
+            engine.positionIterations = 8;
+            engine.velocityIterations = 8;
+            engine.world.gravity.y = 0.4; 
+
+            createWorld();
+            Events.on(engine, 'beforeUpdate', applyGameLogic);
+            gameLoop();
+        }
+
+        function createWorld() {
+            const ground = Bodies.rectangle(width / 2, height + 50, width * 2, 100, { isStatic: true });
+            const leftWall = Bodies.rectangle(-50, height / 2, 100, height * 2, { isStatic: true });
+            const rightWall = Bodies.rectangle(width + 50, height / 2, 100, height * 2, { isStatic: true });
+
+            scaleBeam = Bodies.rectangle(width / 2, height - 100, 600, 20, { 
+                friction: 1.0, 
+                frictionStatic: 10.0, // Forces the boxes to lock in and not slide
+                restitution: 0.0, 
+                density: 0.005, 
+                render: { fillStyle: '#113333' }
+            });
+            
+            const pivot = Bodies.circle(width / 2, height - 100, 5, { isStatic: true });
+            const pivotJoint = Constraint.create({
+                bodyA: scaleBeam,
+                bodyB: pivot,
+                length: 0,
+                stiffness: 1
+            });
+
+            drone = Bodies.circle(width / 2, 100, 15, {
+                frictionAir: 0.05,
+                density: 0.01,
+                restitution: 0.5
+            });
+
+            World.add(engine.world, [ground, leftWall, rightWall, scaleBeam, pivot, pivotJoint, drone]);
+        }
+
+        function spawnCrate() {
+            const size = Math.random() * 30 + 30; 
+            const x = Math.random() * 400 + 250;
+            
+            const baseMass = Math.random() * 0.015 + 0.01;
+            const levelMultiplier = 1 + (currentLevel * 0.15);
+            const massMultiplier = baseMass * levelMultiplier;
+
+            const airFric = Math.max(0.005, 0.04 - (currentLevel * 0.0035));
+            const randomColor = CRATE_COLORS[Math.floor(Math.random() * CRATE_COLORS.length)];
+
+            const crate = Bodies.rectangle(x, -50, size, size, {
+                friction: 1.0, 
+                frictionStatic: 10.0, // High static friction locks them in place
+                frictionAir: airFric,
+                restitution: 0.0, // Zero bounciness
+                density: massMultiplier,
+                isCrate: true,
+                crateColor: randomColor, 
+                pointsValue: Math.floor(size * (massMultiplier * 2000))
+            });
+
+            crates.push(crate);
+            World.add(engine.world, crate);
+        }
+
+        function applyGameLogic() {
+            frames++;
+
+            if (frames % 60 === 0) {
+                timeRemaining--;
+                timeEl.innerText = `00:${timeRemaining.toString().padStart(2, '0')}`;
+                
+                if (timeRemaining <= 5) {
+                    timeEl.classList.add('warning-text');
+                } else {
+                    timeEl.classList.remove('warning-text');
+                }
+
+                if (timeRemaining <= 0) {
+                    triggerLevelComplete();
+                    return;
+                }
+            }
+
+            const forceMultiplier = 0.0006;
+            const dir = Vector.sub(mousePos, drone.position);
+            const dist = Vector.magnitude(dir);
+            
+            if (dist > 5) {
+                const normalized = Vector.normalise(dir);
+                const force = Vector.mult(normalized, forceMultiplier * dist);
+                Body.applyForce(drone, drone.position, force);
+            }
+
+            if (isMouseDown && !tractorBeam) {
+                let closest = null;
+                let minDist = 200; 
+
+                crates.forEach(crate => {
+                    const d = Vector.magnitude(Vector.sub(crate.position, drone.position));
+                    if (d < minDist) {
+                        minDist = d;
+                        closest = crate;
+                    }
+                });
+
+                if (closest) {
+                    // Re-awaken the crate if we grab it while it's sleeping
+                    Matter.Sleeping.set(closest, false); 
+                    
+                    tractorBeam = Constraint.create({
+                        bodyA: drone,
+                        bodyB: closest,
+                        stiffness: 0.015, 
+                        damping: 0.1,
+                        render: { visible: false }
+                    });
+                    World.add(engine.world, tractorBeam);
+                }
+            } else if (!isMouseDown && tractorBeam) {
+                World.remove(engine.world, tractorBeam);
+                tractorBeam = null;
+            }
+
+            if (frames % spawnRate === 0) {
+                spawnCrate();
+            }
+
+            let currentScore = 0;
+            for (let i = crates.length - 1; i >= 0; i--) {
+                let crate = crates[i];
+                if (crate.position.y > height + 100) {
+                    World.remove(engine.world, crate);
+                    crates.splice(i, 1);
+                } else if (crate.speed < 0.5 && crate.position.y > scaleBeam.position.y - 150) {
+                    currentScore += crate.pointsValue;
+                }
+            }
+            levelScore = currentScore;
+            scoreEl.innerText = totalScore + levelScore;
+
+            const currentTilt = Math.abs(scaleBeam.angle);
+            const stabilityPct = Math.max(0, 100 - (currentTilt / MAX_TILT_RAD) * 100).toFixed(0);
+            
+            tiltDisplay.innerText = stabilityPct;
+
+            if (currentTilt > MAX_TILT_RAD * 0.7) {
+                warningOverlay.style.opacity = (currentTilt / MAX_TILT_RAD);
+                tiltDisplay.parentElement.classList.add('warning-text');
+            } else {
+                warningOverlay.style.opacity = 0;
+                tiltDisplay.parentElement.classList.remove('warning-text');
+            }
+
+            if (currentTilt > MAX_TILT_RAD) {
+                triggerDeath();
+            }
+        }
+
+        function triggerDeath() {
+            isPlaying = false;
+            lives--;
+            updateHUD();
+            warningOverlay.style.opacity = 0;
+            
+            Body.setStatic(scaleBeam, false); 
+            engine.world.constraints.forEach(c => World.remove(engine.world, c)); 
+            
+            if (lives > 0) {
+                document.getElementById('deathReasonText').innerText = `Sector integrity lost.\nLives Remaining: ${lives}`;
+                deathScreen.style.display = 'flex';
+            } else {
+                document.getElementById('finalScoreText').innerText = `Final Cargo: ${totalScore + levelScore} kg`;
+                gameOverScreen.style.display = 'flex';
+            }
+        }
+
+        function triggerLevelComplete() {
+            isPlaying = false;
+            totalScore += levelScore; 
+            updateHUD();
+            
+            if (currentLevel >= 10) {
+                document.getElementById('winScoreText').innerText = `Final Cargo: ${totalScore} kg`;
+                gameWonScreen.style.display = 'flex';
+            } else {
+                document.getElementById('lcTitle').innerText = `SECTOR ${currentLevel} SECURED`;
+                levelCompleteScreen.style.display = 'flex';
+            }
+        }
+
+        function updateHUD() {
+            levelEl.innerText = currentLevel;
+            livesEl.innerText = lives;
+            scoreEl.innerText = totalScore + levelScore;
+            timeEl.innerText = `00:${timeRemaining.toString().padStart(2, '0')}`;
+            if(lives <= 1) livesEl.classList.add('warning-text');
+            else livesEl.classList.remove('warning-text');
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.save();
+            ctx.translate(scaleBeam.position.x, scaleBeam.position.y);
+            ctx.rotate(scaleBeam.angle);
+            ctx.fillStyle = '#113333';
+            ctx.strokeStyle = '#00ffcc';
+            ctx.lineWidth = 2;
+            ctx.fillRect(-300, -10, 600, 20);
+            ctx.strokeRect(-300, -10, 600, 20);
+            
+            ctx.fillStyle = '#00ffcc';
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            crates.forEach(crate => {
+                ctx.save();
+                ctx.translate(crate.position.x, crate.position.y);
+                ctx.rotate(crate.angle);
+                
+                const w = crate.bounds.max.x - crate.bounds.min.x;
+                const h = crate.bounds.max.y - crate.bounds.min.y;
+                
+                ctx.fillStyle = crate.crateColor;
+                ctx.strokeStyle = '#000000'; 
+                ctx.lineWidth = 2;
+                
+                ctx.fillRect(-w/2, -h/2, w, h);
+                ctx.strokeRect(-w/2, -h/2, w, h);
+                
+                ctx.beginPath();
+                ctx.moveTo(-w/2, -h/2);
+                ctx.lineTo(w/2, h/2);
+                ctx.moveTo(w/2, -h/2);
+                ctx.lineTo(-w/2, h/2);
+                ctx.stroke();
+                
+                ctx.restore();
+            });
+
+            if (tractorBeam && tractorBeam.bodyB) {
+                ctx.beginPath();
+                ctx.moveTo(drone.position.x, drone.position.y);
+                ctx.lineTo(tractorBeam.bodyB.position.x, tractorBeam.bodyB.position.y);
+                ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 10]);
+                ctx.lineDashOffset = -frames; 
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.beginPath();
+                ctx.arc(tractorBeam.bodyB.position.x, tractorBeam.bodyB.position.y, 20, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(0, 255, 204, 0.5)';
+                ctx.stroke();
+            } else if (isMouseDown) {
+                ctx.beginPath();
+                ctx.arc(drone.position.x, drone.position.y, 200, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.15)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            ctx.save();
+            ctx.translate(drone.position.x, drone.position.y);
+            
+            const velMag = Vector.magnitude(drone.velocity);
+            if (velMag > 1) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-drone.velocity.x * 3, -drone.velocity.y * 3);
+                ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 5;
+                ctx.globalAlpha = 0.5;
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fillStyle = '#050b14';
+            ctx.fill();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = isMouseDown ? '#fff' : '#00ffcc';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fillStyle = isMouseDown ? '#00ffcc' : '#fff';
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            if (isPlaying) {
+                Engine.update(engine, 1000 / 60);
+                draw();
+                animationFrame = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        engine = Engine.create();
+        createWorld();
+        draw();
+
+    </script>
+</body>
+</html>

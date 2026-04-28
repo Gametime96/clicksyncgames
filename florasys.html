@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flora.SYS - Cybernetic Defense</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --panel-bg: #111827;
+            --neon-green: #10b981;
+            --neon-red: #ef4444;
+            --neon-purple: #8b5cf6;
+            --text-main: #e5e7eb;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #gameWrapper {
+            width: 900px;
+            height: 650px;
+            background-color: var(--panel-bg);
+            border: 2px solid #1f2937;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.1);
+            position: relative;
+        }
+
+        /* --- UI Header --- */
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: #1f2937;
+            border-bottom: 2px solid #374151;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .stat { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
+        .stat.warning { color: var(--neon-red); text-shadow: 0 0 5px var(--neon-red); }
+
+        .pause-btn {
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #9ca3af;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .pause-btn:hover {
+            background: #9ca3af;
+            color: #000;
+        }
+
+        /* --- Tab Navigation --- */
+        #tabs {
+            display: flex;
+            background: #111827;
+            border-bottom: 2px solid #374151;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: transparent;
+            color: #9ca3af;
+            border: none;
+            border-right: 1px solid #374151;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .tab-btn:hover { background: #1f2937; color: #fff; }
+        .tab-btn.active { 
+            background: #374151; 
+            color: var(--neon-green); 
+            border-bottom: 3px solid var(--neon-green);
+        }
+        
+        .tab-alert {
+            animation: flashAlert 0.5s infinite alternate;
+        }
+
+        @keyframes flashAlert {
+            from { background: #111827; color: #9ca3af; }
+            to { background: #451a1a; color: var(--neon-red); }
+        }
+
+        /* --- View Containers --- */
+        .view {
+            flex: 1;
+            display: none;
+            position: relative;
+        }
+        .view.active { display: flex; flex-direction: column; }
+
+        /* --- Roots View (Extraction) --- */
+        #rootsGrid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .node {
+            background: #1f2937;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+        }
+        
+        .node:active { transform: scale(0.95); }
+
+        .node.active-packet {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--neon-green);
+            box-shadow: inset 0 0 15px var(--neon-green);
+        }
+
+        .node.tainted-packet {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--neon-red);
+            box-shadow: inset 0 0 15px var(--neon-red);
+        }
+
+        /* --- Canopy View (Defense) --- */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+        
+        #canopyOverlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            pointer-events: none;
+            color: #9ca3af;
+        }
+
+        /* --- Terminal View (Upgrades) --- */
+        #terminalView {
+            padding: 30px;
+            gap: 20px;
+        }
+
+        .upgrade-card {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #374151;
+            margin-bottom: 15px;
+        }
+
+        .upgrade-info h3 { margin: 0 0 5px 0; color: var(--neon-purple); }
+        .upgrade-info p { margin: 0; color: #9ca3af; font-size: 14px; }
+
+        .buy-btn {
+            background: transparent;
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .buy-btn:hover:not(:disabled) { background: var(--neon-green); color: #000; }
+        .buy-btn:disabled { border-color: #374151; color: #374151; cursor: not-allowed; }
+
+        /* --- System Screens --- */
+        .overlay-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 14, 23, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .overlay-screen h1 { font-size: 48px; color: var(--neon-green); letter-spacing: 4px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-green);}
+        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 600px; line-height: 1.6; margin-bottom: 30px;}
+        
+        /* --- Guide CSS --- */
+        .guide-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            width: 80%;
+        }
+
+        .guide-step {
+            flex: 1;
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #374151;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .guide-step p {
+            font-size: 14px;
+            color: #d1d5db;
+            margin: 15px 0 0 0;
+            line-height: 1.4;
+        }
+
+        .guide-step b {
+            color: var(--neon-green);
+            font-size: 16px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .guide-img {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* CSS Rendered "Images" */
+        .img-node {
+            width: 50px;
+            height: 50px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid var(--neon-green);
+            border-radius: 8px;
+            box-shadow: inset 0 0 15px var(--neon-green);
+        }
+
+        .img-turret {
+            width: 40px;
+            height: 40px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid var(--neon-green);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .img-turret::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: var(--neon-green);
+            border-radius: 50%;
+        }
+
+        .img-terminal {
+            width: 50px;
+            height: 35px;
+            border: 2px solid var(--neon-purple);
+            border-radius: 4px;
+            position: relative;
+        }
+        .img-terminal::after {
+            content: '>_';
+            color: var(--neon-purple);
+            font-weight: bold;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 12px;
+        }
+
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: var(--neon-green);
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .start-btn:hover { box-shadow: 0 0 20px var(--neon-green); }
+
+    </style>
+</head>
+<body>
+
+    <div id="gameWrapper">
+        <div id="header">
+            <div>SYS.LEVEL: <span id="uiLevel" class="stat">1</span> / 6</div>
+            <div>TIME: <span id="uiTime" class="stat">04:00</span></div>
+            <div>NUTRIENTS: <span id="uiNutrients" class="stat">400</span></div>
+            <div>CORE: <span id="uiHealth" class="stat">100</span>%</div>
+            <button id="pauseBtn" class="pause-btn">PAUSE (P)</button>
+        </div>
+
+        <div id="tabs">
+            <button class="tab-btn active" data-target="rootsView">Roots [Extraction]</button>
+            <button class="tab-btn" data-target="canopyView" id="canopyTabBtn">Canopy [Defense]</button>
+            <button class="tab-btn" data-target="terminalView">Terminal [Upgrades]</button>
+        </div>
+
+        <div id="rootsView" class="view active">
+            <div id="rootsGrid">
+                </div>
+        </div>
+
+        <div id="canopyView" class="view">
+            <div id="canopyOverlay">Click to plant Blossom Turret (Cost: 50)</div>
+            <canvas id="gameCanvas" width="900" height="526"></canvas>
+        </div>
+
+        <div id="terminalView" class="view">
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Auto-Extractor Routine</h3>
+                    <p>Automates root extraction. Gathers 1 random packet every 1.5s.</p>
+                </div>
+                <button class="buy-btn" id="buyExtractor">Install (150N)</button>
+            </div>
+            
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Overclock Turrets</h3>
+                    <p>Increases the firing rate of all active Blossom Turrets.</p>
+                </div>
+                <button class="buy-btn" id="buyOverclock">Upgrade (200N)</button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>Fortify Core Integrity</h3>
+                    <p>Restores 25% Core Health.</p>
+                </div>
+                <button class="buy-btn" id="buyHeal">Execute (100N)</button>
+            </div>
+        </div>
+
+        <div id="startScreen" class="overlay-screen">
+            <h1>Flora.SYS</h1>
+            <p class="subtitle">There are <b>6 progressive threat levels</b> to conquer. Each level lasts exactly <b>4 minutes</b>. You must maintain core integrity to survive.</p>
+            
+            <div class="guide-container">
+                <div class="guide-step">
+                    <div class="guide-img"><div class="img-node"></div></div>
+                    <p><b>1. Gather</b>Click glowing green nodes in Roots to harvest Nutrients.</p>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-img"><div class="img-turret"></div></div>
+                    <p><b>2. Defend</b>Spend Nutrients in Canopy to plant defensive turrets.</p>
+                </div>
+                <div class="guide-step">
+                    <div class="guide-img"><div class="img-terminal"></div></div>
+                    <p><b>3. Upgrade</b>Use the Terminal to buy upgrades and repair the core.</p>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn">Initialize Sequence</button>
+        </div>
+
+        <div id="levelTransitionScreen" class="overlay-screen" style="display: none; background: rgba(10, 14, 23, 0.85);">
+            <h1 id="transitionTitle" style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">Now entering level 1</h1>
+        </div>
+
+        <div id="pauseScreen" class="overlay-screen" style="display: none; background: rgba(10, 14, 23, 0.85);">
+            <h1 style="color: #9ca3af; letter-spacing: 10px;">PAUSED</h1>
+            <button class="start-btn" id="continueBtn" style="background: #9ca3af; margin-top: 30px;">Continue</button>
+        </div>
+
+        <div id="gameOverScreen" class="overlay-screen" style="display: none;">
+            <h1 style="color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red);">SYSTEM FAILURE</h1>
+            <p style="color: #9ca3af;">Core Integrity reached 0%. The garden has been corrupted.</p>
+            <p id="survivalText" style="color: var(--neon-green); margin-top: 20px; font-size: 24px;">Survived to Level: 1</p>
+            <button class="start-btn" id="restartBtn" style="background: var(--neon-red); margin-top: 30px;">Reboot System</button>
+        </div>
+
+        <div id="victoryScreen" class="overlay-screen" style="display: none;">
+            <h1 style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">THREAT PURGED</h1>
+            <p style="color: #9ca3af;">You have successfully maintained the ecosystem through all 6 threat levels.</p>
+            <button class="start-btn" id="playAgainBtn" style="background: var(--neon-purple); margin-top: 30px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME STATE ---
+        const state = {
+            isRunning: false,
+            isTransitioning: false,
+            isPaused: false,
+            level: 1,
+            nutrients: 400,
+            health: 100,
+            frames: 0,
+            levelFrames: 0, // Frame counter specifically for the 4-minute timer
+            activeTab: 'rootsView',
+            
+            // Upgrades
+            hasAutoExtractor: false,
+            fireRateDelay: 60, // Frames between shots
+            
+            // Roots Data
+            nodes: [],
+            
+            // Canopy Data
+            turrets: [],
+            enemies: [],
+            projectiles: [],
+            particles: []
+        };
+
+        const COSTS = { turret: 50, extractor: 150, overclock: 200, heal: 100 };
+        const FRAMES_PER_LEVEL = 14400; // 4 minutes * 60fps = 14400 frames
+
+        // Strict Enforcement of Starting Nutrients per Level
+        function getStartingNutrients(lvl) {
+            switch(lvl) {
+                case 1: return 400;
+                case 2: return 350;
+                case 3: return 300;
+                case 4: return 250;
+                case 5: return 150;
+                case 200: return 150; // Added in case Level 200 was not a typo
+                case 6: return 100;
+                default: return 100;
+            }
+        }
+
+        // --- DOM ELEMENTS ---
+        const uiLevel = document.getElementById('uiLevel');
+        const uiTime = document.getElementById('uiTime');
+        const uiNutrients = document.getElementById('uiNutrients');
+        const uiHealth = document.getElementById('uiHealth');
+        const canopyTabBtn = document.getElementById('canopyTabBtn');
+        const rootsGrid = document.getElementById('rootsGrid');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- INITIALIZATION ---
+        function initTabs() {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                    
+                    btn.classList.add('active');
+                    state.activeTab = btn.dataset.target;
+                    document.getElementById(state.activeTab).classList.add('active');
+                    
+                    if (state.activeTab === 'canopyView') {
+                        canopyTabBtn.classList.remove('tab-alert');
+                    }
+                });
+            });
+        }
+
+        function initRoots() {
+            rootsGrid.innerHTML = '';
+            state.nodes = [];
+            for(let i=0; i<20; i++) {
+                const node = document.createElement('div');
+                node.className = 'node';
+                node.dataset.index = i;
+                
+                node.addEventListener('mousedown', () => {
+                    if (state.isTransitioning || state.isPaused || !state.isRunning) return; // Prevent interaction if paused/transitioning
+                    
+                    if (node.classList.contains('active-packet')) {
+                        node.classList.remove('active-packet');
+                        addNutrients(10);
+                        createFloatText(node, "+10", "#10b981");
+                    } else if (node.classList.contains('tainted-packet')) {
+                        node.classList.remove('tainted-packet');
+                        takeDamage(5);
+                        createFloatText(node, "CORRUPT", "#ef4444");
+                    }
+                });
+                
+                rootsGrid.appendChild(node);
+                state.nodes.push({ el: node, active: false, tainted: false, timer: 0 });
+            }
+        }
+
+        // --- CORE LOGIC ---
+        function showTransition(level) {
+            state.isTransitioning = true;
+            const transitionScreen = document.getElementById('levelTransitionScreen');
+            const transitionTitle = document.getElementById('transitionTitle');
+            
+            if (level === 6) {
+                transitionTitle.innerText = `Level ${level}. Final level... Get ready!`;
+            } else {
+                transitionTitle.innerText = `Now entering level ${level}`;
+            }
+            
+            transitionScreen.style.display = 'flex';
+            
+            setTimeout(() => {
+                transitionScreen.style.display = 'none';
+                state.isTransitioning = false;
+            }, 3000); // Transition displays for 3 seconds
+        }
+
+        function togglePause() {
+            if (!state.isRunning || state.isTransitioning) return; // Can't pause if game isn't actively running
+            
+            state.isPaused = !state.isPaused;
+            if (state.isPaused) {
+                document.getElementById('pauseScreen').style.display = 'flex';
+            } else {
+                document.getElementById('pauseScreen').style.display = 'none';
+            }
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('pauseScreen').style.display = 'none';
+            
+            state.isRunning = true;
+            state.isPaused = false;
+            state.level = 1;
+            state.nutrients = getStartingNutrients(state.level); // Initialize with exact starting nutrients
+            state.health = 100;
+            state.frames = 0;
+            state.levelFrames = 0;
+            state.turrets = [];
+            state.enemies = [];
+            state.projectiles = [];
+            state.particles = [];
+            
+            // RESET UPGRADES ON START
+            state.hasAutoExtractor = false;
+            state.fireRateDelay = 60;
+            document.getElementById('buyExtractor').disabled = false;
+            document.getElementById('buyExtractor').innerText = `Install (${COSTS.extractor}N)`;
+            
+            initRoots();
+            updateUI();
+            checkUpgradeButtons(); // Refresh buttons based on initial high nutrients
+            
+            // Show initial transition
+            showTransition(state.level);
+            
+            gameLoop();
+        }
+
+        function addNutrients(amount) {
+            state.nutrients += amount;
+            updateUI();
+            checkUpgradeButtons();
+        }
+
+        function takeDamage(amount) {
+            state.health -= amount;
+            if (state.health <= 0) {
+                state.health = 0;
+                endGame(false);
+            }
+            updateUI();
+            
+            uiHealth.classList.add('warning');
+            setTimeout(() => uiHealth.classList.remove('warning'), 300);
+        }
+
+        function updateUI() {
+            uiLevel.innerText = state.level;
+            uiNutrients.innerText = state.nutrients;
+            uiHealth.innerText = Math.floor(state.health);
+            
+            // Calculate and format time remaining
+            const remainingSeconds = Math.max(0, Math.floor((FRAMES_PER_LEVEL - state.levelFrames) / 60));
+            const mins = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+            const secs = (remainingSeconds % 60).toString().padStart(2, '0');
+            uiTime.innerText = `${mins}:${secs}`;
+        }
+
+        function checkUpgradeButtons() {
+            document.getElementById('buyExtractor').disabled = state.hasAutoExtractor || state.nutrients < COSTS.extractor;
+            document.getElementById('buyOverclock').disabled = state.nutrients < COSTS.overclock;
+            document.getElementById('buyHeal').disabled = state.health >= 100 || state.nutrients < COSTS.heal;
+        }
+
+        // Upgrades Event Listeners
+        document.getElementById('buyExtractor').addEventListener('click', () => {
+            if(state.nutrients >= COSTS.extractor && !state.hasAutoExtractor && !state.isTransitioning && !state.isPaused) {
+                state.nutrients -= COSTS.extractor;
+                state.hasAutoExtractor = true;
+                document.getElementById('buyExtractor').innerText = "Installed";
+                document.getElementById('buyExtractor').disabled = true;
+                updateUI();
+                checkUpgradeButtons();
+            }
+        });
+
+        document.getElementById('buyOverclock').addEventListener('click', () => {
+            if(state.nutrients >= COSTS.overclock && !state.isTransitioning && !state.isPaused) {
+                state.nutrients -= COSTS.overclock;
+                state.fireRateDelay = Math.max(15, state.fireRateDelay - 15);
+                updateUI();
+                checkUpgradeButtons();
+            }
+        });
+
+        document.getElementById('buyHeal').addEventListener('click', () => {
+            if(state.nutrients >= COSTS.heal && state.health < 100 && !state.isTransitioning && !state.isPaused) {
+                state.nutrients -= COSTS.heal;
+                state.health = Math.min(100, state.health + 25);
+                updateUI();
+                checkUpgradeButtons();
+            }
+        });
+
+        // Floating Text Helper for Roots
+        function createFloatText(parent, text, color) {
+            const el = document.createElement('div');
+            el.innerText = text;
+            el.style.position = 'absolute';
+            el.style.color = color;
+            el.style.fontWeight = 'bold';
+            el.style.pointerEvents = 'none';
+            el.style.transform = 'translateY(0)';
+            el.style.transition = 'all 0.5s ease-out';
+            el.style.opacity = '1';
+            
+            parent.appendChild(el);
+            
+            setTimeout(() => {
+                el.style.transform = 'translateY(-20px)';
+                el.style.opacity = '0';
+            }, 50);
+            
+            setTimeout(() => el.remove(), 550);
+        }
+
+        // --- ROOT SUBSYSTEM ---
+        function updateRoots() {
+            // Spawn logic
+            if (state.frames % (Math.max(20, 80 - (state.level * 5))) === 0) {
+                const emptyNodes = state.nodes.filter(n => !n.active && !n.tainted);
+                if (emptyNodes.length > 0) {
+                    const target = emptyNodes[Math.floor(Math.random() * emptyNodes.length)];
+                    
+                    // 15% chance for tainted packet
+                    if (Math.random() < 0.15 + (state.level * 0.02)) {
+                        target.tainted = true;
+                        target.el.classList.add('tainted-packet');
+                        target.timer = 120; // 2 seconds at 60fps
+                    } else {
+                        target.active = true;
+                        target.el.classList.add('active-packet');
+                        target.timer = 180; // 3 seconds
+                    }
+                }
+            }
+
+            // Timeout logic
+            state.nodes.forEach(node => {
+                if (node.active || node.tainted) {
+                    node.timer--;
+                    if (node.timer <= 0) {
+                        node.active = false;
+                        node.tainted = false;
+                        node.el.classList.remove('active-packet', 'tainted-packet');
+                    }
+                }
+            });
+
+            // Auto Extractor logic
+            if (state.hasAutoExtractor && state.frames % 90 === 0) {
+                const activeNodes = state.nodes.filter(n => n.active);
+                if (activeNodes.length > 0) {
+                    const target = activeNodes[Math.floor(Math.random() * activeNodes.length)];
+                    target.active = false;
+                    target.el.classList.remove('active-packet');
+                    addNutrients(10);
+                    createFloatText(target.el, "+10", "#10b981");
+                }
+            }
+        }
+
+        // --- CANOPY SUBSYSTEM (CANVAS) ---
+        canvas.addEventListener('mousedown', (e) => {
+            if (state.activeTab !== 'canopyView' || !state.isRunning || state.isTransitioning || state.isPaused) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Prevent placing turrets too high (enemy spawn zone)
+            if (y < 150) return;
+
+            if (state.nutrients >= COSTS.turret) {
+                state.nutrients -= COSTS.turret;
+                state.turrets.push({
+                    x: x,
+                    y: y,
+                    cooldown: 0,
+                    radius: 15
+                });
+                updateUI();
+                checkUpgradeButtons();
+                spawnParticles(x, y, '#10b981', 10);
+            }
+        });
+
+        function spawnEnemy() {
+            // Computer AI: Spawns get harder
+            const isTank = Math.random() < (state.level * 0.05);
+            const isFast = !isTank && Math.random() < (state.level * 0.08);
+            
+            state.enemies.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: -20,
+                hp: isTank ? 40 + (state.level * 10) : 10 + (state.level * 5),
+                maxHp: isTank ? 40 + (state.level * 10) : 10 + (state.level * 5),
+                speed: isFast ? 1.5 + (state.level * 0.1) : 0.5 + (state.level * 0.05),
+                radius: isTank ? 15 : (isFast ? 8 : 12),
+                color: isTank ? '#f59e0b' : (isFast ? '#ec4899' : '#ef4444')
+            });
+        }
+
+        function spawnParticles(x, y, color, count) {
+            for(let i=0; i<count; i++) {
+                state.particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function updateCanopy() {
+            // Spawn Enemies
+            const spawnInterval = Math.max(30, 150 - (state.level * 10));
+            if (state.frames % spawnInterval === 0) {
+                spawnEnemy();
+            }
+
+            // Alert logic (Context switching challenge)
+            let dangerClose = false;
+
+            // Move Enemies
+            for (let i = state.enemies.length - 1; i >= 0; i--) {
+                let e = state.enemies[i];
+                e.y += e.speed;
+
+                if (e.y > canvas.height * 0.6) dangerClose = true;
+
+                if (e.y > canvas.height) {
+                    takeDamage(e.maxHp * 0.5); // Damage core based on enemy strength
+                    state.enemies.splice(i, 1);
+                }
+            }
+
+            // Handle Tab Alert
+            if (dangerClose && state.activeTab !== 'canopyView') {
+                canopyTabBtn.classList.add('tab-alert');
+            } else if (!dangerClose) {
+                canopyTabBtn.classList.remove('tab-alert');
+            }
+
+            // Turret Logic
+            state.turrets.forEach(t => {
+                if (t.cooldown > 0) t.cooldown--;
+
+                if (t.cooldown <= 0 && state.enemies.length > 0) {
+                    // Find closest enemy
+                    let closest = null;
+                    let minDist = Infinity;
+                    
+                    state.enemies.forEach(e => {
+                        const dist = Math.hypot(e.x - t.x, e.y - t.y);
+                        if (dist < minDist && dist < 300) { // Range limit
+                            minDist = dist;
+                            closest = e;
+                        }
+                    });
+
+                    if (closest) {
+                        // Shoot
+                        const angle = Math.atan2(closest.y - t.y, closest.x - t.x);
+                        state.projectiles.push({
+                            x: t.x, y: t.y,
+                            vx: Math.cos(angle) * 7,
+                            vy: Math.sin(angle) * 7,
+                            damage: 10
+                        });
+                        t.cooldown = state.fireRateDelay;
+                    }
+                }
+            });
+
+            // Move Projectiles & Collisions
+            for (let i = state.projectiles.length - 1; i >= 0; i--) {
+                let p = state.projectiles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Off screen
+                if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    state.projectiles.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with enemies
+                let hit = false;
+                for (let j = state.enemies.length - 1; j >= 0; j--) {
+                    let e = state.enemies[j];
+                    if (Math.hypot(e.x - p.x, e.y - p.y) < e.radius + 3) {
+                        e.hp -= p.damage;
+                        spawnParticles(p.x, p.y, '#10b981', 3);
+                        hit = true;
+                        
+                        if (e.hp <= 0) {
+                            spawnParticles(e.x, e.y, e.color, 15);
+                            state.enemies.splice(j, 1);
+                        }
+                        break;
+                    }
+                }
+
+                if (hit) state.projectiles.splice(i, 1);
+            }
+
+            // Update Particles
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                let p = state.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+                if (p.life <= 0) state.particles.splice(i, 1);
+            }
+        }
+
+        function drawCanopy() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Core Base line
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 5);
+            ctx.lineTo(canvas.width, canvas.height - 5);
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 10;
+            ctx.stroke();
+
+            // Draw Turrets
+            state.turrets.forEach(t => {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+                ctx.fill();
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Inner core
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, 4, 0, Math.PI*2);
+                ctx.fillStyle = '#10b981';
+                ctx.fill();
+            });
+
+            // Draw Enemies
+            state.enemies.forEach(e => {
+                ctx.beginPath();
+                ctx.moveTo(e.x, e.y - e.radius);
+                ctx.lineTo(e.x + e.radius, e.y + e.radius);
+                ctx.lineTo(e.x - e.radius, e.y + e.radius);
+                ctx.closePath();
+                ctx.fillStyle = e.color;
+                ctx.fill();
+
+                // Health bar
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(e.x - 10, e.y - e.radius - 8, 20, 4);
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(e.x - 10, e.y - e.radius - 8, 20 * (e.hp / e.maxHp), 4);
+            });
+
+            // Draw Projectiles
+            ctx.fillStyle = '#8b5cf6';
+            state.projectiles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                ctx.fill();
+            });
+
+            // Draw Particles
+            state.particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+        }
+
+        // --- MASTER LOOP ---
+        function checkLevelProgress() {
+            // Check if 4 minutes have passed
+            if (state.levelFrames >= FRAMES_PER_LEVEL) {
+                state.level++;
+                state.levelFrames = 0; // Reset timer for the next level
+                
+                // End game after surviving 6 levels
+                if (state.level > 6) {
+                    endGame(true);
+                } else {
+                    // RESET CANOPY STATE
+                    state.turrets = [];
+                    state.enemies = [];
+                    state.projectiles = [];
+                    state.particles = [];
+                    
+                    // RESET UPGRADES
+                    state.hasAutoExtractor = false;
+                    state.fireRateDelay = 60;
+                    document.getElementById('buyExtractor').innerText = `Install (${COSTS.extractor}N)`;
+                    
+                    // RESET NUTRIENTS BASED ON NEW LEVEL (Ensuring strict values are loaded)
+                    state.nutrients = getStartingNutrients(state.level);
+                    
+                    updateUI();
+                    checkUpgradeButtons(); // Ensure buttons update to match new nutrient count
+                    showTransition(state.level);
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (!state.isRunning) return;
+
+            // Only update game mechanics if we aren't paused and aren't in a level transition
+            if (!state.isTransitioning && !state.isPaused) {
+                state.frames++;
+                state.levelFrames++;
+
+                updateRoots();
+                updateCanopy();
+                checkLevelProgress();
+                
+                // Update UI every 60 frames (1 second) to keep timer accurate without over-rendering text
+                if (state.frames % 60 === 0) updateUI(); 
+            }
+
+            // Always draw canvas if tab is active (so game renders behind the transition overlay)
+            if (state.activeTab === 'canopyView') {
+                drawCanopy();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame(victory) {
+            state.isRunning = false;
+            if (victory) {
+                document.getElementById('victoryScreen').style.display = 'flex';
+            } else {
+                document.getElementById('survivalText').innerText = `Survived to Level: ${state.level}`;
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            }
+        }
+
+        // --- BIND EVENTS ---
+        initTabs();
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        document.getElementById('playAgainBtn').addEventListener('click', startGame);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('continueBtn').addEventListener('click', togglePause);
+
+        // Keyboard Shortcut for Pause
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'p') {
+                togglePause();
+            }
+        });
+
+    </script>
+</body>
+</html>

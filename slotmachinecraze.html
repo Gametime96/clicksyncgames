@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine Craze</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --dark-red: #8b0000;
+            --machine-bg: #2c3e50;
+            --screen-bg: #000;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1a1a1a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Splash Screen Logic */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .fade-text {
+            font-size: 2em;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            color: var(--gold);
+        }
+
+        .machine-container {
+            background: linear-gradient(135deg, #444 0%, #222 100%);
+            border: 15px solid var(--gold);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
+            width: 450px;
+            text-align: center;
+            position: relative;
+            visibility: hidden; /* Hidden until splash ends */
+        }
+
+        .jackpot-display {
+            background-color: #000;
+            border: 4px solid var(--gold);
+            color: red;
+            font-size: 1.8em;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px red;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .jackpot-label {
+            font-size: 0.4em;
+            color: var(--gold);
+            display: block;
+        }
+
+        /* 3-Line Reels Area */
+        .reels-container {
+            display: flex;
+            justify-content: space-around;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            border: 5px solid #111;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .reel-column {
+            width: 30%;
+            background: white;
+            border: 2px solid #999;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 10px 0;
+        }
+
+        .symbol {
+            font-size: 2.5em;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            transition: all 0.1s;
+        }
+
+        /* Payline Indicators (Visual side markers) */
+        .indicators-left {
+            position: absolute;
+            left: -25px;
+            top: 10px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .dot {
+            width: 15px;
+            height: 15px;
+            background: #444;
+            border-radius: 50%;
+            box-shadow: inset 0 0 5px #000;
+        }
+
+        .dot.active {
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        .dashboard {
+            display: flex;
+            justify-content: space-between;
+            background-color: black;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 2px solid #555;
+        }
+
+        .stat-label { font-size: 0.7em; color: #aaa; display: block;}
+        .stat-value { font-size: 1.1em; color: var(--gold); }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 0 #000;
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #000;
+        }
+
+        button:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+
+        .btn-lines { background: #3498db; color: white; width: 40%; }
+        .btn-spin { background: #e74c3c; color: white; flex-grow: 1; font-size: 1.2em; }
+
+        #message-area {
+            height: 25px;
+            margin-bottom: 10px;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .win-highlight {
+            background-color: rgba(255, 215, 0, 0.3);
+            animation: flash 0.3s infinite;
+        }
+
+        @keyframes flash {
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div id="splash-text" class="fade-text"></div>
+    </div>
+
+    <div class="machine-container" id="game-ui">
+        <div class="jackpot-display">
+            <span class="jackpot-label">PROGRESSIVE JACKPOT</span>
+            $<span id="jackpot-value">9500.00</span>
+        </div>
+
+        <div id="message-area">GOOD LUCK!</div>
+
+        <div class="reels-container">
+            <div class="indicators-left">
+                <div class="dot" id="dot-0"></div> <div class="dot active" id="dot-1"></div> <div class="dot" id="dot-2"></div> </div>
+
+            <div class="reel-column" id="col-0">
+                <div class="symbol" id="r0-c0">🍒</div>
+                <div class="symbol" id="r1-c0">🍒</div>
+                <div class="symbol" id="r2-c0">🍒</div>
+            </div>
+            <div class="reel-column" id="col-1">
+                <div class="symbol" id="r0-c1">🍒</div>
+                <div class="symbol" id="r1-c1">🍒</div>
+                <div class="symbol" id="r2-c1">🍒</div>
+            </div>
+            <div class="reel-column" id="col-2">
+                <div class="symbol" id="r0-c2">🍒</div>
+                <div class="symbol" id="r1-c2">🍒</div>
+                <div class="symbol" id="r2-c2">🍒</div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="stat-box"><span class="stat-label">CREDITS</span><span class="stat-value" id="credits">5000</span></div>
+            <div class="stat-box"><span class="stat-label">LINES</span><span class="stat-value" id="lines">1</span></div>
+            <div class="stat-box"><span class="stat-label">BET</span><span class="stat-value" id="total-bet">10</span></div>
+            <div class="stat-box"><span class="stat-label">WIN</span><span class="stat-value" id="paid">0</span></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-lines" id="btn-lines" onclick="changeLines()">Bet Lines</button>
+            <button class="btn-spin" id="btn-spin" onclick="spin()">SPIN</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG & STATE ---
+        let credits = 5000;
+        let lines = 1;
+        const betPerLine = 10;
+        let jackpot = 9500.00;
+        let isSpinning = false;
+        const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '7️⃣'];
+
+        // --- SPLASH SCREEN LOGIC ---
+        window.onload = () => {
+            const splash = document.getElementById('splash-screen');
+            const txt = document.getElementById('splash-text');
+            const game = document.getElementById('game-ui');
+
+            setTimeout(() => {
+                txt.innerText = "This is not for real money. Just for fun.";
+                txt.style.opacity = 1;
+            }, 500);
+
+            setTimeout(() => {
+                txt.style.opacity = 0;
+            }, 3000);
+
+            setTimeout(() => {
+                txt.innerText = "Welcome to Slot Machine Craze";
+                txt.style.opacity = 1;
+            }, 4500);
+
+            setTimeout(() => {
+                splash.style.opacity = 0;
+                game.style.visibility = 'visible';
+                setTimeout(() => splash.remove(), 1000);
+            }, 7500);
+        };
+
+        // --- AUDIO ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, type = 'sine', duration = 0.1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // --- GAMEPLAY ---
+        function updateUI() {
+            document.getElementById('credits').innerText = credits;
+            document.getElementById('lines').innerText = lines;
+            document.getElementById('total-bet').innerText = lines * betPerLine;
+            document.getElementById('dot-1').classList.toggle('active', true); // Mid always on
+            document.getElementById('dot-0').classList.toggle('active', lines >= 2);
+            document.getElementById('dot-2').classList.toggle('active', lines >= 3);
+        }
+
+        function changeLines() {
+            if (isSpinning) return;
+            lines = lines >= 3 ? 1 : lines + 1;
+            playSound(440, 'square', 0.05);
+            updateUI();
+        }
+
+        function spin() {
+            const cost = lines * betPerLine;
+            if (credits < cost) {
+                document.getElementById('message-area').innerText = "NEED CREDITS!";
+                return;
+            }
+
+            credits -= cost;
+            isSpinning = true;
+            document.getElementById('paid').innerText = "0";
+            document.getElementById('btn-spin').disabled = true;
+            document.getElementById('btn-lines').disabled = true;
+            updateUI();
+
+            // Visual spin effect
+            let ticks = 0;
+            const interval = setInterval(() => {
+                for(let r=0; r<3; r++) {
+                    for(let c=0; c<3; c++) {
+                        document.getElementById(`r${r}-c${c}`).innerText = symbols[Math.floor(Math.random()*symbols.length)];
+                        document.getElementById(`r${r}-c${c}`).classList.remove('win-highlight');
+                    }
+                }
+                playSound(150, 'sawtooth', 0.05);
+                if(ticks++ > 15) {
+                    clearInterval(interval);
+                    finalize();
+                }
+            }, 100);
+        }
+
+        function finalize() {
+            // Generate final result matrix [row][col]
+            const results = [
+                [randSym(), randSym(), randSym()], // Top (Line 2)
+                [randSym(), randSym(), randSym()], // Mid (Line 1)
+                [randSym(), randSym(), randSym()]  // Bot (Line 3)
+            ];
+
+            // Display results
+            for(let r=0; r<3; r++) {
+                for(let c=0; c<3; c++) {
+                    document.getElementById(`r${r}-c${c}`).innerText = results[r][c];
+                }
+            }
+
+            let totalWin = 0;
+            // Check Mid Row (Always)
+            totalWin += checkLine(results[1], 1);
+            
+            // Check Top Row
+            if (lines >= 2) totalWin += checkLine(results[0], 0);
+            
+            // Check Bot Row
+            if (lines >= 3) totalWin += checkLine(results[2], 2);
+
+            if (totalWin > 0) {
+                credits += totalWin;
+                document.getElementById('paid').innerText = totalWin;
+                document.getElementById('message-area').innerText = `WIN: ${totalWin}!`;
+                playSound(880, 'sine', 0.5);
+            } else {
+                document.getElementById('message-area').innerText = "TRY AGAIN";
+            }
+
+            isSpinning = false;
+            document.getElementById('btn-spin').disabled = false;
+            document.getElementById('btn-lines').disabled = false;
+            updateUI();
+        }
+
+        function randSym() { return symbols[Math.floor(Math.random()*symbols.length)]; }
+
+        function checkLine(arr, rowIdx) {
+            let win = 0;
+            if (arr[0] === arr[1] && arr[1] === arr[2]) {
+                const s = arr[0];
+                if (s === '7️⃣') win = Math.floor(jackpot);
+                else if (s === '💎') win = 500;
+                else if (s === '🔔') win = 200;
+                else if (s === '🍇') win = 100;
+                else if (s === '🍋') win = 50;
+                else if (s === '🍒') win = 30;
+
+                // Highlight winning row
+                for(let c=0; c<3; c++) {
+                    document.getElementById(`r${rowIdx}-c${c}`).classList.add('win-highlight');
+                }
+            } else if (arr[0] === '🍒' && arr[1] === '🍒') {
+                win = 10;
+            }
+            return win;
+        }
+
+        // Jackpot Ticker
+        setInterval(() => {
+            jackpot += 0.05;
+            document.getElementById('jackpot-value').innerText = jackpot.toFixed(2);
+        }, 200);
+
+        updateUI();
+    </script>
+</body>
+</html>
