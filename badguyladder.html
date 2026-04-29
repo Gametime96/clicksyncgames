@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bad Guy Ladder</title>
+    <link rel="stylesheet" href="badguyladder.css">
+    <style>
+        /* This override forces the game and footer to fit perfectly without scrolling */
+        #game-container { height: 85vh !important; }
+        
+        .site-footer { 
+            height: 15vh; 
+            box-sizing: border-box; 
+            background-color: #cbd5e1; 
+            padding: 10px 20px; 
+            text-align: center; 
+            border-top: 2px solid #94a3b8; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .legal-text { 
+            font-size: 11px; 
+            color: #475569; 
+            margin: 0 0 10px 0; 
+            max-width: 900px; 
+            line-height: 1.4; 
+        }
+        
+        .contact-btn { 
+            background-color: #2563eb; 
+            color: white; 
+            padding: 8px 20px; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            font-size: 14px; 
+            transition: background-color 0.2s;
+        }
+        
+        .contact-btn:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <div id="intro-overlay">
+        <div id="intro-step-1" class="intro-box">
+            <h1>Welcome to<br>Bad Guy Ladder</h1>
+            <p>Build ladders to escape, but watch out for the bad guys trying to break your path!</p>
+            <button class="ability-btn" onclick="nextIntro(2)" style="width: 200px; margin-top: 20px;">NEXT</button>
+        </div>
+
+        <div id="intro-step-2" class="intro-box" style="display: none; max-width: 950px;">
+            <h2>Meet Your Enemies</h2>
+            <div class="bad-guy-showcase">
+                <div class="bg-card">
+                    <strong style="color:#e74c3c;">Standard Bad Guy</strong>
+                    <canvas id="preview-red" width="60" height="80"></canvas>
+                    <p>Normal Speed<br>Normal Damage</p>
+                </div>
+                <div class="bg-card">
+                    <strong style="color:#2ecc71;">Elite Bad Guy<br>(Level 3+)</strong>
+                    <canvas id="preview-green" width="60" height="80"></canvas>
+                    <p>Faster Swings<br>Double Damage<br>Larger Hammer</p>
+                </div>
+                <div class="bg-card">
+                    <strong style="color:#8d6e63;">The Termite<br>(Level 10+)</strong>
+                    <canvas id="preview-termite" width="60" height="80"></canvas>
+                    <p>Paces platforms<br>Chews through ladders over time</p>
+                </div>
+            </div>
+            <button class="ability-btn" onclick="nextIntro(3)" style="width: 200px;">NEXT</button>
+        </div>
+
+        <div id="intro-step-3" class="intro-box" style="display: none;">
+            <h2>How to Play</h2>
+            <p>1. Stand near a block and click <b>LIFT / DROP</b> or use <b>Spacebar</b>.</p>
+            <div class="block-demo">
+                <div class="demo-b" style="background:#f1c40f">L</div>
+                <div class="demo-b" style="background:#e67e22">C</div>
+                <div class="demo-b" style="background:#e91e63">R</div>
+            </div>
+            <p>2. Arrange them to snap into an (L, C, R) line to build a ladder.</p>
+            <p>3. Ladders are the <b>only</b> way to reach higher platforms!</p>
+            <p>4. Reach the <b>Top Platform</b> and grab the spinning <b>Gold Coin</b> to advance!</p>
+            <p><i>Tip: Hold DOWN to drop through platforms!</i></p>
+            <button class="ability-btn" onclick="startGame()" style="width: 200px;">START GAME</button>
+        </div>
+    </div>
+
+    <div id="transition-overlay">
+        <h1 id="trans-lvl-text">LEVEL 1</h1>
+        <div id="trans-badguy-text"></div>
+        <div id="trans-enemies-preview"></div>
+        <button class="ability-btn" onclick="proceedToLevel()" style="width: 200px; margin-top: 40px;">PROCEED</button>
+    </div>
+
+    <div id="game-container">
+        <div id="left-panel">
+            <div class="stats-area">
+                <h3>Level: <span id="lvl">1</span> / 7</h3>
+                <h3>Points: <span id="pts">50</span></h3>
+            </div>
+            
+            <button id="slow-trigger" class="ability-btn" onclick="triggerSlow()">Slow Bad Guy (50 pts)</button>
+            <div id="slow-bar-bg"><div id="slow-bar"></div></div>
+            <button id="fix-trigger" class="ability-btn" onclick="triggerFix()">Fix Padlocks (50 pts)</button>
+            <button id="btn-pause" class="ability-btn" onclick="togglePause()">PAUSE (P)</button>
+
+            <div id="controls">
+                <button class="ctrl-btn" id="btn-up">▲</button>
+                <button class="ctrl-btn" id="btn-left">◀</button>
+                <button class="ctrl-btn" id="btn-action">LIFT<br>/ DROP</button>
+                <button class="ctrl-btn" id="btn-right">▶</button>
+                <button class="ctrl-btn" id="btn-down">▼</button>
+            </div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="pause-overlay"><h1 class="overlay-text">PAUSED</h1></div>
+    </div>
+
+    <footer class="site-footer">
+        <p class="legal-text">
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
+        </p>
+        <a href="contact.html" class="contact-btn">Contact Us</a>
+    </footer>
+
+    <script src="badguyladder.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | ClickSync Games</title>
+    <style>
+        :root {
+            --bg-color: #e5e7eb;
+            --text-color: #0f172a;
+            --panel-bg: #ffffff;
+            --accent-blue: #2563eb;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+        header { background-color: var(--panel-bg); padding: 20px 40px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        header h1 { margin: 0; color: var(--text-color); font-size: 32px; font-weight: 900; }
+        header span { color: var(--accent-blue); }
+        
+        main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 20px; }
+        .contact-box { background: var(--panel-bg); padding: 40px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
+        .contact-box h2 { margin-top: 0; border-bottom: 3px solid var(--accent-blue); padding-bottom: 10px; display: inline-block; }
+        
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 15px; }
+        
+        .submit-btn { background-color: var(--accent-blue); color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; transition: 0.2s; }
+        .submit-btn:hover { background-color: #1d4ed8; }
+        
+        footer { background-color: #cbd5e1; padding: 40px 20px; text-align: center; border-top: 2px solid #94a3b8; }
+        .legal-text { max-width: 800px; margin: 0 auto; font-size: 11px; color: #475569; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" style="text-decoration: none;">
+            <h1>ClickSync<span>Games</span><sup style="font-size: 14px; margin-left: 2px;">™</sup></h1>
+        </a>
+    </header>
+
+    <main>
+        <div class="contact-box">
+            <h2>Contact Us</h2>
+            
+            <form id="contactForm" action="https://formspree.io/f/mdayqryl" method="POST">
+                
+                <div class="form-group">
+                    <label for="email">Your Email Address:</label>
+                    <input type="text" id="email" name="email" placeholder="name@domain.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Your Message (Minimum 20 words):</label>
+                    <textarea id="message" name="message" rows="8" placeholder="Type your message here..." required></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p class="legal-text">
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
+        </p>
+    </footer>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            const email = document.getElementById('email').value.trim();
+            const msg = document.getElementById('message').value.trim();
+            
+            // 1. Strict Email Validation
+            const validEnds = ['.com', '.io', '.net', '.org', '.edu', '.gov', '.co'];
+            let isValidEmail = false;
+            
+            if(email.includes('@')) {
+                let lower = email.toLowerCase();
+                for(let end of validEnds) {
+                    if(lower.endsWith(end)) { 
+                        isValidEmail = true; 
+                        break; 
+                    }
+                }
+            }
+            
+            if(!isValidEmail) {
+                e.preventDefault(); // Stop submission
+                alert("ERROR: Please provide a valid email containing an '@' symbol and a standard domain ending (like .com or .io).");
+                return;
+            }
+            
+            // 2. Strict Word Count Validation
+            const words = msg.split(/\s+/).filter(w => w.length > 0);
+            
+            if(words.length < 20) {
+                e.preventDefault(); // Stop submission
+                alert("ERROR: Your message must be at least 20 words long. You currently have " + words.length + " word(s).");
+                return;
+            }
+            
+            // If the script reaches here, Formspree takes over and triggers the Captcha!
+        });
+    </script>
+</body>
+</html>
