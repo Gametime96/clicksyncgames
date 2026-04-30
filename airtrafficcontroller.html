@@ -3,11 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATC Madness: Command & Control</title>
+    <title>Air Traffic Control Simulator | Free Browser Radar Game</title>
+    <meta name="description" content="Take command of the control tower. Guide planes safely to the runway, manage altitude, and prevent mid-air collisions in this intense ATC radar simulator.">
     <style>
-        body { margin: 0; padding: 0; background-color: #121212; color: #ecf0f1; font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        #game-container { flex: 1; position: relative; background-color: #1a1a1a; display: flex; justify-content: center; align-items: center; }
-        canvas { background-color: #1b3d16; box-shadow: 0 0 40px rgba(0,0,0,0.7); cursor: crosshair; }
+        /* Updated Body to allow scrolling and centering */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #121212; 
+            color: #ecf0f1; 
+            font-family: 'Segoe UI', sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+
+        .top-nav {
+            width: 100%;
+            max-width: 1220px; /* 900 canvas + 320 sidebar */
+            padding: 20px 0;
+            text-align: left;
+        }
+
+        /* Wraps the game and sidebar together cleanly */
+        .game-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1220px;
+            height: 750px;
+            background-color: #1a1a1a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #game-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; }
+        canvas { background-color: #1b3d16; cursor: crosshair; }
         
         #sidebar { width: 320px; background-color: #2c3e50; padding: 20px; display: flex; flex-direction: column; border-left: 4px solid #3498db; box-sizing: border-box; }
         .stat-box { background: #1a252f; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px solid #3498db; }
@@ -16,7 +48,7 @@
         #quota-display { font-size: 14px; color: #2ecc71; margin-top: 5px; }
 
         .panel { background-color: #34495e; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #95a5a6; min-height: 160px; }
-        .btn { display: block; width: 100%; padding: 12px; margin-top: 10px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn { display: block; width: 100%; padding: 12px; margin-top: 10px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn:hover { background-color: #2980b9; }
         .btn-pause { position: absolute; top: 15px; left: 15px; width: 110px; z-index: 10; background: #e67e22; }
 
@@ -29,42 +61,98 @@
         .instruction-list { text-align: left; margin: 20px 0; font-size: 18px; line-height: 1.6; }
         .instruction-list div { margin-bottom: 10px; padding-left: 15px; border-left: 4px solid #f1c40f; }
         .hidden { display: none; }
+
+        /* Universal Footer Styles */
+        .site-footer {
+            background-color: #cbd5e1;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 40px 20px;
+            margin-top: auto;
+            text-align: center;
+            border-top: 2px solid #94a3b8;
+            color: #0f172a;
+        }
+        .legal-text {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .contact-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+        .contact-btn:hover { background-color: #1d4ed8; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <button class="btn btn-pause" onclick="togglePause()">Pause (P)</button>
+    <div class="top-nav">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
+    </div>
 
-        <div id="menu-overlay" class="overlay">
-            <div class="modal" id="modal-content">
-                <div class="fade-text" id="menu-title">ATC Madness: Ground Operations</div>
-                <div class="instruction-list" id="menu-instructions">
-                    <div><b>Manual Departure:</b> Planes will wait at the gate when finished.</div>
-                    <div><b>Ready Signal:</b> Look for the yellow <b>"!"</b> bubble to authorize pushback.</div>
-                    <div><b>Altitude Rule:</b> Airborne (Large) vs Ground (Small) planes don't collide.</div>
-                    <div><b>Quota:</b> Meet the departure target before the 2-minute timer ends.</div>
+    <div class="game-wrapper">
+        <div id="game-container">
+            <button class="btn btn-pause" onclick="togglePause()">Pause (P)</button>
+
+            <div id="menu-overlay" class="overlay">
+                <div class="modal" id="modal-content">
+                    <div class="fade-text" id="menu-title">ATC Madness: Ground Operations</div>
+                    <div class="instruction-list" id="menu-instructions">
+                        <div><b>Manual Departure:</b> Planes will wait at the gate when finished.</div>
+                        <div><b>Ready Signal:</b> Look for the yellow <b>"!"</b> bubble to authorize pushback.</div>
+                        <div><b>Altitude Rule:</b> Airborne (Large) vs Ground (Small) planes don't collide.</div>
+                        <div><b>Quota:</b> Meet the departure target before the 2-minute timer ends.</div>
+                    </div>
+                    <button class="btn" id="main-btn" style="background: #27ae60; font-size: 20px;" onclick="startGame()">START LEVEL 1</button>
                 </div>
-                <button class="btn" id="main-btn" style="background: #27ae60; font-size: 20px;" onclick="startGame()">START LEVEL 1</button>
             </div>
+
+            <canvas id="gameCanvas" width="900" height="750"></canvas>
         </div>
 
-        <canvas id="gameCanvas" width="900" height="750"></canvas>
+        <div id="sidebar">
+            <div class="stat-box">
+                <div id="level-display">LEVEL 1</div>
+                <div id="timer-display">Time: 2:00</div>
+                <div id="quota-display">Quota: 0 / 3</div>
+            </div>
+            <div class="panel">
+                <div id="plane-id" style="font-size: 18px; font-weight: bold; color: #f1c40f;">No Selection</div>
+                <div id="plane-status" style="font-size: 14px; margin: 10px 0; color: #bdc3c7;">Awaiting radar contact...</div>
+                <div id="action-buttons"></div>
+            </div>
+            <div id="log" style="flex:1; background: #000; font-family: monospace; font-size: 11px; padding: 10px; color: #2ecc71; overflow-y: auto;"></div>
+        </div>
     </div>
 
-    <div id="sidebar">
-        <div class="stat-box">
-            <div id="level-display">LEVEL 1</div>
-            <div id="timer-display">Time: 2:00</div>
-            <div id="quota-display">Quota: 0 / 3</div>
-        </div>
-        <div class="panel">
-            <div id="plane-id" style="font-size: 18px; font-weight: bold; color: #f1c40f;">No Selection</div>
-            <div id="plane-status" style="font-size: 14px; margin: 10px 0; color: #bdc3c7;">Awaiting radar contact...</div>
-            <div id="action-buttons"></div>
-        </div>
-        <div id="log" style="flex:1; background: #000; font-family: monospace; font-size: 11px; padding: 10px; color: #2ecc71; overflow-y: auto;"></div>
+    <div style="max-width: 1220px; width: 90%; margin: 40px auto; padding: 30px; background-color: #1e272e; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); color: #ecf0f1; text-align: left; box-sizing: border-box;">
+        <h2 style="color: #3498db; border-bottom: 2px solid #34495e; padding-bottom: 10px; margin-top: 0;">Surviving the Air Traffic Control Radar</h2>
+        <p style="line-height: 1.6; margin-bottom: 15px;">
+            Step into the shoes of a tower dispatcher in our <strong>Air Traffic Control simulator</strong>. Your objective is simple but highly stressful: maintain safe separation between inbound and outbound aircraft and guide them to their designated runways without a collision.
+        </p>
+        <p style="line-height: 1.6; margin-bottom: 0;">
+            Managing a radar screen requires constant situational awareness. You must adjust the speed and heading of multiple commercial jets simultaneously. Prioritize aircraft with low fuel, maintain visual spacing, and keep a cool head as the airspace becomes increasingly crowded. Good luck, Controller!
+        </p>
     </div>
+
+    <footer class="site-footer">
+        <p class="legal-text">
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
+        </p>
+        <a href="contact.html" class="contact-btn">Contact Us</a>
+    </footer>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -93,7 +181,7 @@
             constructor() {
                 this.id = "FL-" + (100 + Math.floor(Math.random() * 899));
                 this.state = "CRUISING";
-                this.speed = 0.55; // Slightly slower as requested
+                this.speed = 0.55; 
                 this.isSmall = false; 
                 const left = Math.random() > 0.5;
                 this.x = left ? -50 : 950;
@@ -176,7 +264,6 @@
                 }
                 tCtx.restore();
 
-                // Draw "Ready" Icon
                 if (this.state === "READY_PUSHBACK") {
                     tCtx.fillStyle = "#f1c40f";
                     tCtx.beginPath(); tCtx.arc(this.x + 15, this.y - 25, 10, 0, Math.PI*2); tCtx.fill();
