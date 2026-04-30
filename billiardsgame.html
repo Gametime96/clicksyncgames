@@ -49,6 +49,7 @@
             box-sizing: border-box;
             display: flex;
             justify-content: center;
+            flex: 1; /* Pushes footer down naturally */
         }
 
         canvas {
@@ -67,7 +68,7 @@
             width: 100%;
             box-sizing: border-box;
             padding: 40px 20px;
-            margin-top: auto; 
+            margin-top: 40px; 
             text-align: center;
             border-top: 2px solid #94a3b8;
             color: #0f172a;
@@ -89,16 +90,6 @@
 
     <div class="canvas-container">
         <canvas id="gameCanvas" width="880" height="640"></canvas>
-    </div>
-
-    <div style="max-width: 800px; width: 90%; margin: 40px auto; padding: 30px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); color: #0f172a; text-align: left; box-sizing: border-box;">
-        <h2 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 0;">Mastering Online Billiards and Pool Physics</h2>
-        <p style="line-height: 1.6; margin-bottom: 15px;">
-            Welcome to <strong>Classic Billiards</strong>, a responsive, browser-based pool simulator designed to test your geometry and cue-ball control. Whether you are practicing for a real-life 8-ball tournament or just looking for a relaxing physics game, our table provides a realistic friction and collision environment.
-        </p>
-        <p style="line-height: 1.6; margin-bottom: 0;">
-            To succeed, players must carefully calculate the angle of reflection. Remember that hitting the cue ball off-center applies "English" (spin), which alters how the ball reacts off the cushions. Take your time, line up the perfect shot, and clear the table!
-        </p>
     </div>
 
     <footer class="site-footer">
