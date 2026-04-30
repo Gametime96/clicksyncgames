@@ -50,4 +50,51 @@
             margin: 0 auto 30px auto;
             font-size: 11px;
             color: #475569;
-            line-height:
+            line-height: 1.6;
+        }
+        .contact-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+        .contact-btn:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
+    </div>
+
+    <canvas id="gameCanvas" width="880" height="640"></canvas>
+
+    <div style="max-width: 800px; width: 90%; margin: 40px auto; padding: 30px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); color: #0f172a; text-align: left; box-sizing: border-box;">
+        <h2 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 0;">Mastering Online Billiards and Pool Physics</h2>
+        
+        <p style="line-height: 1.6; margin-bottom: 15px;">
+            Welcome to <strong>Classic Billiards</strong>, a responsive, browser-based pool simulator designed to test your geometry and cue-ball control. Whether you are practicing for a real-life 8-ball tournament or just looking for a relaxing physics game, our table provides a realistic friction and collision environment.
+        </p>
+        
+        <p style="line-height: 1.6; margin-bottom: 0;">
+            To succeed, players must carefully calculate the angle of reflection. Remember that hitting the cue ball off-center applies "English" (spin), which alters how the ball reacts off the cushions. Take your time, line up the perfect shot, and clear the table!
+        </p>
+    </div>
+
+    <footer class="site-footer">
+        <p class="legal-text">
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
+        </p>
+        <a href="contact.html" class="contact-btn">Contact Us</a>
+    </footer>
+
+    <script src="billiardsgame.js"></script>
+</body>
+</html>
