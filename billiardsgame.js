@@ -78,9 +78,9 @@ const rackNumbers = [
 
 const pockets = [
     { x: INNER_LEFT, y: INNER_TOP },                               
-    { x: INNER_LEFT + INNER_WIDTH / 2, y: INNER_TOP },                
+    { x: INNER_LEFT + INNER_WIDTH / 2, y: INNER_TOP },                 
     { x: INNER_RIGHT, y: INNER_TOP },                    
-    { x: INNER_LEFT, y: INNER_BOTTOM },                   
+    { x: INNER_LEFT, y: INNER_BOTTOM },                  
     { x: INNER_LEFT + INNER_WIDTH / 2, y: INNER_BOTTOM },    
     { x: INNER_RIGHT, y: INNER_BOTTOM }         
 ];
@@ -335,7 +335,6 @@ function checkCollisions() {
             const minAllowedDistance = (BALL_RADIUS * 2) + 1.2;
 
             if (distance < minAllowedDistance) {
-                // Rule Checker: Track what the cue ball hits first
                 if (shotActive && !firstBallHit) {
                     if (b0.type === 'cue') firstBallHit = b1;
                     else if (b1.type === 'cue') firstBallHit = b0;
@@ -398,7 +397,6 @@ function evaluateShot() {
     let cueScratched = pocketedThisTurn.some(b => b.type === 'cue');
     if (cueScratched) foul = true;
     
-    // Evaluate 8-Ball Instant Win/Loss
     let eightBallPocketed = pocketedThisTurn.some(b => b.type === '8ball');
     if (eightBallPocketed) {
         if (isBreakShot) {
@@ -417,7 +415,6 @@ function evaluateShot() {
         }
     }
 
-    // Evaluate First Hit Fouls
     if (!firstBallHit) {
         foul = true; 
     } else {
@@ -432,7 +429,6 @@ function evaluateShot() {
         }
     }
     
-    // Evaluate Suite Assignment and Sinks
     for (let b of pocketedThisTurn) {
         if (b.type !== 'cue' && b.type !== '8ball') {
             if (!mySuite && !foul) {
@@ -478,7 +474,7 @@ function evaluateShot() {
     
     shotActive = false;
     firstBallHit = null;
-    isBreakShot = false; // Break is officially over
+    isBreakShot = false; 
     pocketedThisTurn = [];
     
     if (gameMode === 'PvC' && currentPlayer === 2) {
@@ -539,7 +535,6 @@ function takeComputerTurn() {
         let totalDist = Math.hypot(t.x - p.x, t.y - p.y) + Math.hypot(t.x - cueBall.x, t.y - cueBall.y);
         let power = Math.min(Math.max(totalDist * 0.03, 12), 30); 
 
-        // Calculate visual error variance based on difficulty setting
         let difficultyFactor = 0.04; 
         if (aiDifficulty === 'Beginner') difficultyFactor = 0.12;
         else if (aiDifficulty === 'Expert') difficultyFactor = 0.005;
@@ -571,10 +566,21 @@ let powerDir = 1;
 const MAX_POWER = 35; 
 const POWER_SPEED = 0.5; 
 
-canvas.addEventListener('mousedown', (e) => {
+// Bulletproof mouse coordinate calculation
+function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    };
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    const pos = getMousePos(e);
+    mouseX = pos.x;
+    mouseY = pos.y;
 
     if (gameState === 'MENU') {
         if (mouseX > (canvas.width / 2 - 140) && mouseX < (canvas.width / 2 + 140)) {
@@ -618,9 +624,9 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mousemove', (e) => {
     if (aimState === 'aiming') {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        mouseY = e.clientY - rect.top;
+        const pos = getMousePos(e);
+        mouseX = pos.x;
+        mouseY = pos.y;
         
         const angle = Math.atan2(mouseY - cueBall.y, mouseX - cueBall.x);
         cueBall.pole = { x: Math.cos(angle), y: Math.sin(angle), z: 0.7 };
@@ -828,18 +834,15 @@ function drawAimingTrajectory() {
                 simX += dirX; simY += dirY;
                 traveled++; drawDist++;
 
-                // Stop line at pockets
                 for (let pocket of pockets) {
                     if (Math.hypot(simX - pocket.x, simY - pocket.y) < POCKET_RADIUS) breakOuter = true;
                 }
                 
-                // Stop line at cushion walls
                 if (simX - BALL_RADIUS <= INNER_LEFT + CUSHION_WIDTH || simX + BALL_RADIUS >= INNER_RIGHT - CUSHION_WIDTH || 
                     simY - BALL_RADIUS <= INNER_TOP + CUSHION_WIDTH || simY + BALL_RADIUS >= INNER_BOTTOM - CUSHION_WIDTH) {
                     breakOuter = true;
                 }
                 
-                // Stop line at balls
                 for (let ball of balls) {
                     if (ball.state !== 'active' || ball === cueBall) continue;
                     if (Math.hypot(simX - ball.x, simY - ball.y) <= (BALL_RADIUS * 2) + 1.2) breakOuter = true;
@@ -976,7 +979,7 @@ function gameLoop() {
         turnTimerTriggered = true;
         
         setTimeout(() => {
-            evaluateShot(); // Centralized Rules Engine Check
+            evaluateShot();
         }, 1000);
     }
 
