@@ -41,26 +41,28 @@
             }
         }
 
-        /* Responsive Canvas Magic */
+        /* Responsive Canvas Magic (Fixed for Desktop Aspect Ratio) */
         .canvas-container {
             width: 100%;
             max-width: 880px;
             padding: 0 10px;
             box-sizing: border-box;
-            display: flex;
-            justify-content: center;
-            flex: 1; /* Pushes footer down naturally */
+            margin: 0 auto;
+            flex-shrink: 0; /* Prevents desktop browser from squishing the height */
         }
 
         canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 880 / 640; /* Forces the exact dimensions so it never crunches */
             border: none; 
             outline: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             border-radius: 10px;
-            width: 100%; /* Forces it to scale down on phones */
-            height: auto;
             touch-action: none; /* Stops the browser from scrolling when swiping on the pool table */
             -webkit-touch-callout: none;
+            background-color: #5c4033; /* Matches the wood trim */
         }
 
         .site-footer {
@@ -68,7 +70,7 @@
             width: 100%;
             box-sizing: border-box;
             padding: 40px 20px;
-            margin-top: 40px; 
+            margin-top: auto; 
             text-align: center;
             border-top: 2px solid #94a3b8;
             color: #0f172a;
