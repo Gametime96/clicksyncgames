@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Play Classic Billiards Online | Free Pool Physics Simulator</title>
     <meta name="description" content="Line up your shots and clear the table in this free physics-based pool simulator. Practice your billiards geometry and trick shots directly in your browser.">
     <style>
@@ -18,71 +18,84 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Nav link container */
         .top-nav {
             width: 100%;
             max-width: 880px;
-            padding: 20px 0;
+            padding: 20px;
+            box-sizing: border-box;
             text-align: left;
         }
 
-        /* The JS handles the table border, so we keep the canvas clean */
+        /* Mobile Landscape Warning */
+        .landscape-warning { display: none; }
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+            .landscape-warning {
+                display: block;
+                background-color: #e74c3c;
+                color: white;
+                text-align: center;
+                padding: 12px;
+                font-weight: bold;
+                width: 100%;
+                font-size: 14px;
+            }
+        }
+
+        /* Responsive Canvas Magic */
+        .canvas-container {
+            width: 100%;
+            max-width: 880px;
+            padding: 0 10px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+        }
+
         canvas {
             border: none; 
             outline: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            border-radius: 10px; /* Optional: gives the canvas a slightly softer edge */
+            border-radius: 10px;
+            width: 100%; /* Forces it to scale down on phones */
+            height: auto;
+            touch-action: none; /* Stops the browser from scrolling when swiping on the pool table */
+            -webkit-touch-callout: none;
         }
 
-        /* Universal Footer Styles */
         .site-footer {
             background-color: #cbd5e1;
             width: 100%;
             box-sizing: border-box;
             padding: 40px 20px;
-            margin-top: auto; /* Pushes footer to the very bottom */
+            margin-top: auto; 
             text-align: center;
             border-top: 2px solid #94a3b8;
             color: #0f172a;
         }
-        .legal-text {
-            max-width: 800px;
-            margin: 0 auto 30px auto;
-            font-size: 11px;
-            color: #475569;
-            line-height: 1.6;
-        }
-        .contact-btn {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-            text-decoration: none;
-            display: inline-block;
-            transition: 0.2s;
-        }
+        .legal-text { max-width: 800px; margin: 0 auto 30px auto; font-size: 11px; color: #475569; line-height: 1.6; }
+        .contact-btn { background-color: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; text-decoration: none; display: inline-block; transition: 0.2s; }
         .contact-btn:hover { background-color: #1d4ed8; }
     </style>
 </head>
 <body>
 
+    <div class="landscape-warning">
+        ⚠️ For the best experience, please rotate your device to Landscape mode.
+    </div>
+
     <div class="top-nav">
         <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
     </div>
 
-    <canvas id="gameCanvas" width="880" height="640"></canvas>
+    <div class="canvas-container">
+        <canvas id="gameCanvas" width="880" height="640"></canvas>
+    </div>
 
     <div style="max-width: 800px; width: 90%; margin: 40px auto; padding: 30px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); color: #0f172a; text-align: left; box-sizing: border-box;">
         <h2 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-top: 0;">Mastering Online Billiards and Pool Physics</h2>
-        
         <p style="line-height: 1.6; margin-bottom: 15px;">
             Welcome to <strong>Classic Billiards</strong>, a responsive, browser-based pool simulator designed to test your geometry and cue-ball control. Whether you are practicing for a real-life 8-ball tournament or just looking for a relaxing physics game, our table provides a realistic friction and collision environment.
         </p>
-        
         <p style="line-height: 1.6; margin-bottom: 0;">
             To succeed, players must carefully calculate the angle of reflection. Remember that hitting the cue ball off-center applies "English" (spin), which alters how the ball reacts off the cushions. Take your time, line up the perfect shot, and clear the table!
         </p>
