@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Blackjack - Pro Counter Edition</title>
+    <title>Card Counting Blackjack Simulator | Free Practice Game</title>
+    <meta name="description" content="Practice card counting online for free. Master basic strategy, learn the Hi-Lo system, and beat the dealer with our interactive browser-based blackjack simulator.">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,7 +12,7 @@
             color: white;
             text-align: center;
             margin: 0;
-            padding: 10px;
+            padding: 0; /* Removed top padding to allow full bleed if needed, but left main content padded */
         }
         h1, h2, p { margin: 5px 0; }
         
@@ -54,8 +55,8 @@
         }
         
         /* UI Elements */
-        #initial-spread { max-width: 1000px; margin: 0 auto; }
-        #game-board { display: none; }
+        #initial-spread { max-width: 1000px; margin: 20px auto; }
+        #game-board { display: none; padding-top: 10px; }
         .controls { margin: 15px 0; }
         
         button {
@@ -96,6 +97,37 @@
         .prompt-box { background: #2c3e50; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #f1c40f; }
         
         input[type="number"] { padding: 8px; font-size: 16px; width: 80px; text-align: center; border-radius: 4px; border: none;}
+        
+        /* Universal Footer Styles incorporated for this page */
+        .site-footer {
+            background-color: #cbd5e1;
+            padding: 40px 20px;
+            margin-top: 60px;
+            text-align: center;
+            border-top: 2px solid #94a3b8;
+            color: #0f172a;
+        }
+        .legal-text {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.6;
+        }
+        .contact-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+        .contact-btn:hover { background-color: #1d4ed8; }
     </style>
 </head>
 <body>
@@ -107,6 +139,10 @@
     </div>
 
     <div id="game-board">
+        <div style="text-align: left; padding: 10px 20px;">
+            <a href="index.html" style="color: #f1c40f; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
+        </div>
+
         <div class="hud-bar money-data">
             Bankroll: $<span id="bankroll-display">1000</span> | 
             Bet: $<input type="number" id="bet-input" value="10" min="1" step="1">
@@ -150,6 +186,36 @@
             <div id="prompt-buttons"></div>
         </div>
     </div>
+
+    <div style="max-width: 800px; margin: 40px auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #0f172a; text-align: left;">
+        <h2 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">How to Practice Card Counting in Blackjack</h2>
+        
+        <p style="line-height: 1.6; margin-bottom: 15px;">
+            Welcome to the ultimate <strong>card counting blackjack simulator</strong>. Whether you are learning basic strategy or trying to master the popular Hi-Lo system, our free browser game is designed to help you practice without risking real money at the casino.
+        </p>
+
+        <h3 style="color: #0f172a; margin-top: 25px;">The Hi-Lo Card Counting System</h3>
+        <p style="line-height: 1.6; margin-bottom: 15px;">
+            Card counting is a mathematical strategy used to determine whether the next hand is likely to give a probable advantage to the player or the dealer. The most common method is the Hi-Lo system. In this system, every card dealt is assigned a specific value:
+        </p>
+
+        <ul style="line-height: 1.6; margin-bottom: 15px;">
+            <li><strong>Low Cards (2-6):</strong> +1</li>
+            <li><strong>Neutral Cards (7-9):</strong> 0</li>
+            <li><strong>High Cards (10, J, Q, K, Ace):</strong> -1</li>
+        </ul>
+
+        <p style="line-height: 1.6;">
+            By keeping a running tally of these values as cards are dealt, players can gauge the "running count." A high positive count means there are more high cards left in the shoe, which mathematically favors the player. Use this simulator to sharpen your math skills, improve your reaction time, and test your betting strategies in a realistic environment.
+        </p>
+    </div>
+
+    <footer class="site-footer">
+        <p class="legal-text">
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
+        </p>
+        <a href="contact.html" class="contact-btn">Contact Us</a>
+    </footer>
 
     <script>
         const suits = ['♥', '♦', '♣', '♠'];
