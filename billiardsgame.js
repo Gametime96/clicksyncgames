@@ -459,19 +459,16 @@ function handleInputMove(e) {
 function handleInputEnd(e) {
     if (e.cancelable) e.preventDefault();
     if (aimState === 'aiming' && isDraggingAim) {
-        // Leaving finger/mouse up keeps aim ready, waits for second click
         isDraggingAim = false;
     }
 }
 
-// Attach universally for desktop and mobile
 canvas.addEventListener('mousedown', handleInputStart);
 canvas.addEventListener('mousemove', handleInputMove);
 canvas.addEventListener('mouseup', handleInputEnd);
 canvas.addEventListener('touchstart', handleInputStart, {passive: false});
 canvas.addEventListener('touchmove', handleInputMove, {passive: false});
 canvas.addEventListener('touchend', handleInputEnd);
-
 
 // --- RENDER GRAPHICS ---
 function drawMenu() {
@@ -550,7 +547,6 @@ function drawAimingTrajectory() {
     let isHumanTurn = (currentPlayer === 1) || (gameMode === 'PvP' && currentPlayer === 2);
     if (!isHumanTurn) return;
 
-    // Faint 50% Grey Aiming Circle
     if (aimState === 'aiming') {
         ctx.beginPath();
         ctx.arc(cueBall.x, cueBall.y, BALL_RADIUS * 6, 0, Math.PI * 2);
@@ -561,15 +557,15 @@ function drawAimingTrajectory() {
     let dirX = Math.cos(aimAngle);
     let dirY = Math.sin(aimAngle);
     
-    const maxLength = INNER_WIDTH * 0.6; 
+    // Limits dashed line to 30% of table width
+    const maxLength = INNER_WIDTH * 0.3; 
     let simX = cueBall.x; let simY = cueBall.y; let traveled = 0;
-    const DASH_LEN = 16; const GAP_LEN = 12;
+    const DASH_LEN = 12; const GAP_LEN = 8;
 
     ctx.lineCap = 'round';
     let breakOuter = false;
 
     while (traveled < maxLength && !breakOuter) {
-        let startProgress = traveled / maxLength;
         let drawDist = 0;
         
         ctx.beginPath();
@@ -584,16 +580,16 @@ function drawAimingTrajectory() {
             
             for (let ball of balls) {
                 if (ball.state !== 'active' || ball === cueBall) continue;
-                if (Math.hypot(simX - ball.x, simY - ball.y) <= (BALL_RADIUS * 2) + 1.2) breakOuter = true;
+                if (Math.hypot(simX - ball.x, simY - ball.y) <= (BALL_RADIUS * 2)) breakOuter = true;
             }
             
             ctx.lineTo(simX, simY);
             if (breakOuter) break; 
         }
 
-        let alpha = Math.max(0.05, 0.9 - (startProgress * 0.85));
-        let thickness = 3 * (1 - startProgress * 0.4);
-        ctx.strokeStyle = `rgba(255, 165, 0, ${alpha})`; ctx.lineWidth = thickness; ctx.stroke();
+        ctx.strokeStyle = `rgba(255, 255, 255, 0.8)`; 
+        ctx.lineWidth = 3; 
+        ctx.stroke();
 
         if (breakOuter) break;
 
@@ -605,7 +601,7 @@ function drawAimingTrajectory() {
                 simY - BALL_RADIUS <= INNER_TOP + CUSHION_WIDTH || simY + BALL_RADIUS >= INNER_BOTTOM - CUSHION_WIDTH) { breakOuter = true; }
             for (let ball of balls) {
                 if (ball.state !== 'active' || ball === cueBall) continue;
-                if (Math.hypot(simX - ball.x, simY - ball.y) <= (BALL_RADIUS * 2) + 1.2) breakOuter = true;
+                if (Math.hypot(simX - ball.x, simY - ball.y) <= (BALL_RADIUS * 2)) breakOuter = true;
             }
             if (breakOuter) break;
         }
