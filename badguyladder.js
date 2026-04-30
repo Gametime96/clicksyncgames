@@ -2,11 +2,15 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth - 280;
-    canvas.height = window.innerHeight;
+    const container = document.getElementById('game-container');
+    if (container) {
+        canvas.width = container.clientWidth - 280;
+        canvas.height = container.clientHeight;
+    }
 }
 window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+// Run once on load to establish size
+setTimeout(resizeCanvas, 100);
 
 // --- GAME CONFIG & STATE ---
 let points = 50, level = 1, gameState = 'intro';
@@ -106,6 +110,7 @@ function drawTermite(ctx, t) {
 // --- INTRO & TRANSITIONS ---
 window.onload = () => {
     setTimeout(() => {
+        resizeCanvas();
         if(document.getElementById('preview-red')) drawHuman(document.getElementById('preview-red').getContext('2d'), 12, 10, 35, 55, "#c0392b", "#000", true, 0, 1);
         if(document.getElementById('preview-green')) drawHuman(document.getElementById('preview-green').getContext('2d'), 7, 5, 45, 65, "#27ae60", "#000", true, 0, 1);
         if(document.getElementById('preview-termite')) drawTermite(document.getElementById('preview-termite').getContext('2d'), {x: 5, y: 25, w: 45, h: 25, bitingFrameCount: 0});
@@ -118,7 +123,6 @@ function nextIntro(step) {
 }
 
 function startLevelTransition(nextLevel) {
-    // Game now completely caps at Level 7
     if (nextLevel > 7) {
         alert("YOU WIN! YOU BEAT ALL 7 LEVELS!");
         location.reload();
@@ -128,8 +132,7 @@ function startLevelTransition(nextLevel) {
     level = nextLevel;
     gameState = 'transition';
     
-    // Exact requested math for enemy scaling
-    let numEnemyPlatforms = (2 + level) - 1; // Number of platforms excluding ground/top
+    let numEnemyPlatforms = (2 + level) - 1; 
     let redCount = 1;
     let greenCount = 0;
     let termiteCount = 0;
@@ -144,7 +147,6 @@ function startLevelTransition(nextLevel) {
         termiteCount = numEnemyPlatforms * 2; 
     }
 
-    // Save counts for the spawner functions
     window.lvlRed = redCount;
     window.lvlGreen = greenCount;
     window.lvlTermite = termiteCount;
@@ -204,7 +206,6 @@ function initLevel() {
     currentPlatformSpacing = (canvas.height - 120) / numFloors;
     if (currentPlatformSpacing < 75) currentPlatformSpacing = 75;
 
-    // BUILD PLATFORMS FIRST
     platforms.push({ x: 0, y: canvas.height - 40, w: canvas.width, h: 40, isGround: true }); 
     doors.push({ x: canvas.width * 0.85 - 40, y: canvas.height - 100, w: 40, h: 60, hp: 5, max: 5, hasPadlock: true, shake: 0 });
     
@@ -227,7 +228,6 @@ function initLevel() {
         if(doors.length > 3) { doors[doors.length - 2].hasPadlock = false; doors[doors.length - 2].hp = 0; doors[doors.length - 2].max = 0; }
     }
 
-    // SPAWN ENEMIES AFTER PLATFORMS EXIST
     spawnBadGuys();
     spawnTermites();
     spawnMissingBlocks();
@@ -245,9 +245,8 @@ function spawnBadGuys() {
         });
     }
 
-    // Evenly distribute elite bad guys across available platforms (excluding ground)
     for(let i=0; i<window.lvlGreen; i++) {
-        let platIndex = (i % (platforms.length - 1)) + 1; // 1 to length-1
+        let platIndex = (i % (platforms.length - 1)) + 1; 
         let plat = platforms[platIndex] || platforms[0];
         
         badGuys.push({
@@ -261,7 +260,7 @@ function spawnBadGuys() {
 function spawnTermites() {
     termites = [];
     for(let i=0; i < window.lvlTermite; i++) {
-        let platIndex = (i % (platforms.length - 1)) + 1; // Spread evenly
+        let platIndex = (i % (platforms.length - 1)) + 1; 
         let plat = platforms[platIndex] || platforms[0];
         
         termites.push({
@@ -284,6 +283,7 @@ function spawnMissingBlocks() {
     if (!hasC) blocks.push({ x: 110, y: spawnY, type: 'C', vy: 0 });
     if (!hasL) blocks.push({ x: 170, y: spawnY, type: 'L', vy: 0 });
 }
+
 // --- CORE LOGIC ---
 function togglePause() {
     if (gameState !== 'playing') return;
@@ -544,14 +544,12 @@ function draw() {
 // --- SYSTEM & JUMP FIX ---
 function updateUI() {
     document.getElementById('pts').innerText = points;
-    // Visually override HTML to show / 7 cap
     let lvlSpan = document.getElementById('lvl');
     if (lvlSpan && lvlSpan.parentNode) lvlSpan.parentNode.innerHTML = `Level: <span id="lvl">${level}</span> / 7`;
     document.getElementById('slow-trigger').disabled = (points < 50 || slowActive);
     document.getElementById('fix-trigger').disabled = (points < 50);
 }
 
-// Extract Jump to prevent double jumps mid-air
 function handleJump() {
     if(!isPaused && player.grounded && !player.onLadder) {
         player.vy = PLAYER_JUMP;
@@ -560,6 +558,11 @@ function handleJump() {
 }
 
 window.addEventListener('keydown', e => {
+    // This is the new crucial line: Stops browser from scrolling when using arrow keys
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+        e.preventDefault();
+    }
+    
     if(e.code === 'KeyP') togglePause();
     if(isPaused) return;
     if(e.code === 'ArrowLeft') keys.left = true;
@@ -568,6 +571,7 @@ window.addEventListener('keydown', e => {
     if(e.code === 'ArrowDown') keys.down = true;
     if(e.code === 'Space') handleAction();
 });
+
 window.addEventListener('keyup', e => {
     if(e.code === 'ArrowLeft') keys.left = false;
     if(e.code === 'ArrowRight') keys.right = false;
@@ -575,7 +579,7 @@ window.addEventListener('keyup', e => {
     if(e.code === 'ArrowDown') keys.down = false;
 });
 
-// UI Buttons - Swapped to proper hold states for climbing
+// UI Buttons
 const releaseU = (e) => { e?.preventDefault(); keys.up = false; };
 const releaseL = (e) => { e?.preventDefault(); keys.left = false; };
 const releaseR = (e) => { e?.preventDefault(); keys.right = false; };
