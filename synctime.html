@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synctime - Orbital Defense</title>
+    <title>Synctime | Free Arcade Survival Web Game</title>
+    <meta name="description" content="Defend your vulnerable cores while swinging a lethal laser tether in this 12-level arcade survival game. Test your reflexes and spatial awareness.">
     <style>
         :root {
             --bg-dark: #050510;
@@ -14,6 +15,7 @@
             --text-main: #e5e7eb;
         }
 
+        /* Updated Body to allow scrolling and centering */
         body {
             margin: 0;
             padding: 0;
@@ -21,11 +23,18 @@
             color: var(--text-main);
             font-family: 'Courier New', Courier, monospace;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
             user-select: none;
+        }
+
+        /* Nav link container */
+        .top-nav {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px 0;
+            text-align: left;
         }
 
         #gameWrapper {
@@ -38,6 +47,7 @@
             flex-direction: column;
             box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
             position: relative;
+            overflow: hidden; /* Keeps overlay screens contained */
         }
 
         #header {
@@ -123,7 +133,7 @@
         
         .fade-in-second {
             opacity: 0;
-            animation: textFade 0.6s ease-out 1s forwards; /* 1 second delay */
+            animation: textFade 0.6s ease-out 1s forwards;
         }
 
         @keyframes textFade {
@@ -131,9 +141,45 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- Universal Footer Styles --- */
+        .site-footer {
+            background-color: #111122;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 40px 20px;
+            margin-top: auto;
+            text-align: center;
+            border-top: 2px solid #2a2a4a;
+            color: #d1d5db;
+        }
+        .legal-text {
+            max-width: 800px;
+            margin: 0 auto 30px auto;
+            font-size: 11px;
+            color: #9ca3af;
+            line-height: 1.6;
+        }
+        .contact-btn {
+            background-color: var(--neon-cyan);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+        .contact-btn:hover { box-shadow: 0 0 15px var(--neon-cyan); }
     </style>
 </head>
 <body>
+
+    <div class="top-nav">
+        <a href="index.html" style="color: var(--neon-cyan); text-decoration: none; font-weight: bold; font-size: 16px; text-shadow: 0 0 8px rgba(0,243,255,0.5);">&larr; Back to ClickSync Games</a>
+    </div>
 
     <div id="gameWrapper">
         <div id="header">
@@ -171,8 +217,7 @@
         </div>
 
         <div id="levelTransitionScreen" class="overlay-screen" style="display: none;">
-            <div id="transitionContent" style="text-align: center;">
-                </div>
+            <div id="transitionContent" style="text-align: center;"></div>
         </div>
 
         <div id="pauseScreen" class="overlay-screen" style="display: none;">
@@ -195,6 +240,23 @@
         </div>
     </div>
 
+    <div style="max-width: 900px; width: 95%; margin: 40px auto; padding: 30px; background-color: #111122; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.1); color: #d1d5db; text-align: left; border: 1px solid #2a2a4a; box-sizing: border-box;">
+        <h2 style="color: var(--neon-cyan); border-bottom: 2px solid #2a2a4a; padding-bottom: 10px; margin-top: 0; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);">Mastering the Laser Tether Mechanics</h2>
+        <p style="line-height: 1.6; margin-bottom: 15px;">
+            <strong>Synctime</strong> is an intense arcade survival web game that tests your reflexes and spatial awareness. You control a dual-core entity connected by a lethal laser tether. The objective is to survive 12 increasingly difficult levels by slicing through incoming enemy swarms.
+        </p>
+        <p style="line-height: 1.6; margin-bottom: 0;">
+            The core defense simulator mechanics dictate that your glowing tether is your only weapon, instantly destroying enemies on contact. However, the physical cores at the ends of the tether are highly vulnerable. You must strategically manage your spin direction, expand your radius to strike, and contract it to weave through tight clusters of threats.
+        </p>
+    </div>
+
+    <footer class="site-footer">
+        <p class="legal-text">
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
+        </p>
+        <a href="contact.html" class="contact-btn">Contact Us</a>
+    </footer>
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -206,27 +268,25 @@
             isPaused: false,
             level: 1,
             integrity: 100,
-            energy: 0, // Score
+            energy: 0, 
             frames: 0,
             levelFrames: 0,
             
-            // Player Data
             mouseX: canvas.width / 2,
             mouseY: canvas.height / 2,
             angle: 0,
             spinSpeed: 0.05,
-            spinDirection: 1, // 1 = clockwise, -1 = counter-clockwise
+            spinDirection: 1, 
             baseRadius: 40,
             targetRadius: 40,
             currentRadius: 40,
             
-            // Entities
             enemies: [],
             particles: []
         };
 
-        const FRAMES_PER_LEVEL = 1800; // 30 seconds * 60fps
-        let animationId = null; // Used to kill the loop on restart
+        const FRAMES_PER_LEVEL = 1800; 
+        let animationId = null; 
         
         // --- UI ELEMENTS ---
         const uiLevel = document.getElementById('uiLevel');
@@ -243,12 +303,15 @@
 
         canvas.addEventListener('mousedown', (e) => {
             if (e.button === 0 && state.isRunning && !state.isPaused && !state.isTransitioning) {
-                state.spinDirection *= -1; // Reverse spin on left click
+                state.spinDirection *= -1; 
             }
         });
 
         window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') state.targetRadius = 100;
+            if (e.code === 'Space') {
+                e.preventDefault(); // Prevents the browser from scrolling down!
+                state.targetRadius = 100;
+            }
             if (e.key.toLowerCase() === 'p') togglePause();
         });
 
@@ -257,7 +320,6 @@
         });
 
         // --- MATH HELPERS ---
-        // Checks if a line segment (A to B) intersects a circle (center C, radius R)
         function lineCircleCollide(A, B, C, r) {
             const dx = B.x - A.x;
             const dy = B.y - A.y;
@@ -265,7 +327,7 @@
             let t = 0;
             if (lenSq !== 0) {
                 t = ((C.x - A.x) * dx + (C.y - A.y) * dy) / lenSq;
-                t = Math.max(0, Math.min(1, t)); // Clamp to segment
+                t = Math.max(0, Math.min(1, t)); 
             }
             const closestX = A.x + t * dx;
             const closestY = A.y + t * dy;
@@ -291,7 +353,6 @@
             document.getElementById('victoryScreen').style.display = 'none';
             document.getElementById('pauseScreen').style.display = 'none';
             
-            // Kill any existing loops to prevent the speed-up glitch
             if (animationId) {
                 cancelAnimationFrame(animationId);
             }
@@ -313,7 +374,6 @@
             updateUI();
             showTransition(state.level);
             
-            // Start a fresh, clean loop
             gameLoop();
         }
 
@@ -322,7 +382,6 @@
             const screen = document.getElementById('levelTransitionScreen');
             const contentBox = document.getElementById('transitionContent');
             
-            // Inject HTML dynamically so the CSS animations reset and replay perfectly
             let html = `<h2 class="fade-in-first" style="color: #9ca3af; letter-spacing: 4px; font-size: 28px; margin-bottom: 10px;">Now entering</h2>`;
             html += `<h1 class="fade-in-second" style="color: var(--neon-yellow); text-shadow: 0 0 20px var(--neon-yellow); font-size: 64px; margin: 0;">Level ${level}</h1>`;
             
@@ -336,11 +395,10 @@
             setTimeout(() => {
                 screen.style.display = 'none';
                 state.isTransitioning = false;
-            }, 3500); // 3.5 seconds gives enough time for the 1s delay + reading time
+            }, 3500); 
         }
 
         function spawnEnemy() {
-            // Spawn from outside edges
             let ex, ey;
             if (Math.random() < 0.5) {
                 ex = Math.random() < 0.5 ? -20 : canvas.width + 20;
@@ -350,15 +408,13 @@
                 ey = Math.random() < 0.5 ? -20 : canvas.height + 20;
             }
 
-            // Progressive Difficulty Scaling for 12 levels
-            // Level 1 = very slow (0.65), Level 12 = fast (2.3)
             const speedBase = 0.5 + (state.level * 0.15);
-            const isChaser = state.level >= 5 && Math.random() < (state.level * 0.05); // Chasers start appearing level 5
+            const isChaser = state.level >= 5 && Math.random() < (state.level * 0.05); 
 
             state.enemies.push({
                 x: ex, y: ey,
                 radius: 8,
-                speed: speedBase + (Math.random() * 0.5), // Small variance so they don't clump
+                speed: speedBase + (Math.random() * 0.5), 
                 isChaser: isChaser
             });
         }
@@ -382,7 +438,7 @@
             
             if (state.integrity <= 0) {
                 state.integrity = 0;
-                state.isRunning = false; // Kills the loop
+                state.isRunning = false; 
                 document.getElementById('survivalText').innerText = `Reached Level: ${state.level}`;
                 document.getElementById('gameOverScreen').style.display = 'flex';
             }
@@ -401,13 +457,9 @@
         }
 
         function updateMechanics() {
-            // Smoothly animate tether radius expansion/contraction
             state.currentRadius += (state.targetRadius - state.currentRadius) * 0.1;
-            
-            // Update Rotation
             state.angle += state.spinSpeed * state.spinDirection;
 
-            // Calculate Core Positions
             const core1 = {
                 x: state.mouseX + Math.cos(state.angle) * state.currentRadius,
                 y: state.mouseY + Math.sin(state.angle) * state.currentRadius
@@ -417,21 +469,16 @@
                 y: state.mouseY + Math.sin(state.angle + Math.PI) * state.currentRadius
             };
 
-            // Spawn Enemies
-            // Level 1: Spawn every ~2.7 secs (165 frames). Level 12: Spawn every ~0.4 secs (25 frames)
             const spawnInterval = Math.max(25, 180 - (state.level * 15));
             if (state.frames % spawnInterval === 0) spawnEnemy();
 
-            // Update Enemies
             for (let i = state.enemies.length - 1; i >= 0; i--) {
                 let e = state.enemies[i];
                 
-                // Movement logic
                 let targetX = state.mouseX;
                 let targetY = state.mouseY;
 
                 if (e.isChaser) {
-                    // Chasers aim for the closest core instead of the center
                     const dist1 = Math.hypot(core1.x - e.x, core1.y - e.y);
                     const dist2 = Math.hypot(core2.x - e.x, core2.y - e.y);
                     if (dist1 < dist2) { targetX = core1.x; targetY = core1.y; } 
@@ -442,16 +489,13 @@
                 e.x += Math.cos(angleToTarget) * e.speed;
                 e.y += Math.sin(angleToTarget) * e.speed;
 
-                // --- COLLISIONS ---
                 let destroyed = false;
 
-                // 1. Did it hit a vulnerable Core? (BAD)
                 if (circleCollide(e, core1, e.radius, 12) || circleCollide(e, core2, e.radius, 12)) {
                     takeDamage(15);
                     spawnParticles(e.x, e.y, '#ff00ea', 15);
                     destroyed = true;
                 }
-                // 2. Did it hit the lethal Tether? (GOOD)
                 else if (lineCircleCollide(core1, core2, e, e.radius)) {
                     state.energy += 10;
                     spawnParticles(e.x, e.y, '#00f3ff', 8);
@@ -462,7 +506,6 @@
                 if (destroyed) state.enemies.splice(i, 1);
             }
 
-            // Update Particles
             for (let i = state.particles.length - 1; i >= 0; i--) {
                 let p = state.particles[i];
                 p.x += p.vx;
@@ -471,7 +514,6 @@
                 if (p.life <= 0) state.particles.splice(i, 1);
             }
 
-            // Check Level Progress
             if (state.levelFrames >= FRAMES_PER_LEVEL) {
                 state.level++;
                 state.levelFrames = 0;
@@ -483,7 +525,7 @@
                 } else {
                     state.enemies = [];
                     state.particles = [];
-                    state.integrity = 100; // Reset integrity to exactly 100% on every level up
+                    state.integrity = 100; 
                     updateUI();
                     showTransition(state.level);
                 }
@@ -491,7 +533,6 @@
         }
 
         function drawGame() {
-            // Slight trail effect
             ctx.fillStyle = 'rgba(5, 5, 16, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -504,13 +545,11 @@
                 y: state.mouseY + Math.sin(state.angle + Math.PI) * state.currentRadius
             };
 
-            // Draw Center Ghost Node
             ctx.beginPath();
             ctx.arc(state.mouseX, state.mouseY, 3, 0, Math.PI*2);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.fill();
 
-            // Draw Tether (Lethal Line)
             ctx.beginPath();
             ctx.moveTo(core1.x, core1.y);
             ctx.lineTo(core2.x, core2.y);
@@ -519,9 +558,8 @@
             ctx.shadowBlur = 15;
             ctx.shadowColor = '#00f3ff';
             ctx.stroke();
-            ctx.shadowBlur = 0; // Reset
+            ctx.shadowBlur = 0; 
 
-            // Draw Cores (Vulnerable Ends)
             [core1, core2].forEach(c => {
                 ctx.beginPath();
                 ctx.arc(c.x, c.y, 12, 0, Math.PI*2);
@@ -531,18 +569,16 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Inner core dot
                 ctx.beginPath();
                 ctx.arc(c.x, c.y, 4, 0, Math.PI*2);
                 ctx.fillStyle = '#fffb00';
                 ctx.fill();
             });
 
-            // Draw Enemies
             state.enemies.forEach(e => {
                 ctx.save();
                 ctx.translate(e.x, e.y);
-                ctx.rotate(state.frames * 0.1); // Spin the diamond
+                ctx.rotate(state.frames * 0.1); 
                 ctx.beginPath();
                 ctx.moveTo(0, -e.radius);
                 ctx.lineTo(e.radius, 0);
@@ -550,7 +586,6 @@
                 ctx.lineTo(-e.radius, 0);
                 ctx.closePath();
                 
-                // Chasers have a different visual style (hollow)
                 if (e.isChaser) {
                     ctx.strokeStyle = '#ff00ea';
                     ctx.lineWidth = 2;
@@ -562,7 +597,6 @@
                 ctx.restore();
             });
 
-            // Draw Particles
             state.particles.forEach(p => {
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
@@ -574,7 +608,6 @@
         }
 
         function gameLoop() {
-            // Stop the loop completely if the game isn't running
             if (!state.isRunning) return;
 
             if (!state.isTransitioning && !state.isPaused) {
@@ -584,9 +617,7 @@
                 if (state.frames % 60 === 0) updateUI();
             }
             
-            // We always draw so the background remains visible behind overlays
             drawGame();
-            
             animationId = requestAnimationFrame(gameLoop);
         }
 
