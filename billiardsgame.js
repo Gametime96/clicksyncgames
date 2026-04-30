@@ -366,13 +366,17 @@ function takeComputerTurn() {
     shotActive = true; turnTimerTriggered = false; aiThinking = false;
 }
 
-// --- NEW RESPONSIVE MOBILE AIMING CONTROLS ---
+
+// --- NEW 3-STEP RESPONSIVE MOBILE AIMING CONTROLS ---
 let aimState = 'idle'; // idle -> aiming -> power
 let aimAngle = 0;
 let powerLevel = 0;
 let powerDir = 1;
+let isDraggingAim = false;
 const MAX_POWER = 35; 
-const POWER_SPEED = 0.5; 
+
+// Exactly 1 second to reach MAX_POWER at 60 FPS
+const POWER_SPEED = MAX_POWER / 60; 
 
 function getMousePos(e) {
     const rect = canvas.getBoundingClientRect();
@@ -411,28 +415,42 @@ function handleInputStart(e) {
     let isHumanTurn = (currentPlayer === 1) || (gameMode === 'PvP' && currentPlayer === 2);
     if (gameState === 'PLAYING' && isHumanTurn && cueBall.vx === 0 && cueBall.vy === 0 && cueBall.state === 'active' && !shotActive) {
         
-        // Cancel Aim Button Check
+        // 3. Third Click: Shoot
         if (aimState === 'power') {
+            // Check Cancel Button
             if (pos.x > canvas.width - 140 && pos.x < canvas.width - 20 && pos.y > 15 && pos.y < 55) {
                 aimState = 'idle'; powerLevel = 0; return;
             }
-        }
 
-        if (aimState === 'idle') {
-            aimState = 'aiming';
-            aimAngle = Math.atan2(pos.y - cueBall.y, pos.x - cueBall.x);
-        } else if (aimState === 'power') {
             let finalPower = Math.max(powerLevel, 2);
             cueBall.vx = Math.cos(aimAngle) * finalPower;
             cueBall.vy = Math.sin(aimAngle) * finalPower;
             shotActive = true; turnTimerTriggered = false; aimState = 'idle'; powerLevel = 0;
+            return;
+        }
+
+        // 1. First Click: Start Aiming
+        if (aimState === 'idle') {
+            aimState = 'aiming';
+            isDraggingAim = true;
+            aimAngle = Math.atan2(pos.y - cueBall.y, pos.x - cueBall.x);
+            return;
+        }
+
+        // 2. Second Click: Lock Aim, Start Power Meter
+        if (aimState === 'aiming') {
+            aimState = 'power';
+            powerLevel = 0; 
+            powerDir = 1;
+            isDraggingAim = false;
+            return;
         }
     }
 }
 
 function handleInputMove(e) {
     if (e.cancelable) e.preventDefault();
-    if (aimState === 'aiming') {
+    if (aimState === 'aiming' && isDraggingAim) {
         const pos = getMousePos(e);
         aimAngle = Math.atan2(pos.y - cueBall.y, pos.x - cueBall.x);
     }
@@ -440,9 +458,9 @@ function handleInputMove(e) {
 
 function handleInputEnd(e) {
     if (e.cancelable) e.preventDefault();
-    if (aimState === 'aiming') {
-        aimState = 'power';
-        powerLevel = 0; powerDir = 1;
+    if (aimState === 'aiming' && isDraggingAim) {
+        // Leaving finger/mouse up keeps aim ready, waits for second click
+        isDraggingAim = false;
     }
 }
 
@@ -477,7 +495,6 @@ function drawUI() {
         ctx.fillStyle = '#ff3333'; ctx.fillText(transientMessage, canvas.width / 2, TABLE_Y + TABLE_HEIGHT + 25); messageTimer--;
     }
 
-    // Draw Cancel Aim button if in power state
     if (aimState === 'power') {
         ctx.fillStyle = '#e74c3c';
         ctx.fillRect(canvas.width - 140, 15, 120, 40);
@@ -532,6 +549,14 @@ function drawAimingTrajectory() {
     if (aimState === 'idle') return;
     let isHumanTurn = (currentPlayer === 1) || (gameMode === 'PvP' && currentPlayer === 2);
     if (!isHumanTurn) return;
+
+    // Faint 50% Grey Aiming Circle
+    if (aimState === 'aiming') {
+        ctx.beginPath();
+        ctx.arc(cueBall.x, cueBall.y, BALL_RADIUS * 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(128, 128, 128, 0.5)';
+        ctx.fill();
+    }
 
     let dirX = Math.cos(aimAngle);
     let dirY = Math.sin(aimAngle);
@@ -596,7 +621,7 @@ function drawCueStick() {
 
     ctx.save(); 
     ctx.translate(cueBall.x, cueBall.y); 
-    ctx.rotate(aimAngle + Math.PI); // Stick draws on the OPPOSITE side of target
+    ctx.rotate(aimAngle + Math.PI); 
 
     ctx.beginPath(); ctx.moveTo(BALL_RADIUS + pullBack, 0); ctx.lineTo(BALL_RADIUS + 200 + pullBack, 0);
     ctx.strokeStyle = '#d4a373'; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
@@ -620,29 +645,37 @@ function drawPowerMeter() {
     }
 }
 
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+let lastTime = performance.now();
+const fpsInterval = 1000 / 60; 
 
-    if (gameState === 'MENU') { drawMenu(); requestAnimationFrame(gameLoop); return; }
-
-    if (aimState === 'power') {
-        powerLevel += powerDir * POWER_SPEED;
-        if (powerLevel >= MAX_POWER) { powerLevel = MAX_POWER; powerDir = -1; } 
-        else if (powerLevel <= 0) { powerLevel = 0; powerDir = 1; }
-    }
-
-    if (shotActive && !areBallsMoving() && !turnTimerTriggered) {
-        turnTimerTriggered = true; setTimeout(() => { evaluateShot(); }, 1000);
-    }
-
-    drawUI(); drawExternalReturnSystemBase(); drawTable(); drawAimingTrajectory();
-    
-    for (let ball of balls) { ball.update(); } checkCollisions();
-    for (let ball of [...balls].sort((a, b) => a.type === 'cue' ? 1 : -1)) { ball.draw(); }
-    
-    drawExternalReturnSystemGlass(); drawCueStick(); drawPowerMeter();
-    
+function gameLoop(currentTime) {
     requestAnimationFrame(gameLoop);
+    let deltaTime = currentTime - lastTime;
+    
+    if (deltaTime >= fpsInterval) {
+        lastTime = currentTime - (deltaTime % fpsInterval);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (gameState === 'MENU') { drawMenu(); return; }
+
+        if (aimState === 'power') {
+            powerLevel += powerDir * POWER_SPEED;
+            if (powerLevel >= MAX_POWER) { powerLevel = MAX_POWER; powerDir = -1; } 
+            else if (powerLevel <= 0) { powerLevel = 0; powerDir = 1; }
+        }
+
+        if (shotActive && !areBallsMoving() && !turnTimerTriggered) {
+            turnTimerTriggered = true; setTimeout(() => { evaluateShot(); }, 1000);
+        }
+
+        drawUI(); drawExternalReturnSystemBase(); drawTable(); drawAimingTrajectory();
+        
+        for (let ball of balls) { ball.update(); } checkCollisions();
+        for (let ball of [...balls].sort((a, b) => a.type === 'cue' ? 1 : -1)) { ball.draw(); }
+        
+        drawExternalReturnSystemGlass(); drawCueStick(); drawPowerMeter();
+    }
 }
 
-gameLoop();
+requestAnimationFrame(gameLoop);
