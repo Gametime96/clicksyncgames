@@ -1,110 +1,289 @@
+/* Reset and Base Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    margin: 0; padding: 0;
-    background-color: #121212;
+    background-color: #111; /* Dark background */
+    overflow: hidden; /* Prevents scrolling for a full-screen feel */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
-    font-family: 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    touch-action: manipulation;
+    height: 100vh;
 }
 
-/* The New "Console" Container */
-#game-container { 
-    position: relative; 
-    width: 95%; 
-    max-width: 1200px; 
-    height: 750px; 
-    display: flex; 
-    margin: 0 auto;
-    background: #222;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-    border-radius: 10px;
-    overflow: hidden;
+/* Universal Back Button (from previous interaction) */
+.universal-back-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    color: #ffffff;
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 9999;
+    transition: background 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Intro Screens */
-#intro-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; z-index: 100;
+.universal-back-btn:hover {
+    background: rgba(0, 0, 0, 0.95);
 }
-.intro-box { background: #333; padding: 30px; border-radius: 10px; max-width: 650px; text-align: center; }
-.intro-box h1 { font-size: 2.5em; color: #e74c3c; margin-top: 0; }
-.intro-box p { font-size: 1.1em; line-height: 1.5; margin-bottom: 10px; }
-.block-demo { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
-.demo-b { width: 40px; height: 40px; line-height: 40px; font-weight: bold; border: 2px solid white; }
 
-/* Enemy Showcase */
-.bad-guy-showcase { 
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 50px; 
-    margin: 20px 0; background: #222; padding: 30px; border-radius: 10px;
+/* --- NEW: Portrait Banner Style --- */
+#portrait-banner {
+    display: none; /* Hidden by default */
+    height: 10vh; /* Small banner <12% screen height */
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 10px;
+    font-weight: bold;
+    font-size: 3vmin; /* Scales with screen size */
 }
-.bg-card { 
-    display: flex; flex-direction: column; align-items: center; 
-    width: 180px; text-align: center; 
-}
-.bg-card p { margin: 10px 0 0 0; font-size: 0.9em; color: #aaa; line-height: 1.4;}
-.bg-card strong { color: white; display: block; margin-bottom: 15px; min-height: 40px; font-size: 1.1em; }
 
-/* Transition Overlay */
-#transition-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.95); display: none; flex-direction: column;
-    align-items: center; justify-content: center; z-index: 95;
-    transition: opacity 0.5s ease-in-out; opacity: 0;
+/* Main Game Container */
+#game-container {
+    display: flex;
+    flex-grow: 1; /* Expand to use all available space above footer */
+    height: 85vh; /* Re-affirm the height set in HTML for desktop */
+}
+
+/* Left Control Panel */
+#left-panel {
+    background-color: #2c3e50; /* Darker panel from screenshot */
+    width: 300px; /* Fixed width for desktop */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Styling for elements in the panel, from user HTML */
+.stats-area h3 {
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.ability-btn {
+    background-color: #2ecc71; /* Green from HTML demos */
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    width: 100%;
     text-align: center;
 }
-#transition-overlay h1 { color: white; font-size: 4em; margin: 0 0 20px 0; letter-spacing: 5px; }
-#transition-overlay h2 { color: #e74c3c; font-size: 1.8em; margin: 5px 0; line-height: 1.4; }
-#trans-enemies-preview { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 80%; margin-top: 20px; }
 
-/* UI and Layout */
-#left-panel {
-    width: 280px; background: #222; border-right: 3px solid #444;
-    display: flex; flex-direction: column; padding: 15px; box-sizing: border-box;
-    z-index: 10;
-}
-canvas { flex-grow: 1; background: #d3d3d3; }
+/* Custom button colors from block demos for better differentiation */
+#slow-trigger { background-color: #e67e22; }
+#slow-bar-bg { background-color: rgba(255,255,255,0.1); height: 5px; }
+#slow-bar { background-color: #e67e22; height: 100%; width: 0; }
+#fix-trigger { background-color: #e74c3c; }
+#btn-pause { background-color: #3498db; }
 
-/* Controls */
+/* KEY FIX: The D-PAD Controls (Redesigning the original div) */
+/* We will use CSS Grid to create a logical D-PAD on desktop and re-map it compactly for mobile. */
 #controls {
-    margin-top: auto; display: grid;
-    grid-template-areas: ". up ." "left action right" ". down .";
-    gap: 10px; justify-content: center; align-items: center;
+    display: grid;
+    grid-template-areas: 
+        ". up ."
+        "left action right"
+        ". down .";
+    gap: 10px;
+    justify-content: center;
+    margin-top: auto; /* Push to bottom of panel on desktop */
 }
+
+/* Map buttons to grid areas */
+#btn-up { grid-area: up; }
+#btn-left { grid-area: left; }
+#btn-action { grid-area: action; grid-row: span 2; } /* Make the action button taller */
+#btn-right { grid-area: right; }
+#btn-down { grid-area: down; }
+
 .ctrl-btn {
-    width: 60px; height: 60px; background: #555; color: white;
-    border: 3px solid #888; border-radius: 10px; font-weight: bold; 
-    cursor: pointer; box-shadow: 0 5px 0 #333;
-    transition: transform 0.1s, box-shadow 0.1s;
-    font-size: 20px; padding: 0; box-sizing: border-box;
-    user-select: none; -webkit-user-select: none;
+    background-color: #ecf0f1;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    font-weight: bold;
 }
-.ctrl-btn:active {
-    transform: translateY(5px);
-    box-shadow: 0 0px 0 #333;
-}
-#btn-up { grid-area: up; } #btn-down { grid-area: down; }
-#btn-left { grid-area: left; } #btn-right { grid-area: right; }
-#btn-action { 
-    grid-area: action; background: #e67e22; border-color: #d35400; 
-    box-shadow: 0 5px 0 #a04000; font-size: 12px; line-height: 1.2; 
-}
-#btn-action:active { box-shadow: 0 0px 0 #a04000; }
 
-.stats-area { margin-bottom: 20px; }
-.ability-btn { margin: 5px 0; padding: 10px; width: 100%; cursor: pointer; background: #27ae60; color: white; border: none; border-radius: 5px; font-weight: bold; font-size: 16px;}
-.ability-btn:disabled { background: #555; cursor: not-allowed; }
-#slow-bar-bg { width: 100%; height: 10px; background: #444; border-radius: 5px; overflow: hidden; margin-bottom: 10px;}
-#slow-bar { width: 0%; height: 100%; background: #f1c40f; transition: width 0.1s linear; }
-
-#btn-pause { background: #3498db; margin-top: 15px; }
-
-/* Pause Overlay */
-#pause-overlay {
-    position: absolute; top: 0; left: 280px; width: calc(100% - 280px); height: 100%;
-    background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center;
-    z-index: 80; pointer-events: none;
+#btn-action {
+    background-color: #f1c40f; /* Yellow from HTML block demos */
+    height: 130px;
+    flex-direction: column;
+    line-height: 1.2;
 }
-.overlay-text { color: white; font-size: 4em; letter-spacing: 5px; text-align: center; text-shadow: 2px 2px 5px black; }
+
+/* The Canvas itself */
+canvas {
+    background-color: #000;
+    flex-grow: 1;
+    object-fit: contain; /* CRITICAL: Maintains aspect ratio and scales */
+}
+
+/* Overlays (Scaling them for responsive design) */
+#intro-overlay, #transition-overlay {
+    background-color: rgba(0,0,0,0.9);
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5000;
+}
+.intro-box {
+    background: #ecf0f1; color: #2c3e50;
+    padding: 30px; border-radius: 12px;
+    width: 90%; max-width: 600px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.bad-guy-showcase { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
+.bg-card { border: 2px solid #7f8c8d; border-radius: 8px; padding: 10px; width: 30%; }
+
+
+/* --- MOBILE & RESPONSIVE BREAKPOINTS --- */
+
+/* Universal rules for mobile, portrait and landscape */
+@media screen and (max-width: 800px) {
+    /* Reduce padding and sizes across the board */
+    #left-panel { padding: 10px; }
+    .ctrl-btn { width: 50px; height: 50px; font-size: 16px; }
+    #btn-action { height: 110px; }
+    .stats-area h3 { font-size: 16px; }
+    .ability-btn { padding: 8px; font-size: 14px; }
+    .universal-back-btn { top: 10px; left: 10px; font-size: 14px; padding: 8px 12px; }
+}
+
+/* KEY FIX: Specific layout for mobile LANDSCAPE (Fixing the failure in your screenshot) */
+@media screen and (max-width: 800px) and (orientation: landscape) {
+    /* Prevent elements being cut off by using flexible layouts */
+    #game-container {
+        flex-direction: row; /* Ensure horizontal stacking */
+        height: auto; /* Let content determine height */
+        flex-grow: 1; /* Still expand to use available space */
+    }
+
+    #left-panel {
+        width: 25vw; /* Set width to a percentage of viewport width */
+        padding: 10px;
+        gap: 10px;
+        overflow-y: auto; /* CRITICAL: Adds scrolling if panel content is too tall */
+    }
+
+    /* Reform stats and buttons for narrow panel */
+    .stats-area {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .stats-area h3 { font-size: 14px; }
+    .ability-btn { font-size: 12px; padding: 6px; }
+
+    /* KEY FIX: Redesign D-PAD for compact landscape */
+    /* We re-map the grid completely so buttons fit horizontally. Action button is now wide and short. */
+    #controls {
+        grid-template-areas: 
+            ". up right"
+            "left down down"
+            "action action action";
+        grid-template-columns: repeat(3, 1fr); /* Equal columns for small buttons */
+        margin-top: 10px;
+        gap: 5px;
+    }
+    .ctrl-btn { width: auto; height: 35px; border-radius: 4px; }
+    #btn-action { grid-area: action; height: 35px; width: auto; border-radius: 4px; flex-direction: row; }
+    #btn-action br { display: none; } /* Remove break tag */
+
+    canvas {
+        width: 75vw; /* Remaining width */
+    }
+
+    #portrait-banner { display: none !important; } /* Hidden in landscape */
+}
+
+/* KEY FIX: Specific layout for mobile PORTRAIT (Re-enabling play with the banner) */
+@media screen and (max-width: 800px) and (orientation: portrait) {
+    /* Stack everything vertically and compact it */
+    #portrait-banner { display: flex; } /* Show the constant banner at the top */
+    
+    #game-container {
+        flex-direction: column; /* Stack panel above/below canvas */
+        height: auto;
+        flex-grow: 1;
+    }
+
+    /* Compact panel for portrait top stacking */
+    #left-panel {
+        width: 100%;
+        height: auto;
+        flex-direction: column;
+        padding: 10px;
+        order: 1; /* Move to the top, above the canvas */
+    }
+    
+    .stats-area { flex-direction: row; justify-content: space-around; }
+
+    /* The canvas is placed below the panel */
+    canvas {
+        order: 2;
+        width: 100%;
+        object-fit: contain; /* Scale down but keep ratio */
+    }
+
+    /* Re-use the compact D-PAD grid for portrait, but place it below the canvas for comfortable access */
+    #controls {
+        display: grid;
+        grid-template-areas: 
+            ". up right"
+            "left down down"
+            "action action action";
+        gap: 5px;
+        grid-template-columns: repeat(3, 1fr);
+        justify-content: center;
+        margin-top: 10px;
+        order: 3; /* Stick at the bottom, under the canvas */
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .ctrl-btn { width: auto; height: 40px; font-size: 14px; }
+    #btn-action { height: 40px; width: auto; flex-direction: row; }
+    #btn-action br { display: none; }
+}
+
+/* Footers and contact remain at the very end */
+.site-footer {
+    height: 15vh;
+    background-color: #cbd5e1;
+    padding: 10px 20px;
+    text-align: center;
+    border-top: 2px solid #94a3b8;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #0f172a;
+}
+.site-footer .legal-text { font-size: 11px; color: #475569; margin-bottom: 10px; max-width: 900px; line-height: 1.4; }
+.site-footer .contact-btn { background-color: #2563eb; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; }
