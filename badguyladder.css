@@ -6,16 +6,16 @@
 }
 
 body {
-    background-color: #111; /* Dark background */
-    overflow: hidden; /* Prevents scrolling for a full-screen feel */
+    background-color: #111;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* Universal Back Button (from previous interaction) */
+/* Universal Back Button */
 .universal-back-btn {
     position: absolute;
     top: 15px;
@@ -28,76 +28,91 @@ body {
     font-size: 16px;
     font-weight: bold;
     z-index: 9999;
-    transition: background 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.universal-back-btn:hover {
-    background: rgba(0, 0, 0, 0.95);
-}
-
-/* --- NEW: Portrait Banner Style --- */
+/* Portrait Banner */
 #portrait-banner {
-    display: none; /* Hidden by default */
-    height: 10vh; /* Small banner <12% screen height */
+    display: none;
     background-color: rgba(255, 255, 255, 0.9);
     color: #333;
-    z-index: 10000;
+    z-index: 9000;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 0 10px;
+    padding: 10px;
     font-weight: bold;
-    font-size: 3vmin; /* Scales with screen size */
+    font-size: 14px;
 }
 
-/* Main Game Container */
+/* --- MAIN LAYOUT: DESKTOP --- */
 #game-container {
-    display: flex;
-    flex-grow: 1; /* Expand to use all available space above footer */
-    height: 85vh; /* Re-affirm the height set in HTML for desktop */
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas: 
+        "panel canvas"
+        "controls canvas";
+    gap: 20px;
+    flex-grow: 1;
+    padding: 20px;
+    height: 85vh; /* Standard desktop height */
 }
 
-/* Left Control Panel */
+/* Part 1: Stats Panel */
 #left-panel {
-    background-color: #2c3e50; /* Darker panel from screenshot */
-    width: 300px; /* Fixed width for desktop */
+    grid-area: panel;
+    background-color: #2c3e50;
     padding: 20px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-/* Styling for elements in the panel, from user HTML */
-.stats-area h3 {
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+.stats-area { display: flex; flex-direction: column; gap: 5px; }
+.stats-area h3 { text-transform: uppercase; letter-spacing: 1px; }
 
+/* Buttons & Bars */
 .ability-btn {
-    background-color: #2ecc71; /* Green from HTML demos */
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    text-transform: uppercase;
-    width: 100%;
-    text-align: center;
+    color: white; border: none; padding: 12px; border-radius: 6px;
+    cursor: pointer; font-weight: bold; text-transform: uppercase; width: 100%; text-align: center;
 }
-
-/* Custom button colors from block demos for better differentiation */
 #slow-trigger { background-color: #e67e22; }
-#slow-bar-bg { background-color: rgba(255,255,255,0.1); height: 5px; }
-#slow-bar { background-color: #e67e22; height: 100%; width: 0; }
+#slow-bar-bg { background-color: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; }
+#slow-bar { background-color: #e67e22; height: 100%; width: 0; border-radius: 4px; transition: width 0.1s linear;}
 #fix-trigger { background-color: #e74c3c; }
 #btn-pause { background-color: #3498db; }
 
-/* KEY FIX: The D-PAD Controls (Redesigning the original div) */
-/* We will use CSS Grid to create a logical D-PAD on desktop and re-map it compactly for mobile. */
+/* Part 2: Canvas Protection */
+#canvas-container {
+    grid-area: canvas;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden; /* Prevents canvas from bleeding out */
+}
+
+canvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Perfect scaling without breaking coords */
+}
+
+#pause-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+}
+
+/* Part 3: The D-Pad */
 #controls {
+    grid-area: controls;
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
     display: grid;
     grid-template-areas: 
         ". up ."
@@ -105,185 +120,91 @@ body {
         ". down .";
     gap: 10px;
     justify-content: center;
-    margin-top: auto; /* Push to bottom of panel on desktop */
 }
 
-/* Map buttons to grid areas */
-#btn-up { grid-area: up; }
-#btn-left { grid-area: left; }
-#btn-action { grid-area: action; grid-row: span 2; } /* Make the action button taller */
-#btn-right { grid-area: right; }
-#btn-down { grid-area: down; }
+#btn-up { grid-area: up; } #btn-left { grid-area: left; } #btn-right { grid-area: right; } #btn-down { grid-area: down; }
+#btn-action { grid-area: action; grid-row: span 2; height: 100%; background-color: #f1c40f; }
 
 .ctrl-btn {
-    background-color: #ecf0f1;
-    border: 2px solid #bdc3c7;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    font-weight: bold;
+    background-color: #ecf0f1; color: #2c3e50; border: none; border-radius: 8px;
+    font-size: 24px; font-weight: bold; cursor: pointer;
+    width: 65px; height: 65px; display: flex; align-items: center; justify-content: center;
 }
 
-#btn-action {
-    background-color: #f1c40f; /* Yellow from HTML block demos */
-    height: 130px;
-    flex-direction: column;
-    line-height: 1.2;
-}
 
-/* The Canvas itself */
-canvas {
-    background-color: #000;
-    flex-grow: 1;
-    object-fit: contain; /* CRITICAL: Maintains aspect ratio and scales */
-}
-
-/* Overlays (Scaling them for responsive design) */
+/* --- OVERLAYS & ALIGNMENT --- */
 #intro-overlay, #transition-overlay {
     background-color: rgba(0,0,0,0.9);
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    display: flex; align-items: center; justify-content: center;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
     z-index: 5000;
 }
-.intro-box {
-    background: #ecf0f1; color: #2c3e50;
-    padding: 30px; border-radius: 12px;
-    width: 90%; max-width: 600px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+.intro-box, .transition-content {
+    background: #ecf0f1; color: #2c3e50; padding: 30px; border-radius: 12px;
+    width: 90%; max-width: 600px; text-align: center;
+    display: flex; flex-direction: column; align-items: center; /* Forces perfect centering */
 }
-.bad-guy-showcase { display: flex; gap: 20px; justify-content: center; margin: 20px 0; }
-.bg-card { border: 2px solid #7f8c8d; border-radius: 8px; padding: 10px; width: 30%; }
+.bad-guy-showcase { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
+.bg-card { border: 2px solid #7f8c8d; border-radius: 8px; padding: 10px; width: 30%; font-size: 14px;}
+.block-demo { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
+.demo-b { padding: 15px 20px; font-weight: bold; border-radius: 4px; color: white; }
+
+#trans-lvl-text { font-size: 36px; margin: 0 0 15px 0; text-align: center; width: 100%; }
 
 
-/* --- MOBILE & RESPONSIVE BREAKPOINTS --- */
-
-/* Universal rules for mobile, portrait and landscape */
-@media screen and (max-width: 800px) {
-    /* Reduce padding and sizes across the board */
-    #left-panel { padding: 10px; }
-    .ctrl-btn { width: 50px; height: 50px; font-size: 16px; }
-    #btn-action { height: 110px; }
-    .stats-area h3 { font-size: 16px; }
-    .ability-btn { padding: 8px; font-size: 14px; }
-    .universal-back-btn { top: 10px; left: 10px; font-size: 14px; padding: 8px 12px; }
-}
-
-/* KEY FIX: Specific layout for mobile LANDSCAPE (Fixing the failure in your screenshot) */
+/* --- MOBILE LAYOUT: LANDSCAPE --- */
 @media screen and (max-width: 800px) and (orientation: landscape) {
-    /* Prevent elements being cut off by using flexible layouts */
     #game-container {
-        flex-direction: row; /* Ensure horizontal stacking */
-        height: auto; /* Let content determine height */
-        flex-grow: 1; /* Still expand to use available space */
+        grid-template-columns: 200px 1fr;
+        height: auto; flex-grow: 1; padding: 10px; gap: 10px;
     }
-
-    #left-panel {
-        width: 25vw; /* Set width to a percentage of viewport width */
-        padding: 10px;
-        gap: 10px;
-        overflow-y: auto; /* CRITICAL: Adds scrolling if panel content is too tall */
-    }
-
-    /* Reform stats and buttons for narrow panel */
-    .stats-area {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .stats-area h3 { font-size: 14px; }
-    .ability-btn { font-size: 12px; padding: 6px; }
-
-    /* KEY FIX: Redesign D-PAD for compact landscape */
-    /* We re-map the grid completely so buttons fit horizontally. Action button is now wide and short. */
-    #controls {
-        grid-template-areas: 
-            ". up right"
-            "left down down"
-            "action action action";
-        grid-template-columns: repeat(3, 1fr); /* Equal columns for small buttons */
-        margin-top: 10px;
-        gap: 5px;
-    }
-    .ctrl-btn { width: auto; height: 35px; border-radius: 4px; }
-    #btn-action { grid-area: action; height: 35px; width: auto; border-radius: 4px; flex-direction: row; }
-    #btn-action br { display: none; } /* Remove break tag */
-
-    canvas {
-        width: 75vw; /* Remaining width */
-    }
-
-    #portrait-banner { display: none !important; } /* Hidden in landscape */
+    #left-panel { padding: 10px; gap: 10px; }
+    #controls { padding: 10px; gap: 5px; }
+    .ctrl-btn { width: 50px; height: 50px; font-size: 18px; }
+    .ability-btn { padding: 8px; font-size: 12px; }
+    .universal-back-btn { font-size: 12px; padding: 6px 10px; top: 5px; left: 5px; }
 }
 
-/* KEY FIX: Specific layout for mobile PORTRAIT (Re-enabling play with the banner) */
+/* --- MOBILE LAYOUT: PORTRAIT (THE BIG FIX) --- */
 @media screen and (max-width: 800px) and (orientation: portrait) {
-    /* Stack everything vertically and compact it */
-    #portrait-banner { display: flex; } /* Show the constant banner at the top */
+    #portrait-banner { display: flex; } /* Shows the top banner */
     
     #game-container {
-        flex-direction: column; /* Stack panel above/below canvas */
+        display: flex; /* Switch to flex to stack top-to-bottom natively */
+        flex-direction: column;
         height: auto;
-        flex-grow: 1;
+        padding: 10px;
+        gap: 15px;
     }
 
-    /* Compact panel for portrait top stacking */
     #left-panel {
-        width: 100%;
-        height: auto;
-        flex-direction: column;
-        padding: 10px;
-        order: 1; /* Move to the top, above the canvas */
+        order: 1; /* Forces to the top */
+        width: 100%; padding: 10px;
+        flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    }
+    .stats-area { width: 100%; flex-direction: row; justify-content: space-around; margin-bottom: 10px; }
+    #slow-trigger, #fix-trigger, #btn-pause { width: 32%; padding: 8px; font-size: 11px; }
+    #slow-bar-bg { width: 100%; margin-top: 5px; }
+
+    #canvas-container {
+        order: 2; /* Forces to the middle */
+        width: 100%; min-height: 40vh; max-height: 50vh;
+    }
+
+    #controls {
+        order: 3; /* Forces controls below the canvas */
+        width: 100%; max-width: 350px; align-self: center; padding: 15px;
     }
     
-    .stats-area { flex-direction: row; justify-content: space-around; }
-
-    /* The canvas is placed below the panel */
-    canvas {
-        order: 2;
-        width: 100%;
-        object-fit: contain; /* Scale down but keep ratio */
-    }
-
-    /* Re-use the compact D-PAD grid for portrait, but place it below the canvas for comfortable access */
-    #controls {
-        display: grid;
-        grid-template-areas: 
-            ". up right"
-            "left down down"
-            "action action action";
-        gap: 5px;
-        grid-template-columns: repeat(3, 1fr);
-        justify-content: center;
-        margin-top: 10px;
-        order: 3; /* Stick at the bottom, under the canvas */
-        max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .ctrl-btn { width: auto; height: 40px; font-size: 14px; }
-    #btn-action { height: 40px; width: auto; flex-direction: row; }
-    #btn-action br { display: none; }
+    .universal-back-btn { top: 45px; left: 10px; font-size: 12px; padding: 6px 10px; } /* Adjusts for banner */
 }
 
-/* Footers and contact remain at the very end */
+
+/* Footer styling */
 .site-footer {
-    height: 15vh;
-    background-color: #cbd5e1;
-    padding: 10px 20px;
-    text-align: center;
-    border-top: 2px solid #94a3b8;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: #0f172a;
+    background-color: #cbd5e1; padding: 15px 20px; text-align: center;
+    border-top: 2px solid #94a3b8; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    margin-top: auto;
 }
-.site-footer .legal-text { font-size: 11px; color: #475569; margin-bottom: 10px; max-width: 900px; line-height: 1.4; }
-.site-footer .contact-btn { background-color: #2563eb; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; }
+.legal-text { font-size: 11px; color: #475569; margin: 0 0 10px 0; max-width: 900px; line-height: 1.4; }
+.contact-btn { background-color: #2563eb; color: white; padding: 8px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; }
