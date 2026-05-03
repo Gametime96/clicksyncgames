@@ -6,151 +6,43 @@
     <title>Bad Guy Ladder</title>
     <link rel="stylesheet" href="badguyladder.css">
     <style>
-        /* This override forces the game and footer to fit perfectly without scrolling */
-        #game-container { height: 85vh !important; }
+        /* These styles handle the layout for large screens and common elements */
+        #game-container { height: 85vh; display: flex; flex-grow: 1; }
+        #left-panel { width: 300px; } /* Fixed width on desktop */
         
-        .site-footer { 
-            height: 15vh; 
-            box-sizing: border-box; 
-            background-color: #cbd5e1; 
-            padding: 10px 20px; 
-            text-align: center; 
-            border-top: 2px solid #94a3b8; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .legal-text { 
-            font-size: 11px; 
-            color: #475569; 
-            margin: 0 0 10px 0; 
-            max-width: 900px; 
-            line-height: 1.4; 
-        }
-        
-        .contact-btn { 
-            background-color: #2563eb; 
-            color: white; 
-            padding: 8px 20px; 
-            text-decoration: none; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            font-size: 14px; 
-            transition: background-color 0.2s;
-        }
-        
-        .contact-btn:hover { background-color: #1d4ed8; }
-
-        /* --- NEW: Universal Back Button --- */
-        .universal-back-btn {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            color: #ffffff;
-            text-decoration: none;
-            background: rgba(0, 0, 0, 0.75);
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            z-index: 9999; /* Ensures it stays above game elements */
-            transition: background 0.2s ease;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .universal-back-btn:hover {
-            background: rgba(0, 0, 0, 0.95);
-        }
-
-        /* --- NEW: Landscape Orientation Warning Overlay --- */
-        #orientation-warning {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #000;
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        #orientation-warning p {
-            font-size: 22px;
-            color: #fff;
-            line-height: 1.5;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* Mobile Portrait Detection - Hides everything and shows warning */
-        @media screen and (max-width: 800px) and (orientation: portrait) {
-            #orientation-warning {
-                display: flex;
-            }
-            /* Hide everything else while in portrait */
-            #intro-overlay, #transition-overlay, #game-container, .site-footer, .universal-back-btn {
-                display: none !important;
-            }
-            body {
-                overflow: hidden;
-                background-color: #000;
-            }
-        }
+        .site-footer { height: 15vh; } /* Standard fixed height for footer */
     </style>
 </head>
 <body>
 
+    <!-- NEW: Universal Back Button (from previous interaction) -->
     <a href="index.html" class="universal-back-btn">← Back to ClickSync Games</a>
 
-    <div id="orientation-warning">
-        <p>For the best experience, please rotate your device to landscape orientation.</p>
+    <!-- NEW: Constant Portrait Banner (sticks to top, only visible in portrait) -->
+    <div id="portrait-banner" class="fixed-top-banner hidden-landscape">
+        <p>For the best experience, rotate your device to landscape orientation.</p>
     </div>
 
+    <!-- Intro and Transition overlays remain here (they will scale with new CSS) -->
     <div id="intro-overlay">
         <div id="intro-step-1" class="intro-box">
             <h1>Welcome to<br>Bad Guy Ladder</h1>
             <p>Build ladders to escape, but watch out for the bad guys trying to break your path!</p>
             <button class="ability-btn" onclick="nextIntro(2)" style="width: 200px; margin-top: 20px;">NEXT</button>
         </div>
-
         <div id="intro-step-2" class="intro-box" style="display: none; max-width: 950px;">
             <h2>Meet Your Enemies</h2>
             <div class="bad-guy-showcase">
-                <div class="bg-card">
-                    <strong style="color:#e74c3c;">Standard Bad Guy</strong>
-                    <canvas id="preview-red" width="60" height="80"></canvas>
-                    <p>Normal Speed<br>Normal Damage</p>
-                </div>
-                <div class="bg-card">
-                    <strong style="color:#2ecc71;">Elite Bad Guy<br>(Level 3+)</strong>
-                    <canvas id="preview-green" width="60" height="80"></canvas>
-                    <p>Faster Swings<br>Double Damage<br>Larger Hammer</p>
-                </div>
-                <div class="bg-card">
-                    <strong style="color:#8d6e63;">The Termite<br>(Level 10+)</strong>
-                    <canvas id="preview-termite" width="60" height="80"></canvas>
-                    <p>Paces platforms<br>Chews through ladders over time</p>
-                </div>
+                <div class="bg-card"><strong>Standard Bad Guy</strong><canvas id="preview-red" width="60" height="80"></canvas><p>Normal Speed<br>Normal Damage</p></div>
+                <div class="bg-card"><strong>Elite Bad Guy<br>(Level 3+)</strong><canvas id="preview-green" width="60" height="80"></canvas><p>Faster Swings<br>Double Damage<br>Larger Hammer</p></div>
+                <div class="bg-card"><strong>The Termite<br>(Level 10+)</strong><canvas id="preview-termite" width="60" height="80"></canvas><p>Paces platforms<br>Chews through ladders over time</p></div>
             </div>
             <button class="ability-btn" onclick="nextIntro(3)" style="width: 200px;">NEXT</button>
         </div>
-
         <div id="intro-step-3" class="intro-box" style="display: none;">
             <h2>How to Play</h2>
             <p>1. Stand near a block and click <b>LIFT / DROP</b> or use <b>Spacebar</b>.</p>
-            <div class="block-demo">
-                <div class="demo-b" style="background:#f1c40f">L</div>
-                <div class="demo-b" style="background:#e67e22">C</div>
-                <div class="demo-b" style="background:#e91e63">R</div>
-            </div>
+            <div class="block-demo"><div class="demo-b" style="background:#f1c40f">L</div><div class="demo-b" style="background:#e67e22">C</div><div class="demo-b" style="background:#e91e63">R</div></div>
             <p>2. Arrange them to snap into an (L, C, R) line to build a ladder.</p>
             <p>3. Ladders are the <b>only</b> way to reach higher platforms!</p>
             <p>4. Reach the <b>Top Platform</b> and grab the spinning <b>Gold Coin</b> to advance!</p>
@@ -158,7 +50,6 @@
             <button class="ability-btn" onclick="startGame()" style="width: 200px;">START GAME</button>
         </div>
     </div>
-
     <div id="transition-overlay">
         <h1 id="trans-lvl-text">LEVEL 1</h1>
         <div id="trans-badguy-text"></div>
@@ -166,6 +57,7 @@
         <button class="ability-btn" onclick="proceedToLevel()" style="width: 200px; margin-top: 40px;">PROCEED</button>
     </div>
 
+    <!-- Main Game Container -->
     <div id="game-container">
         <div id="left-panel">
             <div class="stats-area">
@@ -178,7 +70,8 @@
             <button id="fix-trigger" class="ability-btn" onclick="triggerFix()">Fix Padlocks (50 pts)</button>
             <button id="btn-pause" class="ability-btn" onclick="togglePause()">PAUSE (P)</button>
 
-            <div id="controls">
+            <!-- KEY FIX: We will re-design these controls div in CSS to make them compact and fit on mobile. -->
+            <div id="controls" class="game-pad mobile-grid-pad">
                 <button class="ctrl-btn" id="btn-up">▲</button>
                 <button class="ctrl-btn" id="btn-left">◀</button>
                 <button class="ctrl-btn" id="btn-action">LIFT<br>/ DROP</button>
@@ -186,10 +79,13 @@
                 <button class="ctrl-btn" id="btn-down">▼</button>
             </div>
         </div>
+        
+        <!-- Canvas will now scale with the new CSS -->
         <canvas id="gameCanvas"></canvas>
         <div id="pause-overlay"><h1 class="overlay-text">PAUSED</h1></div>
     </div>
 
+    <!-- Site footer remains at the end -->
     <footer class="site-footer">
         <p class="legal-text">
             clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
