@@ -43,9 +43,76 @@
         }
         
         .contact-btn:hover { background-color: #1d4ed8; }
+
+        /* --- NEW: Universal Back Button --- */
+        .universal-back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: #ffffff;
+            text-decoration: none;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 9999; /* Ensures it stays above game elements */
+            transition: background 0.2s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .universal-back-btn:hover {
+            background: rgba(0, 0, 0, 0.95);
+        }
+
+        /* --- NEW: Landscape Orientation Warning Overlay --- */
+        #orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #orientation-warning p {
+            font-size: 22px;
+            color: #fff;
+            line-height: 1.5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Mobile Portrait Detection - Hides everything and shows warning */
+        @media screen and (max-width: 800px) and (orientation: portrait) {
+            #orientation-warning {
+                display: flex;
+            }
+            /* Hide everything else while in portrait */
+            #intro-overlay, #transition-overlay, #game-container, .site-footer, .universal-back-btn {
+                display: none !important;
+            }
+            body {
+                overflow: hidden;
+                background-color: #000;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <a href="index.html" class="universal-back-btn">← Back to ClickSync Games</a>
+
+    <div id="orientation-warning">
+        <p>For the best experience, please rotate your device to landscape orientation.</p>
+    </div>
 
     <div id="intro-overlay">
         <div id="intro-step-1" class="intro-box">
