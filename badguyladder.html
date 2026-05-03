@@ -5,25 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bad Guy Ladder</title>
     <link rel="stylesheet" href="badguyladder.css">
-    <style>
-        /* These styles handle the layout for large screens and common elements */
-        #game-container { height: 85vh; display: flex; flex-grow: 1; }
-        #left-panel { width: 300px; } /* Fixed width on desktop */
-        
-        .site-footer { height: 15vh; } /* Standard fixed height for footer */
-    </style>
 </head>
 <body>
 
-    <!-- NEW: Universal Back Button (from previous interaction) -->
     <a href="index.html" class="universal-back-btn">← Back to ClickSync Games</a>
 
-    <!-- NEW: Constant Portrait Banner (sticks to top, only visible in portrait) -->
-    <div id="portrait-banner" class="fixed-top-banner hidden-landscape">
+    <div id="portrait-banner">
         <p>For the best experience, rotate your device to landscape orientation.</p>
     </div>
 
-    <!-- Intro and Transition overlays remain here (they will scale with new CSS) -->
     <div id="intro-overlay">
         <div id="intro-step-1" class="intro-box">
             <h1>Welcome to<br>Bad Guy Ladder</h1>
@@ -37,7 +27,7 @@
                 <div class="bg-card"><strong>Elite Bad Guy<br>(Level 3+)</strong><canvas id="preview-green" width="60" height="80"></canvas><p>Faster Swings<br>Double Damage<br>Larger Hammer</p></div>
                 <div class="bg-card"><strong>The Termite<br>(Level 10+)</strong><canvas id="preview-termite" width="60" height="80"></canvas><p>Paces platforms<br>Chews through ladders over time</p></div>
             </div>
-            <button class="ability-btn" onclick="nextIntro(3)" style="width: 200px;">NEXT</button>
+            <button class="ability-btn" onclick="nextIntro(3)" style="width: 200px; margin-top: 20px;">NEXT</button>
         </div>
         <div id="intro-step-3" class="intro-box" style="display: none;">
             <h2>How to Play</h2>
@@ -47,45 +37,47 @@
             <p>3. Ladders are the <b>only</b> way to reach higher platforms!</p>
             <p>4. Reach the <b>Top Platform</b> and grab the spinning <b>Gold Coin</b> to advance!</p>
             <p><i>Tip: Hold DOWN to drop through platforms!</i></p>
-            <button class="ability-btn" onclick="startGame()" style="width: 200px;">START GAME</button>
+            <button class="ability-btn" onclick="startGame()" style="width: 200px; margin-top: 20px;">START GAME</button>
         </div>
     </div>
+
     <div id="transition-overlay">
-        <h1 id="trans-lvl-text">LEVEL 1</h1>
-        <div id="trans-badguy-text"></div>
-        <div id="trans-enemies-preview"></div>
-        <button class="ability-btn" onclick="proceedToLevel()" style="width: 200px; margin-top: 40px;">PROCEED</button>
+        <div class="transition-content">
+            <h1 id="trans-lvl-text">LEVEL 1</h1>
+            <div id="trans-badguy-text"></div>
+            <div id="trans-enemies-preview"></div>
+            <button class="ability-btn" onclick="proceedToLevel()" style="width: 200px; margin-top: 30px;">PROCEED</button>
+        </div>
     </div>
 
-    <!-- Main Game Container -->
     <div id="game-container">
+        
         <div id="left-panel">
             <div class="stats-area">
                 <h3>Level: <span id="lvl">1</span> / 7</h3>
                 <h3>Points: <span id="pts">50</span></h3>
             </div>
-            
             <button id="slow-trigger" class="ability-btn" onclick="triggerSlow()">Slow Bad Guy (50 pts)</button>
             <div id="slow-bar-bg"><div id="slow-bar"></div></div>
             <button id="fix-trigger" class="ability-btn" onclick="triggerFix()">Fix Padlocks (50 pts)</button>
             <button id="btn-pause" class="ability-btn" onclick="togglePause()">PAUSE (P)</button>
-
-            <!-- KEY FIX: We will re-design these controls div in CSS to make them compact and fit on mobile. -->
-            <div id="controls" class="game-pad mobile-grid-pad">
-                <button class="ctrl-btn" id="btn-up">▲</button>
-                <button class="ctrl-btn" id="btn-left">◀</button>
-                <button class="ctrl-btn" id="btn-action">LIFT<br>/ DROP</button>
-                <button class="ctrl-btn" id="btn-right">▶</button>
-                <button class="ctrl-btn" id="btn-down">▼</button>
-            </div>
         </div>
-        
-        <!-- Canvas will now scale with the new CSS -->
-        <canvas id="gameCanvas"></canvas>
-        <div id="pause-overlay"><h1 class="overlay-text">PAUSED</h1></div>
+
+        <div id="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+            <div id="pause-overlay"><h1 class="overlay-text">PAUSED</h1></div>
+        </div>
+
+        <div id="controls">
+            <button class="ctrl-btn" id="btn-up">▲</button>
+            <button class="ctrl-btn" id="btn-left">◀</button>
+            <button class="ctrl-btn" id="btn-action">LIFT/DROP</button>
+            <button class="ctrl-btn" id="btn-right">▶</button>
+            <button class="ctrl-btn" id="btn-down">▼</button>
+        </div>
+
     </div>
 
-    <!-- Site footer remains at the end -->
     <footer class="site-footer">
         <p class="legal-text">
             clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
