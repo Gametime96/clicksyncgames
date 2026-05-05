@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bad Guy Ladder</title>
     <link rel="stylesheet" href="badguyladder.css">
 </head>
 <body>
 
-    <a href="index.html" class="universal-back-btn">← Back to ClickSync Games</a>
+    <div id="header-area">
+        <a href="index.html" class="universal-back-btn">← Back to ClickSyncGames Homepage</a>
+    </div>
 
     <div id="portrait-banner">
         <p>For the best experience, rotate your device to landscape orientation.</p>
@@ -17,17 +19,37 @@
     <div id="intro-overlay">
         <div id="intro-step-1" class="intro-box">
             <h1>Welcome to<br>Bad Guy Ladder</h1>
-            <p>Build ladders to escape, but watch out for the bad guys trying to break your path!</p>
-            <button class="ability-btn" onclick="nextIntro(2)" style="width: 200px; margin-top: 20px;">NEXT</button>
+            <p class="intro-desc">Build ladders to escape<br>Watch out for bad guys and termites who want to destroy your ladder</p>
+            <button class="ability-btn red-btn" onclick="nextIntro(2)">NEXT</button>
         </div>
         <div id="intro-step-2" class="intro-box" style="display: none; max-width: 950px;">
             <h2>Meet Your Enemies</h2>
             <div class="bad-guy-showcase">
-                <div class="bg-card"><strong>Standard Bad Guy</strong><canvas id="preview-red" width="60" height="80"></canvas><p>Normal Speed<br>Normal Damage</p></div>
-                <div class="bg-card"><strong>Elite Bad Guy<br>(Level 3+)</strong><canvas id="preview-green" width="60" height="80"></canvas><p>Faster Swings<br>Double Damage<br>Larger Hammer</p></div>
-                <div class="bg-card"><strong>The Termite<br>(Level 10+)</strong><canvas id="preview-termite" width="60" height="80"></canvas><p>Paces platforms<br>Chews through ladders over time</p></div>
+                <div class="bg-card">
+                    <div class="card-header">
+                        <strong>Standard Bad Guy</strong>
+                    </div>
+                    <canvas id="preview-red" width="60" height="80"></canvas>
+                    <p>Normal Speed<br>Normal Damage</p>
+                </div>
+                <div class="bg-card">
+                    <div class="card-header">
+                        <strong>Elite Bad Guy</strong><br>
+                        <small>(Level 3+)</small>
+                    </div>
+                    <canvas id="preview-green" width="60" height="80"></canvas>
+                    <p>Faster Swings<br>Double Damage<br>Larger Hammer</p>
+                </div>
+                <div class="bg-card">
+                    <div class="card-header">
+                        <strong>Termite</strong><br>
+                        <small>(Level 10+)</small>
+                    </div>
+                    <canvas id="preview-termite" width="60" height="80"></canvas>
+                    <p>Paces platforms<br>Chews through ladders over time</p>
+                </div>
             </div>
-            <button class="ability-btn" onclick="nextIntro(3)" style="width: 200px; margin-top: 20px;">NEXT</button>
+            <button class="ability-btn red-btn" onclick="nextIntro(3)">NEXT</button>
         </div>
         <div id="intro-step-3" class="intro-box" style="display: none;">
             <h2>How to Play</h2>
@@ -37,7 +59,7 @@
             <p>3. Ladders are the <b>only</b> way to reach higher platforms!</p>
             <p>4. Reach the <b>Top Platform</b> and grab the spinning <b>Gold Coin</b> to advance!</p>
             <p><i>Tip: Hold DOWN to drop through platforms!</i></p>
-            <button class="ability-btn" onclick="startGame()" style="width: 200px; margin-top: 20px;">START GAME</button>
+            <button class="ability-btn red-btn" onclick="startGame()">START GAME</button>
         </div>
     </div>
 
@@ -46,7 +68,7 @@
             <h1 id="trans-lvl-text">LEVEL 1</h1>
             <div id="trans-badguy-text"></div>
             <div id="trans-enemies-preview"></div>
-            <button id="proceed-btn" class="ability-btn" onclick="proceedToLevel()" style="width: 200px; margin-top: 30px;">PROCEED</button>
+            <button class="ability-btn red-btn" onclick="proceedToLevel()">PROCEED</button>
         </div>
     </div>
 
