@@ -1,16 +1,12 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-function resizeCanvas() {
-    const container = document.getElementById('game-container');
-    if (container) {
-        canvas.width = container.clientWidth - 280;
-        canvas.height = container.clientHeight;
-    }
-}
-window.addEventListener('resize', resizeCanvas);
-// Run once on load to establish size
-setTimeout(resizeCanvas, 100);
+// --- THE MAJOR BUG FIX ---
+// We lock the internal physics resolution of the game to 1000x700. 
+// CSS handles scaling it up or down visually. This permanently prevents 
+// the "floating platform" bug on mobile because the internal math never changes.
+canvas.width = 1000;
+canvas.height = 700;
 
 // --- GAME CONFIG & STATE ---
 let points = 50, level = 1, gameState = 'intro';
@@ -110,7 +106,6 @@ function drawTermite(ctx, t) {
 // --- INTRO & TRANSITIONS ---
 window.onload = () => {
     setTimeout(() => {
-        resizeCanvas();
         if(document.getElementById('preview-red')) drawHuman(document.getElementById('preview-red').getContext('2d'), 12, 10, 35, 55, "#c0392b", "#000", true, 0, 1);
         if(document.getElementById('preview-green')) drawHuman(document.getElementById('preview-green').getContext('2d'), 7, 5, 45, 65, "#27ae60", "#000", true, 0, 1);
         if(document.getElementById('preview-termite')) drawTermite(document.getElementById('preview-termite').getContext('2d'), {x: 5, y: 25, w: 45, h: 25, bitingFrameCount: 0});
@@ -558,7 +553,6 @@ function handleJump() {
 }
 
 window.addEventListener('keydown', e => {
-    // This is the new crucial line: Stops browser from scrolling when using arrow keys
     if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
         e.preventDefault();
     }
