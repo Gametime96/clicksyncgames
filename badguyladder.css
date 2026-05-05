@@ -128,6 +128,7 @@ canvas {
     padding: 20px;
     border-radius: 8px;
     display: grid;
+    /* Explicitly sizing the grid columns/rows to lock the layout */
     grid-template-columns: 65px 65px 65px;
     grid-template-rows: 65px 65px 65px;
     grid-template-areas: 
@@ -268,8 +269,13 @@ canvas {
     /* Shrink the D-Pad correctly for landscape */
     #controls { 
         padding: 10px; 
+        display: grid;
         grid-template-columns: 50px 50px 50px; 
         grid-template-rows: 50px 50px 50px; 
+        grid-template-areas: 
+            ". up ."
+            "left action right"
+            ". down .";
         gap: 5px; 
     }
     #btn-action { font-size: 10px; }
@@ -306,15 +312,21 @@ canvas {
         width: 100%; min-height: 40vh; max-height: 50vh;
     }
 
-    /* Keep the D-Pad nicely sized for thumbs in portrait mode */
+    /* Hardened D-Pad structure for mobile portrait */
     #controls {
         order: 3; 
         width: 100%; 
         max-width: 350px; 
         align-self: center; 
         padding: 15px;
+        display: grid;
         grid-template-columns: 65px 65px 65px;
         grid-template-rows: 65px 65px 65px;
+        grid-template-areas: 
+            ". up ."
+            "left action right"
+            ". down .";
+        justify-content: center;
         gap: 10px;
     }
     #btn-action { font-size: 11px; }
