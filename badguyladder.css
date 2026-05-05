@@ -218,12 +218,26 @@ canvas {
     margin-bottom: 10px;
 }
 
-/* Scaled down enemies (~30% of their original visual size) */
-.bg-card canvas {
+/* Scaled down enemies for Meet Your Enemies & Transition Screen */
+.bg-card canvas, #trans-enemies-preview canvas {
     width: 25px; 
     height: 33px;
     margin-bottom: 15px;
     image-rendering: pixelated; /* Keeps the art crisp when scaled down */
+}
+
+/* Keep the horizontal alignment for transition previews */
+#trans-enemies-preview {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0;
+    width: 100%;
+}
+
+/* Ensure no margin pushing happens inside the row */
+#trans-enemies-preview canvas {
+    margin-bottom: 0; 
 }
 
 .bg-card p {
@@ -235,7 +249,7 @@ canvas {
 .demo-b { padding: 15px 20px; font-weight: bold; border-radius: 4px; color: white; }
 
 #trans-lvl-text { 
-    font-size: 36px; margin: 0 0 15px 0; text-align: center; width: 100%; 
+    font-size: 36px; margin: 0 0 10px 0; text-align: center; width: 100%; 
     color: #000000; /* Black text for Level */
 }
 
