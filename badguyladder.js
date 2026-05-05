@@ -168,8 +168,7 @@ function startLevelTransition(nextLevel) {
         previewContainer.appendChild(c);
     }
 
-    // Only add ONE visual preview of each enemy type, regardless of count, 
-    // to prevent stretching the transition overlay.
+    // Only add ONE visual preview of each enemy type
     if (redCount > 0) addPreviewCanvas('red');
     if (greenCount > 0) addPreviewCanvas('green');
     if (termiteCount > 0) addPreviewCanvas('termite');
@@ -506,20 +505,20 @@ function draw() {
             ctx.beginPath(); ctx.arc(px + 12.5, py, 8, Math.PI, 0); ctx.stroke();
             ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(px + 12.5, py + 7, 3, 0, Math.PI*2); ctx.fill(); ctx.fillRect(px + 11, py + 8, 3, 5);
             
-            // --- NEW: Dynamic Padlock Text (Size & Color) ---
+            // --- UPDATED: Padlock Text further left ---
             let pct = Math.max(0, Math.ceil((d.hp / d.max) * 100)); 
-            ctx.font = "bold 20px Arial"; // Increased font size (~40%)
-            ctx.strokeStyle = "black"; // Black outline
+            ctx.font = "bold 20px Arial"; 
+            ctx.strokeStyle = "black"; 
             ctx.lineWidth = 3;
-            ctx.strokeText(pct + "%", px - 42, py + 18);
+            // Shifted x-coordinate from px - 42 to px - 70
+            ctx.strokeText(pct + "%", px - 70, py + 18);
             
-            // Color logic: Black if >= 30%, Red if < 30%
             if (pct >= 30) {
-                ctx.fillStyle = "black";
+                ctx.fillStyle = "white";
             } else {
                 ctx.fillStyle = "red";
             }
-            ctx.fillText(pct + "%", px - 42, py + 18);
+            ctx.fillText(pct + "%", px - 70, py + 18);
         }
     });
 
@@ -532,15 +531,13 @@ function draw() {
         ctx.strokeStyle = "#8B4513"; ctx.lineWidth = 8; ctx.strokeRect(l.x, l.y, l.w, l.h);
         for(let i=15; i<l.h; i+=25) { ctx.beginPath(); ctx.moveTo(l.x, l.y + i); ctx.lineTo(l.x + l.w, l.y + i); ctx.stroke(); }
         
-        // --- NEW: Dynamic Ladder Text (Size & Color) ---
-        ctx.font = "bold 22px Arial"; // Increased font size (~40%)
-        ctx.strokeStyle = "black"; // Black outline
+        ctx.font = "bold 22px Arial"; 
+        ctx.strokeStyle = "black"; 
         ctx.lineWidth = 3;
         ctx.strokeText(l.health + "%", l.x - 55, l.y + l.h/2 + 5);
         
-        // Color logic: Black if >= 30%, Red if < 30%
         if (l.health >= 30) {
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "white";
         } else {
             ctx.fillStyle = "red";
         }
