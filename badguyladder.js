@@ -168,7 +168,7 @@ function startLevelTransition(nextLevel) {
         previewContainer.appendChild(c);
     }
 
-    // Bug Fix: Only add ONE visual preview of each enemy type, regardless of count, 
+    // Only add ONE visual preview of each enemy type, regardless of count, 
     // to prevent stretching the transition overlay.
     if (redCount > 0) addPreviewCanvas('red');
     if (greenCount > 0) addPreviewCanvas('green');
@@ -505,7 +505,21 @@ function draw() {
             ctx.fillStyle = "#f1c40f"; ctx.fillRect(px, py, 25, 20); ctx.strokeStyle = "silver"; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.arc(px + 12.5, py, 8, Math.PI, 0); ctx.stroke();
             ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(px + 12.5, py + 7, 3, 0, Math.PI*2); ctx.fill(); ctx.fillRect(px + 11, py + 8, 3, 5);
-            let pct = Math.max(0, Math.ceil((d.hp / d.max) * 100)); ctx.fillStyle = "red"; ctx.font = "bold 14px Arial"; ctx.fillText(pct + "%", px - 35, py + 15);
+            
+            // --- NEW: Dynamic Padlock Text (Size & Color) ---
+            let pct = Math.max(0, Math.ceil((d.hp / d.max) * 100)); 
+            ctx.font = "bold 20px Arial"; // Increased font size (~40%)
+            ctx.strokeStyle = "black"; // Black outline
+            ctx.lineWidth = 3;
+            ctx.strokeText(pct + "%", px - 42, py + 18);
+            
+            // Color logic: Black if >= 30%, Red if < 30%
+            if (pct >= 30) {
+                ctx.fillStyle = "black";
+            } else {
+                ctx.fillStyle = "red";
+            }
+            ctx.fillText(pct + "%", px - 42, py + 18);
         }
     });
 
@@ -517,7 +531,20 @@ function draw() {
     ladders.forEach(l => {
         ctx.strokeStyle = "#8B4513"; ctx.lineWidth = 8; ctx.strokeRect(l.x, l.y, l.w, l.h);
         for(let i=15; i<l.h; i+=25) { ctx.beginPath(); ctx.moveTo(l.x, l.y + i); ctx.lineTo(l.x + l.w, l.y + i); ctx.stroke(); }
-        ctx.fillStyle = "red"; ctx.font = "bold 16px Arial"; ctx.fillText(l.health + "%", l.x - 45, l.y + l.h/2);
+        
+        // --- NEW: Dynamic Ladder Text (Size & Color) ---
+        ctx.font = "bold 22px Arial"; // Increased font size (~40%)
+        ctx.strokeStyle = "black"; // Black outline
+        ctx.lineWidth = 3;
+        ctx.strokeText(l.health + "%", l.x - 55, l.y + l.h/2 + 5);
+        
+        // Color logic: Black if >= 30%, Red if < 30%
+        if (l.health >= 30) {
+            ctx.fillStyle = "black";
+        } else {
+            ctx.fillStyle = "red";
+        }
+        ctx.fillText(l.health + "%", l.x - 55, l.y + l.h/2 + 5);
     });
 
     blocks.forEach(b => {
