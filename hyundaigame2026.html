@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Defend the Kona</title>
     <link rel="stylesheet" href="hyundaigame2026.css">
 </head>
@@ -22,13 +22,15 @@
     </div>
 
     <div id="mobile-controls">
-        <div class="d-pad-row">
-            <button class="ctrl-btn" data-key="ArrowUp">▲</button>
-        </div>
-        <div class="d-pad-row">
-            <button class="ctrl-btn" data-key="ArrowLeft">◀</button>
-            <button class="ctrl-btn" data-key="ArrowDown">▼</button>
-            <button class="ctrl-btn" data-key="ArrowRight">▶</button>
+        <div id="d-pad-wrapper">
+            <div class="d-pad-row">
+                <button class="ctrl-btn" data-key="ArrowUp">▲</button>
+            </div>
+            <div class="d-pad-row">
+                <button class="ctrl-btn" data-key="ArrowLeft">◀</button>
+                <button class="ctrl-btn" data-key="ArrowDown">▼</button>
+                <button class="ctrl-btn" data-key="ArrowRight">▶</button>
+            </div>
         </div>
         <button id="btn-shield" class="ctrl-btn">🛡️ SHIELD</button>
     </div>
@@ -49,12 +51,12 @@
     </div>
 
     <div id="level-transition" class="overlay">
-        <h1 id="transition-title" style="font-size: 54px;">Level X</h1>
+        <h1 id="transition-title">Level X</h1>
         <div class="tutorial-box" style="background: rgba(0,0,0,0.6); padding: 30px;">
             <h2 id="threat-title" style="color: #ff3333; margin-top: 0;">THREATS</h2>
-            <p id="transition-desc" style="font-size: 22px; color: #ddd; max-width: 500px;"></p>
+            <p id="transition-desc"></p>
         </div>
-        <div id="transition-timer" style="font-size: 24px; color: #ffcc00; margin-top: 20px;">Starting in 9...</div>
+        <div id="transition-timer">Starting in 9...</div>
     </div>
 
     <div id="game-over-screen" class="overlay">
