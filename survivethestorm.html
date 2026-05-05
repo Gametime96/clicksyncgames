@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survive the Storm</title>
+    <link rel="stylesheet" href="survivethestorm.css">
+</head>
+<body>
+
+    <div id="header-area">
+        <a href="index.html" class="universal-back-btn">← Back to ClickSyncGames Homepage</a>
+        <h1 id="game-title">Survive the Storm</h1>
+    </div>
+
+    <div id="game-container">
+        
+        <div id="simulation-area">
+            
+            <div id="disaster-overlay"></div>
+
+            <div id="world-view">
+                <div id="ocean-area">
+                    <div id="water"></div>
+                    <div id="beach"></div>
+                    <div id="defense-wall"></div>
+                </div>
+
+                <div id="town-area">
+                    </div>
+            </div>
+
+        </div>
+
+        <div id="control-panel">
+            
+            <div class="panel-section level-info">
+                <h2 id="ui-level-title">Level 1</h2>
+                <p id="ui-level-desc">Survive the small tsunami</p>
+                <div id="timer-box">
+                    <span id="time-text">60</span>s
+                </div>
+            </div>
+
+            <div class="panel-section task-manager">
+                <h3>Active Task</h3>
+                <p id="task-name">Idle</p>
+                <div id="progress-bar-bg">
+                    <div id="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="panel-section target-selection">
+                <h3>Target</h3>
+                <p id="target-desc">Select a house in the town to apply local defenses.</p>
+                <div id="selected-target-display">Town (Global)</div>
+            </div>
+
+            <div class="panel-section actions">
+                <h3>Build Defenses</h3>
+                <button class="action-btn global-btn" id="btn-wall" onclick="startTask('Sea Wall', 30, 'global', 'wall')">
+                    Build Sea Wall (30s)
+                </button>
+                <button class="action-btn local-btn" id="btn-sandbags" onclick="startTask('Sandbags', 5, 'local', 'sandbags')">
+                    Place Sandbags (5s)
+                </button>
+                <button class="action-btn local-btn" id="btn-roof" onclick="startTask('Metal Roof', 10, 'local', 'roof')">
+                    Install Metal Roof (10s)
+                </button>
+            </div>
+
+            <div id="post-level-panel" style="display: none;">
+                <h3 id="result-title">Result</h3>
+                <p id="result-desc"></p>
+                <button class="action-btn global-btn" id="btn-next-level" onclick="nextLevel()">NEXT LEVEL</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="survivethestorm.js"></script>
+</body>
+</html>
