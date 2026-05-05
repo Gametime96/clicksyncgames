@@ -5,7 +5,7 @@ const maxLevels = 10;
 let health = 100;
 let timer = 0.0;
 let isCoverDeployed = false;
-let isPaused = false; // New Pause State
+let isPaused = false; 
 
 const levelData = [
     { title: "Level 1: Hailstorm", desc: "Heavy Hail. Deploy SHIELD to protect the vehicle.", duration: 15 },
@@ -44,7 +44,6 @@ document.querySelectorAll('.ctrl-btn:not(#btn-shield)').forEach(btn => {
     btn.addEventListener('mouseleave', release);
 });
 
-// Pause Button Setup
 const pauseBtn = document.getElementById('btn-pause');
 pauseBtn.addEventListener('click', togglePause);
 
@@ -54,7 +53,7 @@ function togglePause() {
     pauseBtn.innerText = isPaused ? "▶ RESUME (P)" : "⏸ PAUSE (P)";
     pauseBtn.style.backgroundColor = isPaused ? "#ffcc00" : "#28a745";
     pauseBtn.style.color = isPaused ? "black" : "white";
-    if (!isPaused) lastTime = performance.now(); // Reset timer so dt doesn't jump
+    if (!isPaused) lastTime = performance.now(); 
 }
 
 const shieldBtn = document.getElementById('btn-shield');
@@ -135,28 +134,24 @@ const carGroup = new THREE.Group();
 scene.add(carGroup);
 
 const carBodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.2, roughness: 0.4 }); 
-const carBottomMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.2 }); // Now White
+const carBottomMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.2 });
 
-// Lower Body
 const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.1, 4.4), carBottomMat);
 chassis.position.y = 0.9;
 chassis.castShadow = true;
 chassis.receiveShadow = true;
 carGroup.add(chassis);
 
-// Upper Cabin
 const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.7, 2.4), carBodyMat);
 cabin.position.set(0, 1.8, -0.3);
 cabin.castShadow = true;
 carGroup.add(cabin);
 
-// Spoiler
 const spoiler = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.15, 0.6), new THREE.MeshStandardMaterial({color: 0x111111}));
 spoiler.position.set(0, 2.2, -1.3);
 spoiler.rotation.x = 0.1;
 carGroup.add(spoiler);
 
-// Windshields and Sunroof Materials
 const glassMat = new THREE.MeshStandardMaterial({ color: 0xadd8e6, transparent: true, opacity: 0.8, roughness: 0.1 }); 
 const brokenGlassMat = new THREE.MeshBasicMaterial({ color: 0x444444, wireframe: true, transparent: true, opacity: 0.5 }); 
 
@@ -164,10 +159,9 @@ const sunroof = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 1.0), glassMat);
 sunroof.position.set(0, 2.15, -0.3);
 carGroup.add(sunroof);
 
-// Flush Front Windshield Geometry
 const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.05, 0.05), glassMat);
-frontGlass.position.set(0, 1.8, 1.1); // Moved forward
-frontGlass.rotation.x = Math.PI / 4; // Angled 45 deg to sit flush
+frontGlass.position.set(0, 1.8, 1.1); 
+frontGlass.rotation.x = Math.PI / 4; 
 carGroup.add(frontGlass);
 
 const rearGlass = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.7, 0.05), glassMat);
@@ -175,7 +169,6 @@ rearGlass.position.set(0, 1.8, -1.55);
 rearGlass.rotation.x = -Math.PI / 8;
 carGroup.add(rearGlass);
 
-// Wheels
 const wheels = [];
 [[-1.05, 1.4], [1.05, 1.4], [-1.05, -1.4], [1.05, -1.4]].forEach(pos => {
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.3, 16), new THREE.MeshStandardMaterial({ color: 0x222222 }));
@@ -186,7 +179,6 @@ const wheels = [];
     carGroup.add(w);
 });
 
-// Shield
 const cover = new THREE.Mesh(
     new THREE.BoxGeometry(2.8, 2.8, 5.2),
     new THREE.MeshStandardMaterial({ color: 0x0088ff, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
@@ -195,11 +187,10 @@ cover.position.y = 1.4;
 cover.visible = false;
 carGroup.add(cover);
 
-// Particle System (Smoke & Fire)
 const emissions = [];
 const pGeo = new THREE.PlaneGeometry(0.6, 0.6);
 const smokeMat = new THREE.MeshBasicMaterial({ color: 0x555555, transparent: true, opacity: 0.6 });
-const fireMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }); // Glowing flames
+const fireMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }); 
 
 function spawnEmissions() {
     if (state !== 'PLAYING' || isPaused) return;
@@ -211,7 +202,6 @@ function spawnEmissions() {
         scene.add(s);
         emissions.push({ mesh: s, life: 1.0, isFire: false });
     }
-
     if (health < 30) {
         const f = new THREE.Mesh(pGeo, fireMat);
         f.position.set(carGroup.position.x + (Math.random()-0.5)*2.0, carGroup.position.y + 1.0, carGroup.position.z + (Math.random()-0.5)*4.0);
@@ -478,17 +468,16 @@ function takeDamage(amount) {
     container.classList.add('damage-flash');
     setTimeout(() => { container.classList.remove('damage-flash'); }, 400); 
     
-    // Strict Progressive Damage Visuals
     if (health <= 96) { 
         sunroof.material = brokenGlassMat; frontGlass.material = brokenGlassMat; rearGlass.material = brokenGlassMat; 
     } else {
         sunroof.material = glassMat; frontGlass.material = glassMat; rearGlass.material = glassMat;
     }
     
-    wheels[0].scale.y = health < 80 ? 0.5 : 1.0; // FL Flat
-    wheels[1].scale.y = health < 65 ? 0.5 : 1.0; // FR Flat
-    wheels[2].scale.y = health < 50 ? 0.5 : 1.0; // RL Flat 
-    wheels[3].scale.y = health < 35 ? 0.5 : 1.0; // RR Flat
+    wheels[0].scale.y = health < 80 ? 0.5 : 1.0; 
+    wheels[1].scale.y = health < 65 ? 0.5 : 1.0; 
+    wheels[2].scale.y = health < 50 ? 0.5 : 1.0;  
+    wheels[3].scale.y = health < 35 ? 0.5 : 1.0; 
 
     if (health < 50) document.getElementById('health-bar').style.backgroundColor = "#ffcc00";
     if (health < 20) document.getElementById('health-bar').style.backgroundColor = "#ff3333";
@@ -514,7 +503,7 @@ function animate() {
     if (isPaused) {
         controls.update();
         renderer.render(scene, camera);
-        return; // Halt physics updates
+        return; 
     }
 
     if (state === 'TRANSITION') {
@@ -543,7 +532,6 @@ function animate() {
         document.getElementById('time-text').innerText = timer.toFixed(1);
         if (timer <= 0) triggerInspectPhase();
 
-        // Driving Physics (Inverted Steer)
         let speed = 0; let turn = 0;
         if (keys.ArrowUp) speed = 0.5;
         if (keys.ArrowDown) speed = -0.3;
@@ -558,13 +546,13 @@ function animate() {
             camera.position.add(carGroup.position.clone().sub(prevPos));
         }
 
-        // Particle System (Smoke & Fire)
+        // Particle System
         for(let i = emissions.length - 1; i >= 0; i--) {
             let p = emissions[i];
             p.mesh.position.y += dt * (p.isFire ? 3 : 2);
             p.mesh.scale.setScalar(1 + (1 - p.life)*(p.isFire ? 1.5 : 3));
             p.mesh.material.opacity = p.life * (p.isFire ? 0.8 : 0.6);
-            p.life -= dt * (p.isFire ? 1.5 : 1.0); // Fire dies faster
+            p.life -= dt * (p.isFire ? 1.5 : 1.0); 
             if(p.life <= 0) { scene.remove(p.mesh); emissions.splice(i, 1); }
         }
 
