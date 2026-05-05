@@ -149,9 +149,9 @@ function startLevelTransition(nextLevel) {
     document.getElementById('trans-lvl-text').innerText = "LEVEL " + level;
     
     let descHtml = "";
-    if (redCount > 0) descHtml += `<h2 style="color:#e74c3c; font-size: 1.5em;">${redCount} Standard Bad Guy${redCount>1?'s':''}</h2>`;
-    if (greenCount > 0) descHtml += `<h2 style="color:#2ecc71; font-size: 1.5em;">${greenCount} Elite Bad Guy${greenCount>1?'s':''}</h2>`;
-    if (termiteCount > 0) descHtml += `<h2 style="color:#8d6e63; font-size: 1.5em;">${termiteCount} Termite${termiteCount>1?'s':''}</h2>`;
+    if (redCount > 0) descHtml += `<div style="color:#c0392b; font-weight: bold; margin: 5px 0; font-size: 1.1em;">${redCount} Standard Bad Guy${redCount>1?'s':''}</div>`;
+    if (greenCount > 0) descHtml += `<div style="color:#27ae60; font-weight: bold; margin: 5px 0; font-size: 1.1em;">${greenCount} Elite Bad Guy${greenCount>1?'s':''}</div>`;
+    if (termiteCount > 0) descHtml += `<div style="color:#8d6e63; font-weight: bold; margin: 5px 0; font-size: 1.1em;">${termiteCount} Termite${termiteCount>1?'s':''}</div>`;
     
     document.getElementById('trans-badguy-text').innerHTML = descHtml;
 
@@ -168,9 +168,11 @@ function startLevelTransition(nextLevel) {
         previewContainer.appendChild(c);
     }
 
-    for(let i=0; i<redCount; i++) addPreviewCanvas('red');
-    for(let i=0; i<greenCount; i++) addPreviewCanvas('green');
-    for(let i=0; i<termiteCount; i++) addPreviewCanvas('termite');
+    // Bug Fix: Only add ONE visual preview of each enemy type, regardless of count, 
+    // to prevent stretching the transition overlay.
+    if (redCount > 0) addPreviewCanvas('red');
+    if (greenCount > 0) addPreviewCanvas('green');
+    if (termiteCount > 0) addPreviewCanvas('termite');
 
     let overlay = document.getElementById('transition-overlay');
     overlay.style.display = 'flex';
