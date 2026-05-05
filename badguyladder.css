@@ -134,22 +134,48 @@ canvas {
 
 /* --- OVERLAYS & ALIGNMENT --- */
 #intro-overlay, #transition-overlay {
-    background-color: rgba(0,0,0,0.9);
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
     z-index: 5000;
 }
+
+#intro-overlay {
+    background-color: rgba(0,0,0,0.9);
+}
+
+#transition-overlay {
+    background-color: #d3d3d3; /* Light grey background for transition screen */
+}
+
 .intro-box, .transition-content {
     background: #ecf0f1; color: #2c3e50; padding: 30px; border-radius: 12px;
     width: 90%; max-width: 600px; text-align: center;
-    display: flex; flex-direction: column; align-items: center; /* Forces perfect centering */
+    display: flex; flex-direction: column; align-items: center;
+    max-height: 85vh; /* Prevents long text from bleeding off screen on mobile */
+    overflow-y: auto; /* Allows scrolling if content is too tall */
 }
-.bad-guy-showcase { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
+
+.bad-guy-showcase { display: flex; gap: 15px; justify-content: center; margin: 20px 0; width: 100%; }
 .bg-card { border: 2px solid #7f8c8d; border-radius: 8px; padding: 10px; width: 30%; font-size: 14px;}
 .block-demo { display: flex; justify-content: center; gap: 10px; margin: 15px 0; }
 .demo-b { padding: 15px 20px; font-weight: bold; border-radius: 4px; color: white; }
 
-#trans-lvl-text { font-size: 36px; margin: 0 0 15px 0; text-align: center; width: 100%; }
+#trans-lvl-text { 
+    font-size: 36px; margin: 0 0 15px 0; text-align: center; width: 100%; 
+    color: #000000; /* Black text for Level */
+}
+
+/* Proceed Button Styling */
+#proceed-btn {
+    background-color: #8a0303; /* Blood red */
+    color: #ffffff;
+    border: 1px solid #000000; /* Thin black outline */
+    transition: background-color 0.2s ease;
+}
+
+#proceed-btn:hover {
+    background-color: #5c0202; /* Darker red on hover */
+}
 
 
 /* --- MOBILE LAYOUT: LANDSCAPE --- */
@@ -183,7 +209,9 @@ canvas {
         flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center;
     }
     .stats-area { width: 100%; flex-direction: row; justify-content: space-around; margin-bottom: 10px; }
-    #slow-trigger, #fix-trigger, #btn-pause { width: 32%; padding: 8px; font-size: 11px; }
+    
+    /* Reduced padding and font size for mobile text crowding */
+    #slow-trigger, #fix-trigger, #btn-pause { width: 32%; padding: 6px 2px; font-size: 10px; line-height: 1.2; white-space: normal;}
     #slow-bar-bg { width: 100%; margin-top: 5px; }
 
     #canvas-container {
@@ -197,6 +225,19 @@ canvas {
     }
     
     .universal-back-btn { top: 45px; left: 10px; font-size: 12px; padding: 6px 10px; } /* Adjusts for banner */
+
+    /* Fixes Intro Screen Crowding */
+    .bad-guy-showcase { flex-direction: column; align-items: center; }
+    .bg-card { 
+        width: 100%; 
+        display: flex; 
+        flex-direction: row; 
+        align-items: center; 
+        justify-content: space-around; 
+        text-align: left;
+        padding: 5px 10px;
+    }
+    .bg-card p { font-size: 12px; }
 }
 
 
