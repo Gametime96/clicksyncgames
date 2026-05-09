@@ -12,8 +12,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100dvh; /* Dynamic viewport height fixes mobile browser cutoffs */
-            min-height: 100vh; /* Fallback for older browsers */
+            height: 100dvh; /* Dynamic viewport height to account for mobile browser bars */
+            min-height: 100vh; 
             margin: 0;
             overflow: hidden;
             user-select: none;
@@ -71,17 +71,12 @@
             color: #000;
         }
 
-        /* Responsive Game Container - Guaranteed Square */
+        /* Responsive Game Container - Guaranteed Square based on Minimum Viewport */
         #game-container {
-            /* Takes the smallest of: 95% width, 85% dynamic height, or 600px */
-            --game-size: min(95vw, 85dvh, 600px); 
-            width: var(--game-size);
-            height: var(--game-size);
-            
-            /* Fallback for older browsers */
-            max-width: min(95vw, 85vh, 600px);
-            max-height: min(95vw, 85vh, 600px);
-            
+            width: 85vmin;
+            height: 85vmin;
+            max-width: 600px;
+            max-height: 600px;
             background: #151515;
             border-radius: 12px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
@@ -112,32 +107,34 @@
             box-sizing: border-box;
         }
 
+        /* Text scaling uses vmin so it shrinks when height is small (landscape) */
         h1 {
             color: #0ff;
             text-transform: uppercase;
             letter-spacing: 5px;
             margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-size: clamp(1.2rem, 5vmin, 2.5rem);
         }
 
         p {
             color: #aaa;
-            font-size: clamp(0.9rem, 3vw, 1.1rem);
-            line-height: 1.5;
+            font-size: clamp(0.8rem, 3vmin, 1.1rem);
+            line-height: 1.4;
             text-align: center;
+            margin: 5px 0;
         }
 
         button.action-btn {
             background: transparent;
             color: #0ff;
             border: 2px solid #0ff;
-            padding: 12px 24px;
-            font-size: 1.2rem;
+            padding: clamp(8px, 2vmin, 12px) clamp(16px, 4vmin, 24px);
+            font-size: clamp(0.9rem, 3vmin, 1.2rem);
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
-            margin-top: 30px;
+            margin-top: clamp(10px, 4vmin, 30px);
             border-radius: 4px;
             transition: all 0.2s;
         }
@@ -154,7 +151,7 @@
             width: 100%;
             display: flex;
             justify-content: space-around;
-            font-size: clamp(1rem, 4vw, 1.2rem);
+            font-size: clamp(0.9rem, 3.5vmin, 1.2rem);
             color: #fff;
             font-weight: bold;
             pointer-events: none;
@@ -164,7 +161,7 @@
             position: absolute;
             bottom: 40px;
             width: 100%;
-            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            font-size: clamp(1.2rem, 5vmin, 1.8rem);
             font-weight: bold;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -183,12 +180,12 @@
 
         #level-intro h2 {
             color: #fff;
-            font-size: clamp(2rem, 6vw, 2.5rem);
+            font-size: clamp(1.5rem, 6vmin, 2.5rem);
             margin-bottom: 5px;
         }
         #level-intro p {
             color: #0ff;
-            font-size: clamp(1rem, 4vw, 1.3rem);
+            font-size: clamp(0.9rem, 4vmin, 1.3rem);
             max-width: 80%;
         }
 
@@ -221,18 +218,24 @@
             #orientation-warning { display: flex; }
         }
 
-        /* Shrink UI for Short Landscape Screens (Mobile Landscape) */
+        /* Extreme Compression for Short Landscape Screens (Mobile Landscape) */
         @media screen and (max-height: 450px) and (orientation: landscape) {
             #top-controls {
                 top: 5px;
                 right: 5px;
-                flex-direction: row; /* Put buttons side-by-side to save vertical space */
+                flex-direction: row; 
                 gap: 5px;
             }
             .control-btn {
                 padding: 6px 10px;
                 font-size: 0.7rem;
             }
+            .overlay {
+                padding: 10px;
+            }
+            h1 { margin-bottom: 2px; }
+            p { margin: 2px 0; }
+            button.action-btn { margin-top: 5px; }
         }
 
     </style>
@@ -248,7 +251,7 @@
 
 <!-- Top Fixed Controls -->
 <div id="top-controls">
-    <a href="http://clicksyncgames.com" id="home-btn" class="control-btn">Back to Home</a>
+    <a href="http://clicksyncgames.com" id="home-btn" class="control-btn">Back to ClickSyncGames Homepage</a>
     <button id="pause-btn" class="control-btn">Pause</button>
 </div>
 
