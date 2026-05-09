@@ -12,11 +12,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height fixes mobile browser cutoffs */
+            min-height: 100vh; /* Fallback for older browsers */
             margin: 0;
             overflow: hidden;
             user-select: none;
-            -webkit-user-select: none; /* Prevent text selection on mobile */
+            -webkit-user-select: none;
         }
 
         /* Top Controls */
@@ -70,12 +71,17 @@
             color: #000;
         }
 
-        /* Responsive Game Container */
+        /* Responsive Game Container - Guaranteed Square */
         #game-container {
-            width: 100vmin; /* Scales to viewport size */
-            height: 100vmin;
-            max-width: 600px;
-            max-height: 600px;
+            /* Takes the smallest of: 95% width, 85% dynamic height, or 600px */
+            --game-size: min(95vw, 85dvh, 600px); 
+            width: var(--game-size);
+            height: var(--game-size);
+            
+            /* Fallback for older browsers */
+            max-width: min(95vw, 85vh, 600px);
+            max-height: min(95vw, 85vh, 600px);
+            
             background: #151515;
             border-radius: 12px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
@@ -112,12 +118,12 @@
             letter-spacing: 5px;
             margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            font-size: 2rem;
+            font-size: clamp(1.5rem, 5vw, 2rem);
         }
 
         p {
             color: #aaa;
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
             line-height: 1.5;
             text-align: center;
         }
@@ -148,7 +154,7 @@
             width: 100%;
             display: flex;
             justify-content: space-around;
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 4vw, 1.2rem);
             color: #fff;
             font-weight: bold;
             pointer-events: none;
@@ -158,7 +164,7 @@
             position: absolute;
             bottom: 40px;
             width: 100%;
-            font-size: 1.8rem;
+            font-size: clamp(1.2rem, 5vw, 1.8rem);
             font-weight: bold;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -177,12 +183,12 @@
 
         #level-intro h2 {
             color: #fff;
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 6vw, 2.5rem);
             margin-bottom: 5px;
         }
         #level-intro p {
             color: #0ff;
-            font-size: 1.3rem;
+            font-size: clamp(1rem, 4vw, 1.3rem);
             max-width: 80%;
         }
 
@@ -215,6 +221,20 @@
             #orientation-warning { display: flex; }
         }
 
+        /* Shrink UI for Short Landscape Screens (Mobile Landscape) */
+        @media screen and (max-height: 450px) and (orientation: landscape) {
+            #top-controls {
+                top: 5px;
+                right: 5px;
+                flex-direction: row; /* Put buttons side-by-side to save vertical space */
+                gap: 5px;
+            }
+            .control-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -228,7 +248,7 @@
 
 <!-- Top Fixed Controls -->
 <div id="top-controls">
-    <a href="http://clicksyncgames.com" id="home-btn" class="control-btn">Back to ClickSyncGames Homepage</a>
+    <a href="http://clicksyncgames.com" id="home-btn" class="control-btn">Back to Home</a>
     <button id="pause-btn" class="control-btn">Pause</button>
 </div>
 
@@ -290,7 +310,6 @@
         pauseBtn: document.getElementById('pause-btn')
     };
 
-    // Level Descriptions
     const levelLore = [
         "Growth. Wait for the inner pulse to perfectly overlap the outer ring.",
         "Expansion. A larger target awaits.",
@@ -349,20 +368,17 @@
     }
 
     function playLevelIntro(lvl) {
-        playing = false; // Disable input
+        playing = false; 
         ui.feedback.innerText = "";
         
-        // Populate text
         ui.introTitle.innerText = `Level ${lvl}`;
         ui.introDesc.innerText = levelLore[lvl - 1];
 
-        // Show Intro
         switchScreen(null, screens.levelIntro);
 
-        // Hide after 5 seconds (1 sec fade in, 3 sec hold, 1 sec fade out)
         setTimeout(() => {
             switchScreen(screens.levelIntro, null);
-            setTimeout(() => setupLevel(lvl), 400); // Start gameplay after fade out
+            setTimeout(() => setupLevel(lvl), 400); 
         }, 5000);
     }
 
@@ -414,7 +430,7 @@
     }
 
     function togglePause() {
-        if (!playing && !isPaused) return; // Ignore if in menus
+        if (!playing && !isPaused) return; 
         isPaused = !isPaused;
         ui.pauseBtn.innerText = isPaused ? "Resume" : "Pause";
         
@@ -490,7 +506,7 @@
                     screens.hud.style.display = 'none';
                     switchScreen(null, screens.gameOver);
                 } else {
-                    playLevelIntro(level); // Replay intro for clarity on death
+                    playLevelIntro(level); 
                 }
             }, 1000);
         }
@@ -556,7 +572,6 @@
         });
     }
 
-    // Input Listeners
     document.getElementById('start-btn').addEventListener('click', initGame);
     document.getElementById('restart-btn').addEventListener('click', initGame);
     document.getElementById('play-again-btn').addEventListener('click', initGame);
@@ -567,10 +582,9 @@
         if (e.code === 'KeyP' && playing) { e.preventDefault(); togglePause(); }
     });
     
-    // Mouse and Touch Support
     canvas.addEventListener('mousedown', (e) => { if (playing) attemptSync(); });
     canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Prevents double-firing with mousedown on some devices
+        e.preventDefault(); 
         if (playing) attemptSync();
     }, {passive: false});
 
