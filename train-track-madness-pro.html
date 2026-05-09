@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Train Track Madness Pro</title>
+    <style>
+        :root {
+            --grid-size: 10;
+            --cell-bg: #34495e;
+            --track-color: #7f8c8d;
+            --rail-color: #bdc3c7;
+            --smoke-color: rgba(236, 240, 241, 0.6);
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #2c3e50;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            color: #ecf0f1;
+        }
+
+        /* Mobile Landscape Enforcement */
+        #orientation-warning {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: #c0392b;
+            z-index: 9999;
+            text-align: center;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        @media screen and (orientation: portrait) {
+            #orientation-warning { display: flex; }
+        }
+
+        /* Top UI Bar */
+        #ui-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.6);
+            z-index: 10;
+            font-size: 16px;
+        }
+
+        .ui-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .ui-stat {
+            font-weight: bold;
+        }
+
+        #track-count { color: #3498db; }
+
+        .ui-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .ui-btn:active { transform: scale(0.95); }
+        .pause-btn { background: #e67e22; }
+        .home-btn { background: #8e44ad; text-decoration: none; display: inline-block; }
+
+        /* Game Board */
+        #game-board {
+            position: relative;
+            width: 80vmin;
+            height: 80vmin;
+            margin-top: 40px; 
+            background: #34495e;
+            border: 8px solid #1abc9c;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        #grid {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            grid-template-columns: repeat(var(--grid-size), 1fr);
+            grid-template-rows: repeat(var(--grid-size), 1fr);
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-sizing: border-box;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .cell:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* Dynamic Track Visuals */
+        .track { background: var(--track-color); position: relative; }
+        
+        .track::before, .track::after {
+            content: '';
+            position: absolute;
+            background: var(--rail-color);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .track::before { top: 25%; bottom: auto; left: 0; right: 0; height: 4px; }
+        .track::after { bottom: 25%; top: auto; left: 0; right: 0; height: 4px; }
+
+        .tr-v::before { top: 0; bottom: 0; left: 25%; right: auto; width: 4px; height: auto; }
+        .tr-v::after { top: 0; bottom: 0; right: 25%; left: auto; width: 4px; height: auto; }
+
+        .tr-c::before, .tr-c::after { width: 4px; height: 4px; border-radius: 2px; }
+        
+        .tr-c-se::before { top: 25%; left: 25%; right: 0; bottom: auto; height: 4px; width: auto; }
+        .tr-c-se::after { top: 25%; left: 25%; bottom: 0; right: auto; width: 4px; height: auto; }  
+
+        .tr-c-sw::before { top: 25%; right: 25%; left: 0; bottom: auto; height: 4px; width: auto; } 
+        .tr-c-sw::after { top: 25%; right: 25%; bottom: 0; left: auto; width: 4px; height: auto; }  
+
+        .tr-c-ne::before { bottom: 25%; left: 25%; right: 0; top: auto; height: 4px; width: auto; } 
+        .tr-c-ne::after { bottom: 25%; left: 25%; top: 0; right: auto; width: 4px; height: auto; }  
+
+        .tr-c-nw::before { bottom: 25%; right: 25%; left: 0; top: auto; height: 4px; width: auto; } 
+        .tr-c-nw::after { bottom: 25%; right: 25%; top: 0; left: auto; width: 4px; height: auto; }  
+
+
+        /* Train */
+        #train {
+            position: absolute;
+            z-index: 10;
+            width: calc(100% / var(--grid-size));
+            height: calc(100% / var(--grid-size));
+            transition-property: top, left;
+            transition-timing-function: linear;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #train-body {
+            width: 80%; height: 60%;
+            background: linear-gradient(#e74c3c, #c0392b);
+            border-radius: 4px;
+            position: relative;
+            box-shadow: 2px 4px 6px rgba(0,0,0,0.5);
+            transition: transform 0.2s ease; 
+        }
+
+        #train-cabin {
+            position: absolute;
+            right: 5%; top: 10%; bottom: 10%; width: 30%;
+            background: #a93226;
+            border-radius: 2px;
+            border: 2px solid #5d1c15;
+        }
+
+        #chimney {
+            position: absolute;
+            left: 15%; top: calc(50% - 4px);
+            width: 8px; height: 8px;
+            background: #2c3e50;
+            border-radius: 50%;
+            border: 2px solid #000;
+        }
+
+        /* Smoke Particles */
+        .smoke {
+            position: absolute;
+            background: var(--smoke-color);
+            border-radius: 50%;
+            z-index: 5;
+            pointer-events: none;
+            animation: smokeDrift 1.5s forwards;
+        }
+
+        @keyframes smokeDrift {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+            100% { transform: translate(var(--drift-x), var(--drift-y)) scale(2.5); opacity: 0; }
+        }
+
+        /* Passenger */
+        .passenger {
+            position: absolute;
+            width: 50%; height: 50%; top: 25%; left: 25%;
+            background: #f1c40f;
+            border-radius: 50%;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            z-index: 3;
+            animation: pounce 0.8s infinite alternate;
+        }
+        @keyframes pounce { 0% { transform: scale(0.9); } 100% { transform: scale(1.1); } }
+
+        /* Modals */
+        #modal-overlay {
+            position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85);
+            display: flex; justify-content: center; align-items: center; z-index: 100;
+        }
+        #modal {
+            background: #ecf0f1; padding: 30px; border-radius: 12px;
+            max-width: 450px; text-align: center; color: #2c3e50;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-btn {
+            padding: 12px 24px; font-size: 18px; background: #27ae60; color: white;
+            border: none; border-radius: 6px; cursor: pointer; margin-top: 20px; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="orientation-warning">
+        <h2>Please Rotate Device</h2>
+        <p>Play in Landscape mode.</p>
+    </div>
+
+    <div id="ui-bar">
+        <div class="ui-group">
+            <span class="ui-stat">Level: <span id="level-display">1</span> / 12</span>
+            <span class="ui-stat">Inventory: <span id="track-count">0</span> Tracks</span>
+        </div>
+        <div class="ui-group">
+            <button id="pause-btn" class="ui-btn pause-btn" onclick="togglePause()">Pause (P)</button>
+            <a href="index.html" class="ui-btn home-btn">BACK TO CLICKSYNCGAMES HOMEPAGE</a>
+        </div>
+    </div>
+
+    <div id="game-board">
+        <div id="grid"></div>
+        <div id="train" style="display: none;">
+            <div id="train-body">
+                <div id="chimney"></div>
+                <div id="train-cabin"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay">
+        <div id="modal">
+            <h1 id="modal-title">Train Track Madness Pro</h1>
+            <p id="modal-text">Welcome.</p>
+            <button id="modal-btn" class="modal-btn" onclick="modalAction()">Begin</button>
+        </div>
+    </div>
+
+    <script>
+        const gridSize = 10;
+        let grid = [];
+        let savedGridState = [];
+        
+        let level = 1;
+        let train = { x: 0, y: 0, dx: 0, dy: 1 }; 
+        let passengers = [];
+        let trackInventory = 0;
+        
+        let isPlaying = false;
+        let isManuallyPaused = false;
+        let gameTickInterval = null;
+        let currentSpeed = 1000;
+        let tutorialStep = 0;
+        let pendingAction = null;
+
+        const gridEl = document.getElementById('grid');
+        const boardEl = document.getElementById('game-board');
+        const trainEl = document.getElementById('train');
+        const trainBody = document.getElementById('train-body');
+        const pauseBtn = document.getElementById('pause-btn');
+
+        function initGrid() {
+            gridEl.innerHTML = '';
+            grid = [];
+
+            for (let y = 0; y < gridSize; y++) {
+                let row = [];
+                for (let x = 0; x < gridSize; x++) {
+                    let cellEl = document.createElement('div');
+                    cellEl.className = 'cell';
+                    cellEl.onclick = () => handleCellClick(x, y);
+                    gridEl.appendChild(cellEl);
+                    row.push({ hasTrack: false, el: cellEl });
+                }
+                grid.push(row);
+            }
+        }
+
+        // --- Core Mechanism: Tracks & Inventory ---
+        function handleCellClick(x, y) {
+            if (isManuallyPaused) return; 
+            
+            const cell = grid[y][x];
+            if (x === train.x && y === train.y && cell.hasTrack) return;
+
+            if (cell.hasTrack) {
+                cell.hasTrack = false;
+                trackInventory++;
+            } else {
+                if (trackInventory > 0) {
+                    cell.hasTrack = true;
+                    trackInventory--;
+                } else {
+                    cell.el.style.background = 'rgba(192, 57, 43,0.5)';
+                    setTimeout(()=> cell.el.style.background = '', 150);
+                    return; 
+                }
+            }
+            
+            updateGridConnections();
+            updateUI();
+        }
+
+        function updateGridConnections() {
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const cell = grid[y][x];
+                    cell.el.className = 'cell'; 
+                    
+                    if (!cell.hasTrack) continue;
+
+                    cell.el.classList.add('track');
+                    
+                    const n = (y > 0 && grid[y-1][x].hasTrack);
+                    const s = (y < gridSize-1 && grid[y+1][x].hasTrack);
+                    const e = (x < gridSize-1 && grid[y][x+1].hasTrack);
+                    const w = (x > 0 && grid[y][x-1].hasTrack);
+
+                    if (n && s && !e && !w) cell.el.classList.add('tr-v'); 
+                    else if (e && w && !n && !s) {} 
+                    else if (s && e) cell.el.classList.add('tr-c', 'tr-c-se'); 
+                    else if (s && w) cell.el.classList.add('tr-c', 'tr-c-sw'); 
+                    else if (n && e) cell.el.classList.add('tr-c', 'tr-c-ne'); 
+                    else if (n && w) cell.el.classList.add('tr-c', 'tr-c-nw'); 
+                }
+            }
+        }
+
+        // --- Visuals ---
+        function updateTrainVisuals(instant = false) {
+            trainEl.style.display = 'flex';
+            
+            trainEl.style.left = `${(train.x / gridSize) * 100}%`;
+            trainEl.style.top = `${(train.y / gridSize) * 100}%`;
+
+            let angle = 0;
+            if (train.dx === 1) angle = 0;      
+            if (train.dx === -1) angle = 180;   
+            if (train.dy === 1) angle = 90;     
+            if (train.dy === -1) angle = -90;    
+            
+            trainBody.style.transform = `rotate(${angle}deg)`;
+            
+            if (instant) {
+                trainEl.style.transition = 'none';
+            } else {
+                trainEl.style.transition = `top ${currentSpeed}ms linear, left ${currentSpeed}ms linear`;
+                createSmokeParticle();
+            }
+        }
+
+        function createSmokeParticle() {
+            const smoke = document.createElement('div');
+            smoke.className = 'smoke';
+            const size = Math.random() * 2 + 3; 
+            smoke.style.width = size + '%';
+            smoke.style.paddingBottom = size + '%'; 
+
+            const centerX = (train.x / gridSize * 100) + (100 / gridSize / 2);
+            const centerY = (train.y / gridSize * 100) + (100 / gridSize / 2);
+            let offX = -2 * train.dx;
+            let offY = -2 * train.dy;
+
+            smoke.style.left = `calc(${centerX + offX}% - ${size/2}%)`;
+            smoke.style.top = `calc(${centerY + offY}% - ${size/2}%)`;
+
+            const driftDist = 6; 
+            const randX = (Math.random() - 0.5) * 4;
+            const randY = (Math.random() - 0.5) * 4;
+            smoke.style.setProperty('--drift-x', `${-train.dx * driftDist + randX}vmin`);
+            smoke.style.setProperty('--drift-y', `${-train.dy * driftDist + randY}vmin`);
+
+            boardEl.appendChild(smoke);
+            setTimeout(() => smoke.remove(), 1500); 
+        }
+
+        // --- Level Data Management ---
+        function saveGridState() {
+            savedGridState = grid.map(row => row.map(cell => cell.hasTrack));
+            train.savedInv = trackInventory;
+        }
+
+        function restoreGridState() {
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    grid[y][x].hasTrack = savedGridState[y][x];
+                }
+            }
+            trackInventory = train.savedInv;
+        }
+
+        function loadLevel(lvl, isRetry = false) {
+            if (lvl > 12) {
+                showModal("GAME BEATEN!", "Congratulations! You have completed all 12 levels of Train Track Madness Pro.", "Play Again", () => location.reload());
+                return;
+            }
+
+            tutorialStep = 0;
+            
+            if (lvl === 1) currentSpeed = 1000;
+            else if (lvl === 2) currentSpeed = 800;
+            else currentSpeed = Math.max(150, 800 - (lvl * 50)); 
+
+            if (!isRetry) {
+                if (lvl === 1) {
+                    initGrid();
+                    trackInventory = 0;
+                    for (let i = 0; i < gridSize; i++) {
+                        grid[0][i].hasTrack = true; grid[gridSize - 1][i].hasTrack = true;
+                        grid[i][0].hasTrack = true; grid[i][gridSize - 1].hasTrack = true;
+                    }
+                    train = { x: 0, y: 0, dx: 0, dy: 1 }; 
+                } else {
+                    trackInventory += 10; 
+                }
+                
+                train.startX = train.x; train.startY = train.y;
+                train.startDx = train.dx; train.startDy = train.dy;
+                saveGridState();
+            } else {
+                restoreGridState();
+                train.x = train.startX; train.y = train.startY;
+                train.dx = train.startDx; train.dy = train.startDy;
+            }
+
+            passengers = [];
+            if (lvl === 1) {
+                passengers = [{ x: 0, y: 5 }, { x: 9, y: 5 }];
+                showModal("Level 1", "Aerial strategy initiated. Watch how the train automatically pivots counter-clockwise at corners. (Movement is slow so you can observe)", "Watch Tutorial", startGame);
+            } else if (lvl === 2) {
+                passengers = [{ x: 4, y: 4 }, { x: 5, y: 5 }, { x: 4, y: 6 }];
+                showModal("Level 2 - Strategy", "Tracks persist from Level 1! You have a set inventory limit.<br><br>Click the tracks behind the train to pick them up, then place them in empty squares to route the train into the middle.", "Start Building", startGame);
+            } else {
+                let passCount = lvl + 1;
+                for(let p=0; p < passCount; p++) {
+                    let px, py;
+                    do {
+                        px = 1 + Math.floor(Math.random()*(gridSize-2));
+                        py = 1 + Math.floor(Math.random()*(gridSize-2));
+                    } while((px === train.x && py === train.y) || grid[py][px].hasTrack || passengers.some(pas => pas.x === px && pas.y === py));
+                    passengers.push({ x: px, y: py });
+                }
+                showModal(`Level ${lvl}`, "Build a path. Reclaim tracks behind you to reach all passengers.", "Go", startGame);
+            }
+            
+            document.getElementById('level-display').innerText = lvl;
+            updateGridConnections();
+            drawPassengers();
+            updateUI();
+            updateTrainVisuals(true);
+        }
+
+        function drawPassengers() {
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const pEls = grid[y][x].el.querySelectorAll('.passenger');
+                    pEls.forEach(el => el.remove());
+                }
+            }
+            passengers.forEach(p => {
+                let pEl = document.createElement('div');
+                pEl.className = 'passenger';
+                grid[p.y][p.x].el.appendChild(pEl);
+            });
+        }
+
+        function moveTrain() {
+            let nextX = train.x + train.dx;
+            let nextY = train.y + train.dy;
+
+            const canGoStraight = (nextX >= 0 && nextX < gridSize && nextY >= 0 && nextY < gridSize && grid[nextY][nextX].hasTrack);
+
+            if (!canGoStraight) {
+                let leftDx = train.dy; let leftDy = -train.dx;
+                let rightDx = -train.dy; let rightDy = train.dx;
+
+                let canTurnLeft = (train.x + leftDx >= 0 && train.x + leftDx < gridSize && train.y + leftDy >= 0 && train.y + leftDy < gridSize && grid[train.y + leftDy][train.x + leftDx].hasTrack);
+                let canTurnRight = (train.x + rightDx >= 0 && train.x + rightDx < gridSize && train.y + rightDy >= 0 && train.y + rightDy < gridSize && grid[train.y + rightDy][train.x + rightDx].hasTrack);
+
+                if (canTurnLeft && canTurnRight) {
+                    train.dx = leftDx; train.dy = leftDy; 
+                } else if (canTurnLeft) {
+                    train.dx = leftDx; train.dy = leftDy;
+                } else if (canTurnRight) {
+                    train.dx = rightDx; train.dy = rightDy;
+                } else {
+                    derail();
+                    return;
+                }
+            }
+
+            train.x += train.dx;
+            train.y += train.dy;
+            updateTrainVisuals();
+
+            const pIndex = passengers.findIndex(p => p.x === train.x && p.y === train.y);
+            if (pIndex !== -1) {
+                passengers.splice(pIndex, 1);
+                drawPassengers();
+                updateUI();
+            }
+
+            if (passengers.length === 0) {
+                winLevel();
+                return;
+            }
+
+            if (level === 1) {
+                if (train.x === 0 && train.y === 4 && tutorialStep === 0) {
+                    tutorialStep++; pauseAndAlert("Tutorial: The train will automatically pick up the passenger!"); return;
+                }
+                if (train.x === 0 && train.y === 9 && tutorialStep === 1) {
+                    tutorialStep++; pauseAndAlert("Tutorial: Approaching corner, watch it dynamically find the track and pivot East!"); return;
+                }
+            }
+            
+            currentSpeed = Math.max(100, currentSpeed - 1); 
+
+            if (isPlaying && !isManuallyPaused) {
+                gameTickInterval = setTimeout(moveTrain, currentSpeed);
+            }
+        }
+
+        function togglePause() {
+            if (!isPlaying && !isManuallyPaused) return; 
+            
+            if (isManuallyPaused) {
+                isManuallyPaused = false;
+                isPlaying = true;
+                pauseBtn.innerText = "Pause (P)";
+                pauseBtn.style.background = "#e67e22";
+                gameTickInterval = setTimeout(moveTrain, currentSpeed);
+            } else {
+                isManuallyPaused = true;
+                isPlaying = false;
+                pauseBtn.innerText = "Resume (P)";
+                pauseBtn.style.background = "#27ae60";
+                clearTimeout(gameTickInterval);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'p') {
+                togglePause();
+            }
+        });
+
+        function derail() {
+            isPlaying = false;
+            clearTimeout(gameTickInterval); 
+            trainBody.style.background = '#333';
+            showModal("DERAILED", "The train ran off the tracks! Remember to reclaim tracks behind you and build carefully in front.", "Try Again", () => loadLevel(level, true));
+        }
+
+        function winLevel() {
+            isPlaying = false;
+            clearTimeout(gameTickInterval);
+            level++;
+            showModal("LEVEL COMPLETE", "Passengers secured. The next level starts exactly as you left the tracks.", "Next Level", () => loadLevel(level, false));
+        }
+
+        function updateUI() {
+            document.getElementById('track-count').innerText = trackInventory;
+        }
+
+        function showModal(title, text, btnText, action) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-text').innerHTML = text;
+            document.getElementById('modal-btn').innerText = btnText;
+            document.getElementById('modal-overlay').style.display = 'flex';
+            pendingAction = action;
+        }
+
+        function modalAction() {
+            if (pendingAction) pendingAction();
+        }
+
+        function startGame() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            isPlaying = true;
+            isManuallyPaused = false;
+            pauseBtn.innerText = "Pause (P)";
+            pauseBtn.style.background = "#e67e22";
+            trainBody.style.background = ''; 
+            gameTickInterval = setTimeout(moveTrain, currentSpeed);
+        }
+
+        function pauseAndAlert(msg) {
+            isPlaying = false;
+            clearTimeout(gameTickInterval);
+            showModal("Tutorial paused", msg, "Continue", startGame);
+        }
+
+        window.onload = () => {
+            loadLevel(1);
+        };
+    </script>
+</body>
+</html>
