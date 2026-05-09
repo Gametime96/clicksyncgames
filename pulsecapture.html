@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pulse Capture: Evolved</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #eee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none; /* Prevent text selection on mobile */
+        }
+
+        /* Top Controls */
+        #top-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .control-btn {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            transition: transform 0.1s, filter 0.2s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        #home-btn {
+            background-color: #d32f2f;
+            color: #fff;
+            border: 2px solid #ff5252;
+        }
+
+        #home-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        #pause-btn {
+            background-color: #333;
+            color: #0ff;
+            border: 2px solid #0ff;
+        }
+
+        #pause-btn:hover {
+            background-color: #0ff;
+            color: #000;
+        }
+
+        /* Responsive Game Container */
+        #game-container {
+            width: 100vmin; /* Scales to viewport size */
+            height: 100vmin;
+            max-width: 600px;
+            max-height: 600px;
+            background: #151515;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            cursor: crosshair;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(21, 21, 21, 0.9);
+            transition: opacity 0.5s ease-in-out;
+            border-radius: 12px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #0ff;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            font-size: 2rem;
+        }
+
+        p {
+            color: #aaa;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        button.action-btn {
+            background: transparent;
+            color: #0ff;
+            border: 2px solid #0ff;
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 30px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button.action-btn:hover {
+            background: #0ff;
+            color: #0a0a0a;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        #feedback {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        .success-text { color: #0f0; text-shadow: 0 0 10px #0f0; }
+        .fail-text { color: #f00; text-shadow: 0 0 10px #f00; }
+
+        /* Level Intro Screen */
+        #level-intro {
+            background: rgba(10, 10, 10, 0.95);
+            z-index: 50;
+        }
+
+        #level-intro h2 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        #level-intro p {
+            color: #0ff;
+            font-size: 1.3rem;
+            max-width: 80%;
+        }
+
+        /* Mobile Portrait Warning Overlay */
+        #orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #0a0a0a;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #orientation-warning h1 { color: #f00; }
+        #orientation-warning svg { fill: #fff; width: 80px; height: 80px; margin-bottom: 20px; animation: rotatePhone 2s infinite ease-in-out;}
+
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(-90deg); }
+        }
+
+        /* Trigger Warning on Portrait Mobile */
+        @media screen and (max-width: 768px) and (orientation: portrait) {
+            #game-container, #top-controls { display: none !important; }
+            #orientation-warning { display: flex; }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Orientation Warning -->
+<div id="orientation-warning">
+    <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+    <h1>Rotate Device</h1>
+    <p>Please rotate your phone to landscape mode to play.</p>
+</div>
+
+<!-- Top Fixed Controls -->
+<div id="top-controls">
+    <a href="http://clicksyncgames.com" id="home-btn" class="control-btn">Back to ClickSyncGames Homepage</a>
+    <button id="pause-btn" class="control-btn">Pause</button>
+</div>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    
+    <div id="hud" style="display: none;">
+        <div>Level <span id="level">1</span>/15</div>
+        <div>Lives <span id="lives">3</span></div>
+    </div>
+
+    <div id="feedback"></div>
+
+    <!-- Gameplay Screens -->
+    <div id="level-intro" class="overlay" style="display:none; opacity: 0;">
+        <h2 id="intro-level-title">Level 1</h2>
+        <p id="intro-level-desc">Match the sizes.</p>
+    </div>
+
+    <div id="intro" class="overlay">
+        <h1>Pulse Capture</h1>
+        <p>15 Advanced Levels of Timing & Perception.</p>
+        <p>Tolerance is strict. Match sizes, shapes, flat planes, and positions exactly. Click, tap, or press Spacebar to sync.</p>
+        <button id="start-btn" class="action-btn">Initiate System</button>
+    </div>
+
+    <div id="game-over" class="overlay" style="display:none; opacity: 0;">
+        <h1 style="color: #f00; text-shadow: 0 0 10px #f00;">Sync Failed</h1>
+        <p>You survived until Level <span id="final-level" style="color:#fff; font-weight:bold;"></span></p>
+        <button id="restart-btn" class="action-btn" style="border-color: #f00; color: #f00;">Reboot System</button>
+    </div>
+
+    <div id="victory" class="overlay" style="display:none; opacity: 0;">
+        <h1 style="color: #0f0; text-shadow: 0 0 10px #0f0;">System Mastered</h1>
+        <p>Incredible timing. You have completed all 15 anomalies.</p>
+        <button id="play-again-btn" class="action-btn" style="border-color: #0f0; color: #0f0;">Play Again</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const screens = {
+        intro: document.getElementById('intro'),
+        levelIntro: document.getElementById('level-intro'),
+        gameOver: document.getElementById('game-over'),
+        victory: document.getElementById('victory'),
+        hud: document.getElementById('hud')
+    };
+
+    const ui = {
+        level: document.getElementById('level'),
+        lives: document.getElementById('lives'),
+        feedback: document.getElementById('feedback'),
+        finalLevel: document.getElementById('final-level'),
+        introTitle: document.getElementById('intro-level-title'),
+        introDesc: document.getElementById('intro-level-desc'),
+        pauseBtn: document.getElementById('pause-btn')
+    };
+
+    // Level Descriptions
+    const levelLore = [
+        "Growth. Wait for the inner pulse to perfectly overlap the outer ring.",
+        "Expansion. A larger target awaits.",
+        "Contraction. The outer pulse collapses inward.",
+        "Precision. Collapse perfectly into the small center.",
+        "Duality. Left expands, right contracts. Sync them both simultaneously.",
+        "Sweep. Do not worry about size. Match the exact horizontal position.",
+        "Stutter. The pulse pauses every second. Time the exact moment of overlap.",
+        "Convergence. The outer ring shrinks while the inner grows.",
+        "Ricochet. The pulse bounces. Wait for it to perfectly hit the center.",
+        "Phantom. The center target fades in and out. Sync when it is fully visible.",
+        "Dimension. The pulse tilts in 3D. Sync when it is perfectly flat.",
+        "Ghost Plane. 3D tilt combined with a fading target. Precision is absolute.",
+        "Twin Phantoms. Two tilting pulses crossing a fading target.",
+        "Chaos. Both the target and the pulse are bouncing.",
+        "Morph. Moving fading target, shape-shifting pulse. Match the circle."
+    ];
+
+    let level = 1;
+    let lives = 3;
+    let playing = false;
+    let isPaused = false;
+    let animationId;
+    
+    let targets = [];
+    let pulses = [];
+    
+    const TOLERANCE = 18; 
+    
+    function switchScreen(hideEl, showEl, instantHide = false) {
+        if (hideEl) {
+            hideEl.style.opacity = 0;
+            setTimeout(() => hideEl.style.display = 'none', instantHide ? 0 : 300);
+        }
+        if (showEl) {
+            setTimeout(() => {
+                showEl.style.display = 'flex';
+                setTimeout(() => showEl.style.opacity = 1, 50);
+            }, hideEl && !instantHide ? 300 : 0);
+        }
+    }
+
+    function initGame() {
+        level = 1;
+        lives = 3;
+        isPaused = false;
+        ui.pauseBtn.innerText = "Pause";
+        updateHUD();
+        
+        screens.intro.style.display = 'none';
+        screens.gameOver.style.display = 'none';
+        screens.victory.style.display = 'none';
+        screens.hud.style.display = 'flex';
+        
+        playLevelIntro(level);
+    }
+
+    function playLevelIntro(lvl) {
+        playing = false; // Disable input
+        ui.feedback.innerText = "";
+        
+        // Populate text
+        ui.introTitle.innerText = `Level ${lvl}`;
+        ui.introDesc.innerText = levelLore[lvl - 1];
+
+        // Show Intro
+        switchScreen(null, screens.levelIntro);
+
+        // Hide after 5 seconds (1 sec fade in, 3 sec hold, 1 sec fade out)
+        setTimeout(() => {
+            switchScreen(screens.levelIntro, null);
+            setTimeout(() => setupLevel(lvl), 400); // Start gameplay after fade out
+        }, 5000);
+    }
+
+    function setupLevel(lvl) {
+        targets = [];
+        pulses = [];
+        const cw = canvas.width;
+        const ch = canvas.height;
+
+        switch(lvl) {
+            case 1: targets.push({ x: cw/2, y: ch/2, r: 140, opacity: 0.5 }); pulses.push({ x: cw/2, y: ch/2, r: 10, dr: 1.2 }); break;
+            case 2: targets.push({ x: cw/2, y: ch/2, r: 240, opacity: 0.5 }); pulses.push({ x: cw/2, y: ch/2, r: 10, dr: 1.5 }); break;
+            case 3: targets.push({ x: cw/2, y: ch/2, r: 140, opacity: 0.5 }); pulses.push({ x: cw/2, y: ch/2, r: 280, dr: -1.2 }); break;
+            case 4: targets.push({ x: cw/2, y: ch/2, r: 60, opacity: 0.5 }); pulses.push({ x: cw/2, y: ch/2, r: 280, dr: -1.5 }); break;
+            case 5: 
+                targets.push({ x: cw/4, y: ch/2, r: 90, opacity: 0.5 }); pulses.push({ x: cw/4, y: ch/2, r: 10, dr: 1.0 });       
+                targets.push({ x: (cw/4)*3, y: ch/2, r: 90, opacity: 0.5 }); pulses.push({ x: (cw/4)*3, y: ch/2, r: 170, dr: -1.0 });     
+                break;
+            case 6: targets.push({ x: cw/2, y: ch/2, r: 70, opacity: 0.5 }); pulses.push({ x: 70, y: ch/2, r: 70, dx: 2.5 }); break;
+            case 7: targets.push({ x: cw/2, y: ch/2, r: 160, opacity: 0.5 }); pulses.push({ x: cw/2, y: ch/2, r: 10, dr: 1.2, pauses: true }); break;
+            case 8: targets.push({ x: cw/2, y: ch/2, r: 280, dr: -0.7, opacity: 0.5 }); pulses.push({ x: cw/2, y: ch/2, r: 10, dr: 0.7 }); break;
+            case 9: targets.push({ x: cw/2, y: ch/2, r: 60, opacity: 0.5 }); pulses.push({ x: 100, y: 100, r: 60, dx: 2.355, dy: 1.822 }); break;
+            case 10: targets.push({ x: cw/2, y: ch/2, r: 60, opacity: 1, fades: true }); pulses.push({ x: 100, y: 100, r: 60, dx: 2.407, dy: 1.963 }); break;
+            case 11: targets.push({ x: cw/2, y: ch/2, r: 60, opacity: 0.5 }); pulses.push({ x: 100, y: 100, r: 60, dx: 2.355, dy: 1.822, is3D: true, tiltAngle: 0, tiltSpeed: Math.PI/90 }); break;
+            case 12: targets.push({ x: cw/2, y: ch/2, r: 60, opacity: 1, fades: true }); pulses.push({ x: 100, y: 100, r: 60, dx: 2.407, dy: 1.963, is3D: true, tiltAngle: 0, tiltSpeed: Math.PI/90 }); break;
+            case 13: 
+                targets.push({ x: cw/2, y: ch/2, r: 60, opacity: 1, fades: true });
+                pulses.push({ x: 100, y: 100, r: 60, dx: 4, dy: 4, is3D: true, tiltAngle: 0, tiltSpeed: Math.PI/50 });
+                pulses.push({ x: 500, y: 100, r: 60, dx: -4, dy: 4, is3D: true, tiltAngle: 0, tiltSpeed: Math.PI/50 });
+                break;
+            case 14: 
+                targets.push({ x: 200, y: 400, r: 50, dx: 2, dy: -2.5, opacity: 0.5 });
+                pulses.push({ x: 400, y: 200, r: 50, dx: -3, dy: 2 });
+                break;
+            case 15: 
+                targets.push({ x: 100, y: ch/2, r: 50, dx: 3, opacity: 1, fades: true });
+                pulses.push({ x: cw/2, y: ch/2, r: 50, shapeCycle: ['square', 'triangle', 'circle'], shapeTimer: 0 });
+                break;
+        }
+
+        playing = true;
+        isPaused = false;
+        if (!animationId) gameLoop();
+    }
+
+    function updateHUD() {
+        ui.level.innerText = level;
+        ui.lives.innerText = lives;
+    }
+
+    function togglePause() {
+        if (!playing && !isPaused) return; // Ignore if in menus
+        isPaused = !isPaused;
+        ui.pauseBtn.innerText = isPaused ? "Resume" : "Pause";
+        
+        if (isPaused) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0ff";
+            ctx.font = "bold 40px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("PAUSED", canvas.width/2, canvas.height/2);
+        }
+    }
+
+    function attemptSync() {
+        if (!playing || isPaused) return;
+        
+        let success = true;
+
+        if (level === 13) {
+            let t = targets[0];
+            let p1 = pulses[0], p2 = pulses[1];
+            let dist1 = Math.hypot(t.x - p1.x, t.y - p1.y);
+            let dist2 = Math.hypot(t.x - p2.x, t.y - p2.y);
+            let flat1 = Math.abs(p1.r - p1.rY) <= TOLERANCE;
+            let flat2 = Math.abs(p2.r - p2.rY) <= TOLERANCE;
+
+            if (dist1 > TOLERANCE || dist2 > TOLERANCE || !flat1 || !flat2 || t.opacity < 0.8) success = false;
+        } else if (level === 15) {
+            let t = targets[0]; let p = pulses[0];
+            let dist = Math.hypot(t.x - p.x, t.y - p.y);
+            let isCircle = p.currentShape === 'circle';
+
+            if (dist > TOLERANCE || !isCircle || t.opacity < 0.8) success = false;
+        } else {
+            for (let i = 0; i < targets.length; i++) {
+                let t = targets[i]; let p = pulses[i] || pulses[0];
+                let dist = Math.hypot(t.x - p.x, t.y - p.y);
+                let rDiff = Math.abs(t.r - p.r);
+
+                if (dist > TOLERANCE || rDiff > TOLERANCE) { success = false; break; }
+                if (p.is3D && Math.abs(p.r - p.rY) > TOLERANCE) { success = false; break; }
+                if (t.fades && t.opacity < 0.8) { success = false; break; }
+            }
+        }
+
+        playing = false;
+
+        if (success) {
+            ui.feedback.className = 'success-text';
+            ui.feedback.innerText = 'SYNCED!';
+            drawState('#0f0');
+
+            setTimeout(() => {
+                level++;
+                if (level > 15) {
+                    screens.hud.style.display = 'none';
+                    switchScreen(null, screens.victory);
+                } else {
+                    updateHUD();
+                    playLevelIntro(level);
+                }
+            }, 1000);
+        } else {
+            lives--;
+            ui.feedback.className = 'fail-text';
+            ui.feedback.innerText = 'MISSED!';
+            drawState('#f00');
+            updateHUD();
+
+            setTimeout(() => {
+                if (lives <= 0) {
+                    ui.finalLevel.innerText = level;
+                    screens.hud.style.display = 'none';
+                    switchScreen(null, screens.gameOver);
+                } else {
+                    playLevelIntro(level); // Replay intro for clarity on death
+                }
+            }, 1000);
+        }
+    }
+
+    function gameLoop() {
+        animationId = requestAnimationFrame(gameLoop);
+        
+        if (!playing || isPaused) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let time = Date.now();
+        let isPausedSecond = Math.floor(time / 1000) % 2 !== 0;
+
+        targets.forEach(t => {
+            if (t.dr) { t.r += t.dr; if (t.r < 50 || t.r > 280) t.dr *= -1; }
+            if (t.dx) { t.x += t.dx; if (t.x - t.r < 0 || t.x + t.r > canvas.width) t.dx *= -1; }
+            if (t.dy) { t.y += t.dy; if (t.y - t.r < 0 || t.y + t.r > canvas.height) t.dy *= -1; }
+            if (t.fades) t.opacity = (Math.sin(time / 400) + 1) / 2;
+        });
+
+        pulses.forEach(p => {
+            let canMove = !(p.pauses && isPausedSecond);
+            if (canMove) {
+                if (p.dr) { p.r += p.dr; if (p.r > 290 || p.r < 5) p.dr *= -1; }
+                if (p.dx) { p.x += p.dx; if (p.x - p.r < 0 || p.x + p.r > canvas.width) p.dx *= -1; }
+                if (p.dy) { p.y += p.dy; if (p.y - p.r < 0 || p.y + p.r > canvas.height) p.dy *= -1; }
+                if (p.is3D) { p.tiltAngle += p.tiltSpeed; p.rY = Math.max(0.1, p.r * Math.abs(Math.cos(p.tiltAngle))); }
+                if (p.shapeCycle) {
+                    p.shapeTimer++;
+                    if (p.shapeTimer % 60 === 0) p.currentShape = p.shapeCycle[(p.shapeTimer / 60) % p.shapeCycle.length];
+                }
+            }
+        });
+
+        drawState();
+    }
+
+    function drawState(overrideColor = null) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        targets.forEach(t => {
+            ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.lineWidth = 12;
+            let op = overrideColor ? 1 : (t.opacity || 0.5);
+            ctx.strokeStyle = overrideColor || `rgba(255, 255, 255, ${op})`; ctx.stroke();
+        });
+
+        pulses.forEach(p => {
+            ctx.beginPath(); ctx.lineWidth = 10; ctx.strokeStyle = overrideColor || '#0ff';
+            ctx.shadowBlur = 15; ctx.shadowColor = overrideColor || '#0ff';
+
+            if (p.is3D) {
+                ctx.ellipse(p.x, p.y, p.r, p.rY, 0, 0, Math.PI * 2);
+            } else if (p.shapeCycle) {
+                let shape = p.currentShape || p.shapeCycle[0];
+                if (shape === 'square') { ctx.rect(p.x - p.r, p.y - p.r, p.r*2, p.r*2); } 
+                else if (shape === 'triangle') {
+                    ctx.moveTo(p.x, p.y - p.r); ctx.lineTo(p.x + p.r, p.y + p.r); ctx.lineTo(p.x - p.r, p.y + p.r); ctx.closePath();
+                } else { ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); }
+            } else { ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); }
+            
+            ctx.stroke(); ctx.shadowBlur = 0;
+        });
+    }
+
+    // Input Listeners
+    document.getElementById('start-btn').addEventListener('click', initGame);
+    document.getElementById('restart-btn').addEventListener('click', initGame);
+    document.getElementById('play-again-btn').addEventListener('click', initGame);
+    ui.pauseBtn.addEventListener('click', togglePause);
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && playing) { e.preventDefault(); attemptSync(); }
+        if (e.code === 'KeyP' && playing) { e.preventDefault(); togglePause(); }
+    });
+    
+    // Mouse and Touch Support
+    canvas.addEventListener('mousedown', (e) => { if (playing) attemptSync(); });
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Prevents double-firing with mousedown on some devices
+        if (playing) attemptSync();
+    }, {passive: false});
+
+</script>
+</body>
+</html>
