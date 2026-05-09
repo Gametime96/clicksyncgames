@@ -16,7 +16,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100dvh; /* Dynamic Viewport Height */
             
             display: flex;
             flex-direction: column;
@@ -83,18 +83,18 @@
 
         /* Game Container - Guaranteed Square */
         #game-container {
-            aspect-ratio: 1 / 1; /* Forces a perfect square */
+            aspect-ratio: 1 / 1; 
             
-            /* Takes the smallest dimension to ensure it always fits */
-            width: min(85vw, 80vh, 600px);
-            height: min(85vw, 80vh, 600px);
+            /* Uses Dynamic Viewport Minimum to guarantee it never overflows */
+            width: min(90dvmin, 600px);
+            height: min(90dvmin, 600px);
             
             background: #151515;
             border-radius: 12px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
             position: relative;
             text-align: center;
-            overflow: hidden;
+            overflow: hidden; /* Prevents text bleeding */
             flex-shrink: 0;
         }
 
@@ -120,19 +120,19 @@
             box-sizing: border-box;
         }
 
-        /* Dynamic Text Scaling */
+        /* Dynamic Text Scaling bounded by dynamic viewports */
         h1 {
             color: #0ff;
             text-transform: uppercase;
             letter-spacing: 5px;
             margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            font-size: clamp(1.2rem, 4vh, 2rem);
+            font-size: clamp(1.2rem, 5dvmin, 2.5rem);
         }
 
         p {
             color: #aaa;
-            font-size: clamp(0.8rem, 2.5vh, 1.1rem);
+            font-size: clamp(0.8rem, 3dvmin, 1.1rem);
             line-height: 1.4;
             text-align: center;
             margin: 5px 0;
@@ -142,12 +142,12 @@
             background: transparent;
             color: #0ff;
             border: 2px solid #0ff;
-            padding: clamp(8px, 2vh, 12px) clamp(16px, 4vh, 24px);
-            font-size: clamp(0.9rem, 2.5vh, 1.2rem);
+            padding: clamp(8px, 2dvmin, 12px) clamp(16px, 4dvmin, 24px);
+            font-size: clamp(0.9rem, 3dvmin, 1.2rem);
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
-            margin-top: clamp(10px, 3vh, 30px);
+            margin-top: clamp(10px, 4dvmin, 30px);
             border-radius: 4px;
             transition: all 0.2s;
         }
@@ -158,13 +158,14 @@
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
         }
 
+        /* Positioned strictly by % of the container box, not the screen */
         #hud {
             position: absolute;
-            top: clamp(10px, 3vh, 20px);
+            top: 5%;
             width: 100%;
             display: flex;
             justify-content: space-around;
-            font-size: clamp(0.9rem, 3.5vh, 1.2rem);
+            font-size: clamp(0.9rem, 3.5dvmin, 1.2rem);
             color: #fff;
             font-weight: bold;
             pointer-events: none;
@@ -172,9 +173,9 @@
 
         #feedback {
             position: absolute;
-            bottom: clamp(20px, 5vh, 40px);
+            bottom: 5%;
             width: 100%;
-            font-size: clamp(1.2rem, 5vh, 1.8rem);
+            font-size: clamp(1.2rem, 5dvmin, 1.8rem);
             font-weight: bold;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -192,12 +193,12 @@
 
         #level-intro h2 {
             color: #fff;
-            font-size: clamp(1.5rem, 6vh, 2.5rem);
+            font-size: clamp(1.5rem, 6dvmin, 2.5rem);
             margin-bottom: 5px;
         }
         #level-intro p {
             color: #0ff;
-            font-size: clamp(0.9rem, 4vh, 1.3rem);
+            font-size: clamp(0.9rem, 4dvmin, 1.3rem);
             max-width: 80%;
         }
 
@@ -233,8 +234,8 @@
         @media screen and (max-height: 500px) and (orientation: landscape) {
             body {
                 flex-direction: row-reverse; /* Puts controls on the right, game on the left */
-                gap: 20px;
-                padding: 10px;
+                gap: 2vw;
+                padding: 2dvmin;
                 box-sizing: border-box;
             }
             
@@ -242,22 +243,23 @@
                 position: relative; /* Takes it out of absolute overlay */
                 top: 0;
                 right: 0;
-                width: 150px; /* Constrain width so game has room */
+                width: 25vw;
+                max-width: 160px; /* Constrain width so game has room */
                 flex-shrink: 0;
                 justify-content: center;
             }
 
             .control-btn {
-                font-size: 0.65rem;
+                font-size: 0.7rem;
                 padding: 10px 8px;
                 white-space: normal; /* Allows the long text to wrap to multiple lines safely */
                 line-height: 1.3;
             }
 
             #game-container {
-                /* Safe 90% of height since controls no longer overlap */
-                width: min(90vh, 600px);
-                height: min(90vh, 600px);
+                /* Safe 90% of dynamic height */
+                width: min(90dvh, 600px);
+                height: min(90dvh, 600px);
             }
             
             .overlay {
