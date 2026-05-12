@@ -226,6 +226,29 @@
 
         .contact-btn:hover { background-color: #1d4ed8; }
 
+        /* --- MOBILE RESPONSIVE FIXES --- */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                padding: 15px 20px;
+                gap: 15px;
+            }
+            
+            .search-container {
+                margin-left: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .search-bar {
+                box-sizing: border-box;
+            }
+            
+            .logo-container h1 {
+                font-size: 28px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -244,7 +267,6 @@
         <div class="category-grid">
             <div class="category-btn" data-search="action">Action</div>
             <div class="category-btn" data-search="adventure rpg">Adventure</div>
-            <div class="category-btn" data-search="airport planes air traffic">Airport</div>
             <div class="category-btn" data-search="arcade retro">Arcade</div>
             <div class="category-btn" data-search="billiards pool">Billiards</div>
             <div class="category-btn" data-search="casino cards blackjack poker">Casino</div>
@@ -326,7 +348,6 @@
                 <div class="game-desc">Defend your vulnerable cores while swinging a lethal laser tether in this 12-level survival game.</div>
             </a>
 
-            <!-- NEW GAME: Train Track Madness Pro -->
             <a href="train-track-madness-pro.html" class="game-card" data-category="strategy puzzle">
                 <div class="thumbnail-container css-thumb thumb-train"></div>
                 <div class="game-title">Train Track Madness Pro</div>
