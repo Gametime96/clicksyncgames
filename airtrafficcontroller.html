@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Air Traffic Control Simulator | Free Browser Radar Game</title>
     <meta name="description" content="Take command of the control tower. Guide planes safely to the runway, manage altitude, and prevent mid-air collisions in this intense ATC radar simulator.">
     <style>
@@ -24,6 +24,8 @@
             max-width: 1220px; /* 900 canvas + 320 sidebar */
             padding: 20px 0;
             text-align: left;
+            box-sizing: border-box;
+            padding-left: 20px;
         }
 
         /* Wraps the game and sidebar together cleanly */
@@ -32,16 +34,41 @@
             width: 100%;
             max-width: 1220px;
             height: 750px;
+            max-height: 85vh; /* Prevents vertical scrolling by fitting to viewport height */
             background-color: #1a1a1a;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             border-radius: 10px;
             overflow: hidden;
         }
 
-        #game-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; }
-        canvas { background-color: #1b3d16; cursor: crosshair; }
+        #game-container { 
+            flex: 1; 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-width: 0; /* Allows the flex container to shrink past native sizes */
+        }
         
-        #sidebar { width: 320px; background-color: #2c3e50; padding: 20px; display: flex; flex-direction: column; border-left: 4px solid #3498db; box-sizing: border-box; }
+        canvas { 
+            background-color: #1b3d16; 
+            cursor: crosshair; 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; /* Automatically scales the canvas to fit perfectly without distortion */
+        }
+        
+        #sidebar { 
+            width: 320px; 
+            flex-shrink: 0; /* Keeps the sidebar from disappearing */
+            background-color: #2c3e50; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            border-left: 4px solid #3498db; 
+            box-sizing: border-box; 
+        }
+        
         .stat-box { background: #1a252f; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px solid #3498db; }
         #level-display { font-size: 24px; color: #f1c40f; font-weight: bold; }
         #timer-display { font-size: 18px; color: #bdc3c7; }
@@ -60,7 +87,7 @@
 
         .instruction-list { text-align: left; margin: 20px 0; font-size: 18px; line-height: 1.6; }
         .instruction-list div { margin-bottom: 10px; padding-left: 15px; border-left: 4px solid #f1c40f; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
 
         /* Universal Footer Styles */
         .site-footer {
@@ -94,9 +121,52 @@
             transition: 0.2s;
         }
         .contact-btn:hover { background-color: #1d4ed8; }
+
+        /* --- MOBILE RESPONSIVE FIXES --- */
+        #portrait-warning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #b30000; color: white; z-index: 9999;
+            flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
+
+        #portrait-warning h1 { font-size: 40px; margin-bottom: 10px; color: #f1c40f; }
+        #portrait-warning p { font-size: 20px; line-height: 1.5; }
+
+        /* Trigger warning strictly on portrait devices */
+        @media screen and (orientation: portrait) {
+            #portrait-warning { display: flex; }
+            .game-wrapper, .top-nav, .site-footer { display: none !important; }
+        }
+
+        /* Scale down the sidebar for mobile landscape */
+        @media (max-width: 950px) and (orientation: landscape) {
+            .game-wrapper {
+                height: 98vh;
+                max-height: 98vh;
+            }
+            #sidebar {
+                width: 220px;
+                padding: 10px;
+            }
+            .stat-box { padding: 10px; margin-bottom: 10px; }
+            #level-display { font-size: 18px; }
+            .panel { padding: 10px; min-height: 120px; margin-bottom: 10px; }
+            .btn { padding: 8px; font-size: 12px; }
+            #log { font-size: 10px; }
+            .btn-pause { top: 5px; left: 5px; width: 80px; font-size: 12px; padding: 5px; }
+            .top-nav { display: none; } /* Maximize screen space on mobile landscape */
+        }
     </style>
 </head>
 <body>
+
+    <div id="portrait-warning">
+        <h1>Rotate Device</h1>
+        <p>For the best user experience, please rotate your mobile device to Landscape orientation to play Air Traffic Control.</p>
+    </div>
 
     <div class="top-nav">
         <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
@@ -312,9 +382,15 @@
         function togglePause() { isPaused = !isPaused; }
         window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'p') togglePause(); });
 
+        // UPDATED MOUSE/TOUCH EVENT: Includes responsive scaling factors so clicks align properly when the canvas shrinks on mobile
         canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            const scaleX = canvas.width / rect.width;   // relationship bitmap vs. element for X
+            const scaleY = canvas.height / rect.height; // relationship bitmap vs. element for Y
+            
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+            
             selectedPlane = planes.find(p => Math.hypot(p.x - mx, p.y - my) < 35) || null;
             updateUI();
         });
