@@ -8,6 +8,8 @@
 </head>
 <body>
 
+    <div id="portrait-banner">Rotate mobile device to landscape orientation for best experience</div>
+
     <a href="https://clicksyncgames.com" id="home-link">Return to ClickSyncGames</a>
     
     <button id="btn-pause" class="action-btn pause-btn">⏸ PAUSE (P)</button>
@@ -36,37 +38,38 @@
     </div>
 
     <div id="intro-screen" class="overlay">
-        <h1>DEFEND THE VEHICLE</h1>
-        <p>Survive 10 levels of escalating chaos in the desert.</p>
-        
-        <div class="tutorial-box">
-            <p><strong>DRIVE:</strong> Arrow Keys or On-Screen D-Pad</p>
-            <div style="display:flex; justify-content:center; gap:5px; margin-bottom: 10px;">
-                <span class="fake-btn">◀</span><span class="fake-btn">▲</span><span class="fake-btn">▼</span><span class="fake-btn">▶</span>
+        <div class="overlay-content">
+            <h1>DEFEND THE VEHICLE</h1>
+            <p>Survive 10 levels of escalating chaos in the desert.</p>
+            
+            <div class="tutorial-box">
+                <p><strong>DRIVE:</strong> Arrow Keys or On-Screen D-Pad</p>
+                <div style="display:flex; justify-content:center; gap:5px; margin-bottom: 10px;">
+                    <span class="fake-btn">◀</span><span class="fake-btn">▲</span><span class="fake-btn">▼</span><span class="fake-btn">▶</span>
+                </div>
+                <p><strong>DEFEND:</strong> Click Shield or press Spacebar to toggle cover</p>
+                <div class="fake-btn shield-fake">🛡️ SHIELD</div>
             </div>
-            <p><strong>DEFEND:</strong> Click Shield or press Spacebar to toggle cover</p>
-            <div class="fake-btn shield-fake">🛡️ SHIELD</div>
+            <button class="action-btn" onclick="startGame()">Start Engine</button>
         </div>
-        <button class="action-btn" onclick="startGame()">Start Engine</button>
     </div>
 
     <div id="level-transition" class="overlay">
-        <h1 id="transition-title">Level X</h1>
-        <div class="tutorial-box" style="background: rgba(0,0,0,0.6); padding: 30px;">
-            <h2 id="threat-title" style="color: #ff3333; margin-top: 0;">THREATS</h2>
-            <p id="transition-desc"></p>
+        <div class="overlay-content">
+            <h1 id="transition-title">Level X</h1>
+            <div class="tutorial-box" style="background: rgba(0,0,0,0.6); padding: 30px;">
+                <h2 id="threat-title" style="color: #ff3333; margin-top: 0;">THREATS</h2>
+                <p id="transition-desc"></p>
+            </div>
+            <div id="transition-timer">Starting in 9...</div>
         </div>
-        <div id="transition-timer">Starting in 9...</div>
     </div>
 
     <div id="game-over-screen" class="overlay">
-        <h1 id="game-over-title">VEHICLE DESTROYED</h1>
-        <button class="action-btn" onclick="location.reload()">Restart Simulation</button>
-    </div>
-
-    <div id="portrait-warning" class="overlay">
-        <h1>Rotate Device</h1>
-        <p>Please rotate your screen to Landscape mode.</p>
+        <div class="overlay-content">
+            <h1 id="game-over-title">VEHICLE DESTROYED</h1>
+            <button class="action-btn" onclick="location.reload()">Restart Simulation</button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
