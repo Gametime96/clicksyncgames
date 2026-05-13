@@ -5,7 +5,6 @@
     <title>BATTERY BASH: 8 STAGES OF DRAIN</title>
     <style>
         body { margin: 0; background: #000; color: #0f0; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        /* Added touch-action: none to prevent mobile scrolling while dragging */
         canvas { display: block; cursor: none; touch-action: none; }
         
         #overlay {
@@ -14,7 +13,6 @@
             text-align: center; z-index: 10; padding: 20px;
         }
 
-        /* Faded Countdown Overlay */
         #countdown-overlay {
             position: absolute; inset: 0; display: none; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 5;
@@ -45,11 +43,44 @@
         #pause-btn:hover { background: #0f0; color: #000; }
         
         .stat-val { font-size: 2rem; color: #fff; }
+
+        /* --- NEW: Return to Main Site Button --- */
+        #return-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #0f0;
+            text-decoration: none;
+            border: 2px solid #0f0;
+            padding: 5px 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            transition: all 0.2s;
+        }
+        #return-btn:hover {
+            background: #0f0;
+            color: #000;
+        }
+
+        /* Mobile adjustments for the return button */
+        @media (max-width: 600px) {
+            #return-btn {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+                top: 10px;
+                right: 10px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <div id="timer-bar"></div>
+
+    <!-- The new return link -->
+    <a id="return-btn" href="https://clicksyncgames.com">RETURN TO CLICKSYNCGAMES</a>
 
     <div id="ui">
         LEVEL: <span id="lvl-display" class="stat-val">1</span> / 8<br>
@@ -92,7 +123,7 @@ const pauseBtn = document.getElementById('pause-btn');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let gameState = 'START'; // START, COUNTDOWN, PLAYING, GAMEOVER, INTERMISSION, WIN
+let gameState = 'START'; 
 let isPaused = false;
 let level = 1;
 let health = 100;
@@ -313,7 +344,6 @@ window.addEventListener('mousemove', e => {
 
 // Input Listeners - MOBILE TOUCH
 window.addEventListener('touchmove', e => {
-    // Prevent the default browser scrolling behavior while dragging on the canvas
     if(e.target === canvas) {
         e.preventDefault();
     }
