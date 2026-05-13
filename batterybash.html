@@ -5,7 +5,8 @@
     <title>BATTERY BASH: 8 STAGES OF DRAIN</title>
     <style>
         body { margin: 0; background: #000; color: #0f0; font-family: 'Courier New', Courier, monospace; overflow: hidden; }
-        canvas { display: block; cursor: none; }
+        /* Added touch-action: none to prevent mobile scrolling while dragging */
+        canvas { display: block; cursor: none; touch-action: none; }
         
         #overlay {
             position: absolute; inset: 0; background: rgba(0,0,0,0.9);
@@ -146,14 +147,13 @@ function togglePause() {
         pauseBtn.innerText = isPaused ? "RESUME (P)" : "PAUSE (P)";
         
         if (isPaused) {
-            // Draw a subtle dark screen and PAUSED text immediately
             ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#fff";
             ctx.font = "bold 60px Courier New";
             ctx.textAlign = "center";
             ctx.fillText("PAUSED", canvas.width/2, canvas.height/2);
-            ctx.textAlign = "left"; // reset
+            ctx.textAlign = "left"; 
         }
     }
 }
@@ -190,22 +190,17 @@ function createExplosion(x, y, color) {
 function gameLoop() {
     requestAnimationFrame(gameLoop);
 
-    // Stop updating if paused or not in an active gameplay state
     if (isPaused || (gameState !== 'PLAYING' && gameState !== 'COUNTDOWN')) return;
 
-    // Solid Black Background for maximum contrast
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Render Player (Follows mouse even during countdown)
     ctx.fillStyle = '#0f0';
     ctx.shadowBlur = 0;
     ctx.fillRect(player.x - 10, player.y - 10, 20, 20);
 
-    // Freeze entities during countdown
     if (gameState === 'COUNTDOWN') return;
 
-    // Process Lives (White Boxes)
     for (let i = lives.length - 1; i >= 0; i--) {
         let life = lives[i];
         let dx = player.x - life.x;
@@ -228,7 +223,6 @@ function gameLoop() {
         }
     }
 
-    // Process Enemies (Red Boxes)
     for (let i = enemies.length - 1; i >= 0; i--) {
         let enemy = enemies[i];
         let dx = player.x - enemy.x;
@@ -252,7 +246,6 @@ function gameLoop() {
         }
     }
 
-    // Process Particles (Explosions)
     for (let i = particles.length - 1; i >= 0; i--) {
         let p = particles[i];
         p.x += p.vx;
@@ -267,7 +260,6 @@ function gameLoop() {
         if (p.life <= 0) particles.splice(i, 1);
     }
 
-    // Dynamic Spawning based on Level
     if (Math.random() < 0.02 + (level * 0.015)) spawnBox(enemies, 2 + (level * 0.8), '#f00');
     if (Math.random() < 0.008) spawnBox(lives, 1.5 + (level * 0.5), '#fff'); 
 }
@@ -313,12 +305,28 @@ setInterval(() => {
     }
 }, 1000);
 
-// Input Listeners
+// Input Listeners - MOUSE
 window.addEventListener('mousemove', e => {
-    // Keep tracking mouse even while paused/countdown so it feels responsive
     player.x = e.clientX;
     player.y = e.clientY;
 });
+
+// Input Listeners - MOBILE TOUCH
+window.addEventListener('touchmove', e => {
+    // Prevent the default browser scrolling behavior while dragging on the canvas
+    if(e.target === canvas) {
+        e.preventDefault();
+    }
+    player.x = e.touches[0].clientX;
+    player.y = e.touches[0].clientY;
+}, { passive: false });
+
+window.addEventListener('touchstart', e => {
+    if(e.target === canvas) {
+        player.x = e.touches[0].clientX;
+        player.y = e.touches[0].clientY;
+    }
+}, { passive: false });
 
 window.addEventListener('keydown', e => {
     if (e.key.toLowerCase() === 'p') togglePause();
@@ -326,7 +334,6 @@ window.addEventListener('keydown', e => {
 
 pauseBtn.addEventListener('click', () => {
     togglePause();
-    // Re-focus the window so keyboard 'p' works after clicking the button
     window.focus(); 
 });
 
@@ -334,7 +341,7 @@ startBtn.addEventListener('click', () => {
     initLevel();
 });
 
-// Start the drawing loop immediately (it handles states internally)
+// Start the drawing loop immediately
 requestAnimationFrame(gameLoop);
 
 </script>
