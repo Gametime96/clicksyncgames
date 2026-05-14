@@ -9,20 +9,22 @@ document.addEventListener("DOMContentLoaded", () => {
     let isPaused = false;
     let gameState = 'MENU'; 
 
-    // Re-tuned Pro Physics Constants
-    const LANE_WIDTH = 120;
+    // Improved Pro Physics Constants
+    const LANE_WIDTH = 100;
     const LANE_LENGTH = 1200;
     const PIN_RADIUS = 5;
-    const PIN_HEIGHT = 20;
     const BALL_RADIUS = 10;
-    const GRAVITY = 0.5;
+    const GRAVITY = 0.8; // Increased gravity so pins don't fly forever
+    const RESTITUTION = 0.5; // Bounciness (lower = less extreme explosions)
 
     let ball = null;
-    let pins = [];
+    let pins = []; // Main lane pins
+    let backgroundPins = []; // Pins for the adjacent lanes
     
     // Smooth 3D Camera
-    let camera = { x: 0, y: 40, z: -150 };
+    let camera = { x: 0, y: 50, z: -150 };
     let targetCamZ = -150;
+    let resolvingTimer = 0; // Timer to manage the end of the roll
 
     // HUD Meters
     let meterValue = 0; 
@@ -75,31 +77,40 @@ document.addEventListener("DOMContentLoaded", () => {
             this.color = color;
             this.isPin = isPin;
             this.isActive = true;
+            this.wobble = 0; // for drawing pins
+            this.knocked = false; // logic state
         }
 
         update() {
             if (!this.isActive) return;
             
-            // Movement
             this.x += this.vx;
             this.y += this.vy;
             this.z += this.vz;
 
-            // Friction (Air & Lane)
-            this.vx *= 0.99;
-            this.vz *= 0.996; // Less friction on Z for smooth, long glide
+            // Friction
+            this.vx *= 0.98;
+            this.vz *= 0.995; 
 
-            // Gravity & Bouncing for realistic pin crashes
+            // Gravity & Bouncing 
             if (this.y > this.radius) {
                 this.vy -= GRAVITY;
+                if(this.isPin) this.wobble += 0.2;
             } else {
                 this.y = this.radius;
-                if (this.vy < -1) {
-                    this.vy = -this.vy * 0.4; // Bounce
-                    this.vx *= 0.8; // Friction on bounce
-                    this.vz *= 0.8;
+                if (this.vy < -2) {
+                    this.vy = -this.vy * RESTITUTION; // Controlled bounce
+                    this.vx *= 0.7; 
+                    this.vz *= 0.7;
                 } else {
                     this.vy = 0;
+                }
+            }
+            
+            // Mark pin as knocked over if it has fallen or moved significantly
+            if (this.isPin && !this.knocked) {
+                if (Math.abs(this.vx) > 1 || Math.abs(this.vz) > 1 || this.y > this.radius * 2) {
+                    this.knocked = true;
                 }
             }
 
@@ -108,28 +119,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Curve (Spin)
             if (!this.isPin && gameState === 'ROLLING' && this.vz > 1) {
-                this.vx += lockedSpin * 0.04;
+                this.vx += lockedSpin * 0.06;
             }
 
             // Gutters
             if (this.x < -LANE_WIDTH/2 || this.x > LANE_WIDTH/2) {
-                if (this.isPin) this.isActive = false; 
+                if (this.isPin) {
+                     // Pin falls into gutter and stops
+                     this.y = -10;
+                     this.vx = 0;
+                     this.vz = 0;
+                     this.knocked = true;
+                }
                 else {
                     this.vx = 0; 
-                    this.x = this.x < 0 ? -LANE_WIDTH/2 - 2 : LANE_WIDTH/2 + 2;
+                    this.x = this.x < 0 ? -LANE_WIDTH/2 + 2 : LANE_WIDTH/2 - 2;
                 }
             }
             
-            // Back Pit
-            if (this.z > LANE_LENGTH + 50) this.isActive = false;
+            // Back Pit (Cleanup)
+            if (this.z > LANE_LENGTH + 80) {
+                this.isActive = false;
+                if (this.isPin) this.knocked = true;
+            }
         }
     }
 
-    // --- Upgraded 3D Projection Engine ---
+    // --- 3D Projection Engine ---
     function project(x, y, z) {
         let relZ = z - camera.z;
-        if (relZ <= 1) relZ = 1; // Prevent camera clipping inversion
-        let fov = 800; // Wider FOV for cinematic feel
+        if (relZ <= 1) relZ = 1; 
+        let fov = 700; 
         let scale = fov / relZ;
         let screenX = (canvas.width / 2) + (x - camera.x) * scale;
         let screenY = (canvas.height / 2) + (camera.y - y) * scale;
@@ -140,21 +160,32 @@ document.addEventListener("DOMContentLoaded", () => {
         if (fullReset) {
             pins = [];
             const pinZStart = LANE_LENGTH - 100;
-            const spacing = 14;
+            const spacing = 12;
             let id = 0;
             for (let row = 0; row < 4; row++) {
                 for (let col = 0; col <= row; col++) {
                     let x = (col * spacing) - (row * spacing / 2);
                     let z = pinZStart + (row * spacing * 0.866);
-                    pins.push(new Entity(x, PIN_RADIUS, z, PIN_RADIUS, 1.5, '#ffffff', true));
+                    pins.push(new Entity(x, PIN_RADIUS, z, PIN_RADIUS, 1.2, '#ffffff', true));
                 }
             }
-        } else {
-            pins.forEach(p => {
-                if (!p.isActive || p.z > LANE_LENGTH || Math.abs(p.x) > LANE_WIDTH/2) {
-                    p.isActive = false;
+            
+            // Setup Background Lanes (Decorative)
+            backgroundPins = [];
+            let laneOffsets = [-LANE_WIDTH*1.5 - 20, LANE_WIDTH*1.5 + 20, -LANE_WIDTH*3 - 40, LANE_WIDTH*3 + 40];
+            laneOffsets.forEach(offsetX => {
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col <= row; col++) {
+                        let x = offsetX + (col * spacing) - (row * spacing / 2);
+                        let z = pinZStart + (row * spacing * 0.866);
+                        backgroundPins.push(new Entity(x, PIN_RADIUS, z, PIN_RADIUS, 1.2, '#ffffff', true));
+                    }
                 }
             });
+
+        } else {
+            // Remove knocked pins
+            pins = pins.filter(p => p.isActive && !p.knocked);
         }
     }
 
@@ -175,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function showColorPicker() {
         if (selectingColorFor >= players.length || players[selectingColorFor].isCPU) {
             if(selectingColorFor < players.length && players[selectingColorFor].isCPU) {
-                players[selectingColorFor].color = '#111111'; // CPU is black
+                players[selectingColorFor].color = '#111111'; 
             }
             colorOverlay.classList.add('hidden');
             startGame();
@@ -201,12 +232,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function startTurn() {
-        camera.x = 0; camera.y = 40; camera.z = -150; 
+        camera.x = 0; camera.y = 50; camera.z = -150; 
         targetCamZ = -150;
         lockedSpin = 0;
+        resolvingTimer = 0;
         
         let pColor = players[currentPlayerIndex].color;
-        ball = new Entity(0, BALL_RADIUS, 0, BALL_RADIUS, 18, pColor, false);
+        ball = new Entity(0, BALL_RADIUS, 0, BALL_RADIUS, 20, pColor, false); // Heavier ball
         
         updateHUD();
 
@@ -243,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
             meterFill.style.width = '0%'; 
         } 
         else if (gameState === 'ANGLE') {
-            lockedAngle = (meterValue - 0.5) * 0.4; // Narrower, realistic angle
+            lockedAngle = (meterValue - 0.5) * 0.3; // Very subtle angle for realism
             gameState = 'POWER';
             meterValue = 0; meterDirection = 1; meterSpeed = 0.04;
             meterInstruction.textContent = "3. Click to Lock POWER";
@@ -262,10 +294,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function executeCPUTurn() {
-        ball.x = (Math.random() - 0.5) * 20;
+        ball.x = (Math.random() - 0.5) * 15;
         let targetX = 0;
         if (currentRoll > 0 && pins.length > 0) {
-            let alive = pins.filter(p=>p.isActive);
+            let alive = pins.filter(p=>!p.knocked);
             if(alive.length > 0) targetX = alive.reduce((s, p) => s + p.x, 0) / alive.length;
         }
         let dx = targetX - ball.x;
@@ -279,8 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gameState = 'ROLLING';
         meterContainer.classList.add('hidden');
         
-        // Power scaling
-        let speed = (lockedPower / 100) * 15 + 10; 
+        let speed = (lockedPower / 100) * 20 + 15; 
         ball.vz = Math.cos(lockedAngle) * speed;
         ball.vx = Math.sin(lockedAngle) * speed;
     }
@@ -308,15 +339,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Dynamic Camera Follow
             targetCamZ = ball.z - 150;
-            if (targetCamZ > LANE_LENGTH - 250) targetCamZ = LANE_LENGTH - 250; // Stop tracking near pins
-            camera.z += (targetCamZ - camera.z) * 0.1; // Smooth ease
-            camera.x += ((ball.x * 0.3) - camera.x) * 0.1; // Slight pan
+            // Stop camera slightly before pins for a good view
+            if (targetCamZ > LANE_LENGTH - 200) targetCamZ = LANE_LENGTH - 200; 
+            camera.z += (targetCamZ - camera.z) * 0.1; 
+            camera.x += ((ball.x * 0.3) - camera.x) * 0.1; 
 
-            let anythingMoving = (ball.vz > 0.1 || Math.abs(ball.vx) > 0.1) || pins.some(p => Math.abs(p.vz) > 0.5 || Math.abs(p.vx) > 0.5 || p.vy > 0.5);
-            
-            if (!anythingMoving && ball.z > 100) {
-                gameState = 'RESOLVING';
-                setTimeout(resolveRoll, 1500); // Give time to watch pins settle
+            // Progress to resolving exactly 2.5 seconds after ball passes the pin line
+            if (ball.z > LANE_LENGTH - 50) {
+                resolvingTimer += 16; // approx ms per frame
+                if (resolvingTimer > 2500) {
+                    gameState = 'RESOLVING';
+                    resolveRoll();
+                }
             }
         }
     }
@@ -333,10 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 let minDist = a.radius + b.radius;
                 
                 if (dist < minDist) {
-                    // Explode upward on impact for realism
-                    if (!a.isPin && b.isPin && b.vy === 0) b.vy = Math.random() * 4 + 2; 
-                    if (a.isPin && !b.isPin && a.vy === 0) a.vy = Math.random() * 4 + 2;
-
+                    // Realistic collision impulse
                     let nx = dx / dist; let ny = dy / dist; let nz = dz / dist;
                     let overlap = minDist - dist;
                     a.x -= nx * overlap * 0.5; a.y -= ny * overlap * 0.5; a.z -= nz * overlap * 0.5;
@@ -345,117 +376,208 @@ document.addEventListener("DOMContentLoaded", () => {
                     let kx = a.vx - b.vx; let ky = a.vy - b.vy; let kz = a.vz - b.vz;
                     let p = 2.0 * (nx * kx + ny * ky + nz * kz) / (a.mass + b.mass);
                     
-                    a.vx -= p * b.mass * nx; a.vy -= p * b.mass * ny; a.vz -= p * b.mass * nz;
-                    b.vx += p * a.mass * nx; b.vy += p * a.mass * ny; b.vz += p * a.mass * nz;
+                    // Controlled explosion (dampened)
+                    let dampener = 0.8;
+                    a.vx -= p * b.mass * nx * dampener; a.vy -= p * b.mass * ny * dampener; a.vz -= p * b.mass * nz * dampener;
+                    b.vx += p * a.mass * nx * dampener; b.vy += p * a.mass * ny * dampener; b.vz += p * a.mass * nz * dampener;
                 }
             }
         }
     }
 
     // --- Premium Rendering ---
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw Lane Polygon dynamically based on camera
-        let startZ = Math.max(0, camera.z - 50); 
-        let endZ = LANE_LENGTH + 100;
+    // Helper to draw a realistic pin
+    function drawPin(x, y, scale, knocked, wobble) {
+        ctx.save();
+        ctx.translate(x, y);
         
-        let tl = project(-LANE_WIDTH/2, 0, endZ);
-        let tr = project(LANE_WIDTH/2, 0, endZ);
-        let bl = project(-LANE_WIDTH/2, 0, startZ);
-        let br = project(LANE_WIDTH/2, 0, startZ);
+        // If knocked, rotate it over
+        if(knocked) {
+             ctx.rotate(Math.PI/2 + wobble);
+             y = y + 10*scale; // lower it visually
+        } else {
+             ctx.rotate(wobble*0.1);
+        }
 
-        if (tl && tr && bl && br) {
-            // Wood Lane with Gradient Depth
-            let laneGrad = ctx.createLinearGradient(canvas.width/2, bl.y, canvas.width/2, tl.y);
-            laneGrad.addColorStop(0, '#f5deb3'); // Light wood close
-            laneGrad.addColorStop(1, '#8b5a2b'); // Dark wood far
-            ctx.fillStyle = laneGrad; 
+        let w = 8 * scale;
+        let h = 24 * scale;
+
+        // Draw drop shadow if standing
+        if(!knocked) {
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
             ctx.beginPath();
-            ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
+            ctx.ellipse(0, h/2, w*0.8, w*0.3, 0, 0, Math.PI*2);
             ctx.fill();
-            
-            // Lane Boards (Lines)
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            for(let i= -LANE_WIDTH/2 + 10; i < LANE_WIDTH/2; i+=10) {
-                let p1 = project(i, 0, startZ); let p2 = project(i, 0, endZ);
-                if(p1 && p2) { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
-            }
+        }
 
-            // Neon Gutter Edges
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 3;
-            ctx.shadowColor = '#38bdf8';
-            ctx.shadowBlur = 10;
-            ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
-            ctx.shadowBlur = 0;
+        // Draw Pin Body (Bottle shape)
+        ctx.fillStyle = '#f8f9fa';
+        ctx.beginPath();
+        ctx.moveTo(-w*0.3, -h/2); // Top left
+        ctx.quadraticCurveTo(-w*0.8, -h*0.1, -w*0.6, h*0.2); // Neck to belly
+        ctx.quadraticCurveTo(-w*1.2, h/2, -w*0.5, h/2); // Belly to base
+        ctx.lineTo(w*0.5, h/2); // Base
+        ctx.quadraticCurveTo(w*1.2, h/2, w*0.6, h*0.2); // Base to belly right
+        ctx.quadraticCurveTo(w*0.8, -h*0.1, w*0.3, -h/2); // Belly to neck right
+        ctx.closePath();
+        ctx.fill();
 
-            // Aiming Guide
-            if (gameState === 'ANGLE' && !players[currentPlayerIndex].isCPU) {
-                let tempAngle = (meterValue - 0.5) * 0.4;
-                let guideZ = 300;
-                let guideX = ball.x + Math.sin(tempAngle) * guideZ;
-                let projGuide = project(guideX, 0, guideZ);
-                let projBall = project(ball.x, ball.radius, ball.z);
+        // 3D Shading on Pin
+        let grad = ctx.createLinearGradient(-w, 0, w, 0);
+        grad.addColorStop(0, 'rgba(0,0,0,0.3)');
+        grad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Red Neck Stripes
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 1.5 * scale;
+        ctx.beginPath(); ctx.moveTo(-w*0.45, -h*0.2); ctx.lineTo(w*0.45, -h*0.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-w*0.5, -h*0.05); ctx.lineTo(w*0.5, -h*0.05); ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function draw() {
+        // Dark bowling alley background
+        let bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/4, 100, canvas.width/2, canvas.height/2, canvas.width);
+        bgGrad.addColorStop(0, '#1e293b');
+        bgGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Define Lanes 
+        const laneOffsets = [-LANE_WIDTH*3 - 40, -LANE_WIDTH*1.5 - 20, 0, LANE_WIDTH*1.5 + 20, LANE_WIDTH*3 + 40];
+        
+        let startZ = Math.max(0, camera.z - 100); 
+        let endZ = LANE_LENGTH + 100;
+
+        // Draw all lanes
+        laneOffsets.forEach((offsetX, idx) => {
+            let tl = project(offsetX - LANE_WIDTH/2, 0, endZ);
+            let tr = project(offsetX + LANE_WIDTH/2, 0, endZ);
+            let bl = project(offsetX - LANE_WIDTH/2, 0, startZ);
+            let br = project(offsetX + LANE_WIDTH/2, 0, startZ);
+
+            if (tl && tr && bl && br) {
+                // Fixed Wood Lane Color
+                let laneGrad = ctx.createLinearGradient(bl.x, bl.y, tl.x, tl.y);
+                laneGrad.addColorStop(0, '#cda270'); // Consistent light wood
+                laneGrad.addColorStop(1, '#6b4c2a'); // Fades to dark in distance
                 
-                if (projGuide && projBall) {
-                    ctx.beginPath();
-                    ctx.moveTo(projBall.x, projBall.y);
-                    ctx.lineTo(projGuide.x, projGuide.y);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([10, 10]);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
+                // Darken side lanes slightly
+                if (offsetX !== 0) {
+                     laneGrad.addColorStop(0, '#a5825a'); 
+                     laneGrad.addColorStop(1, '#4d361d');
                 }
+
+                ctx.fillStyle = laneGrad; 
+                ctx.beginPath();
+                ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
+                ctx.fill();
+                
+                // Lane Boards (Lines)
+                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                for(let i= -LANE_WIDTH/2 + 10; i < LANE_WIDTH/2; i+=10) {
+                    let p1 = project(offsetX + i, 0, startZ); let p2 = project(offsetX + i, 0, endZ);
+                    if(p1 && p2) { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+                }
+
+                // Gutters (Dark grey)
+                ctx.fillStyle = '#111827';
+                let gtl = project(offsetX - LANE_WIDTH/2 - 10, 0, endZ); let gbl = project(offsetX - LANE_WIDTH/2 - 10, 0, startZ);
+                if(gtl && gbl) {
+                    ctx.beginPath(); ctx.moveTo(gbl.x, gbl.y); ctx.lineTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.lineTo(gtl.x, gtl.y); ctx.fill();
+                }
+                
+                let gtr = project(offsetX + LANE_WIDTH/2 + 10, 0, endZ); let gbr = project(offsetX + LANE_WIDTH/2 + 10, 0, startZ);
+                if(gtr && gbr) {
+                    ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(gbr.x, gbr.y); ctx.lineTo(gtr.x, gtr.y); ctx.lineTo(tr.x, tr.y); ctx.fill();
+                }
+
+                // Neon Edge Lights (Main lane only)
+                if (offsetX === 0) {
+                    ctx.strokeStyle = '#38bdf8';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = '#38bdf8';
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        });
+
+        // Draw Aiming Guide (Main lane only)
+        if (gameState === 'ANGLE' && !players[currentPlayerIndex].isCPU) {
+            let tempAngle = (meterValue - 0.5) * 0.4;
+            let guideZ = 400;
+            let guideX = ball.x + Math.sin(tempAngle) * guideZ;
+            let projGuide = project(guideX, 0, guideZ);
+            let projBall = project(ball.x, ball.radius, ball.z);
+            
+            if (projGuide && projBall) {
+                ctx.beginPath();
+                ctx.moveTo(projBall.x, projBall.y);
+                ctx.lineTo(projGuide.x, projGuide.y);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([15, 15]);
+                ctx.stroke();
+                ctx.setLineDash([]);
             }
         }
 
-        // Draw Objects
-        let drawables = [...pins, ball].filter(obj => obj && obj.isActive);
+        // Draw Objects (Sorted by Z for proper overlap)
+        let drawables = [...backgroundPins, ...pins, ball].filter(obj => obj && obj.isActive);
         drawables.sort((a, b) => b.z - a.z);
 
         drawables.forEach(obj => {
             let p = project(obj.x, obj.y, obj.z);
             if (p && p.scale > 0) {
-                let screenRadius = obj.radius * p.scale;
-                
-                // Drop Shadow
-                if (obj.y > obj.radius) {
-                    let shadowP = project(obj.x, 0, obj.z);
-                    if (shadowP) {
-                        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                        ctx.beginPath();
-                        ctx.ellipse(shadowP.x, shadowP.y, screenRadius, screenRadius*0.5, 0, 0, Math.PI*2);
-                        ctx.fill();
-                    }
-                }
-
-                // Object Body
-                let grad = ctx.createRadialGradient(p.x - screenRadius*0.3, p.y - screenRadius*0.3, screenRadius*0.1, p.x, p.y, screenRadius);
                 if (obj.isPin) {
-                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(1, '#cccccc');
+                    drawPin(p.x, p.y, p.scale, obj.knocked, obj.wobble);
                 } else {
-                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.2, obj.color); grad.addColorStop(1, '#000000');
-                }
-                
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, screenRadius, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
+                    let screenRadius = obj.radius * p.scale;
+                    
+                    // Ball Drop Shadow
+                    if (obj.y > obj.radius) {
+                        let shadowP = project(obj.x, 0, obj.z);
+                        if (shadowP) {
+                            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                            ctx.beginPath(); ctx.ellipse(shadowP.x, shadowP.y, screenRadius, screenRadius*0.4, 0, 0, Math.PI*2); ctx.fill();
+                        }
+                    }
 
-                // Pin Details
-                if (obj.isPin) {
-                    ctx.strokeStyle = '#e74c3c'; 
-                    ctx.lineWidth = screenRadius * 0.3;
-                    ctx.beginPath(); 
-                    ctx.moveTo(p.x - screenRadius*0.8, p.y - screenRadius*0.2); 
-                    ctx.lineTo(p.x + screenRadius*0.8, p.y - screenRadius*0.2); 
-                    ctx.stroke();
+                    // Ball Body
+                    let grad = ctx.createRadialGradient(p.x - screenRadius*0.3, p.y - screenRadius*0.3, screenRadius*0.1, p.x, p.y, screenRadius);
+                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, obj.color); grad.addColorStop(1, '#000000');
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, screenRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
                 }
             }
         });
+        
+        // Draw the pinsetter masking unit (the wall above the pins)
+        let backWallY = project(0, 50, LANE_LENGTH + 20);
+        let backWallFloor = project(0, 0, LANE_LENGTH + 50);
+        if(backWallY && backWallFloor) {
+            ctx.fillStyle = '#0f172a'; // Dark wall
+            ctx.fillRect(0, 0, canvas.width, backWallY.y);
+            // Red stripe line
+            ctx.fillStyle = '#e11d48';
+            ctx.fillRect(0, backWallY.y-10, canvas.width, 10);
+            
+            // Draw CSG Logo on back wall
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.font = 'bold 80px Nunito';
+            ctx.textAlign = 'center';
+            ctx.fillText("ClickSyncGames", canvas.width/2, backWallY.y - 50);
+        }
     }
 
     function gameLoop() {
@@ -468,7 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let player = players[currentPlayerIndex];
         let frame = player.frames[currentFrame];
         
-        let alivePins = pins.filter(p => p.isActive && p.y <= PIN_RADIUS + 2); // Must be active and not flying
+        let alivePins = pins.filter(p => !p.knocked); 
         let knockedDownThisRoll = pinsStanding - alivePins.length;
         pinsStanding = alivePins.length;
 
@@ -578,7 +700,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('close-score-btn').addEventListener('click', () => { scoreboardModal.classList.add('hidden'); isPaused = false; });
     document.getElementById('pause-btn').addEventListener('click', () => { if(gameState==='MENU' || gameState==='COLORS') return; isPaused = !isPaused; pauseOverlay.classList.toggle('hidden', !isPaused); });
     document.getElementById('resume-btn').addEventListener('click', () => { isPaused = false; pauseOverlay.classList.add('hidden'); });
-    document.getElementById('return-btn').addEventListener('click', () => window.location.href = 'https://clicksyncgames.com');
+    document.getElementById('return-btn').addEventListener('click', () => window.location.href = '[https://clicksyncgames.com](https://clicksyncgames.com)');
     document.getElementById('restart-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden'); });
 
     gameLoop();
