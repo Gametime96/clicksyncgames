@@ -8,6 +8,7 @@
 </head>
 <body>
     <div id="game-wrapper">
+        <!-- Landscape Orientation Warning (Only visible on mobile portrait) -->
         <div id="orientation-warning">For best experience have the screen in landscape orientation</div>
 
         <header id="csg-header">
@@ -16,6 +17,7 @@
                 <span id="game-title">Bubble Shooter 2026</span>
             </div>
             <div id="csg-navigation">
+                <!-- Added (P) hint for keyboard users -->
                 <button id="pause-btn" class="btn secondary">Pause (P)</button>
                 <button id="return-btn" class="btn primary">Return to ClickSyncGames</button>
             </div>
@@ -25,6 +27,7 @@
             <div id="canvas-container">
                 <canvas id="gameCanvas"></canvas>
                 
+                <!-- Heads Up Display (HUD) -->
                 <div id="hud">
                     <div class="hud-top">
                         <div class="hud-score-info">
@@ -38,6 +41,7 @@
                     </div>
                 </div>
 
+                <!-- Main Menu Overlay -->
                 <div id="menu-overlay" class="overlay">
                     <div class="menu-box">
                         <h2 class="neon-text">BUBBLE SHOOTER 2026</h2>
@@ -56,6 +60,7 @@
                     </div>
                 </div>
 
+                <!-- Pause Overlay -->
                 <div id="pause-overlay" class="overlay hidden">
                     <div class="menu-box">
                         <h2>GAME PAUSED</h2>
@@ -64,6 +69,7 @@
                     </div>
                 </div>
 
+                <!-- Game Over Overlay -->
                 <div id="game-over-overlay" class="overlay hidden">
                     <div class="menu-box">
                         <h2 id="end-title">GAME OVER</h2>
