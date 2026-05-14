@@ -1,32 +1,31 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // --- System Setup ---
+window.addEventListener("load", function() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
+    // Internal locked resolution
     canvas.width = 1200;
     canvas.height = 800;
 
     let isPaused = false;
     let gameState = 'MENU'; 
 
-    // --- Physics Constants ---
+    // Physics Constants
     const LANE_WIDTH = 100;
     const LANE_LENGTH = 1200;
     const PIN_RADIUS = 5;
     const BALL_RADIUS = 10;
     const GRAVITY = 0.8; 
-    const RESTITUTION = 0.5;
+    const RESTITUTION = 0.4; // Less bounce
 
     let ball = null;
     let pins = []; 
     let backgroundPins = []; 
     
-    // --- Camera & Flow Control ---
     let camera = { x: 0, y: 50, z: -150 };
     let targetCamZ = -150;
     let resolvingTimer = 0; 
 
-    // --- Interaction Variables ---
+    // Meters
     let meterValue = 0; 
     let meterDirection = 1;
     let meterSpeed = 0.02;
@@ -36,12 +35,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let lockedPower = 0;
     let lockedSpin = 0;
     
+    // Steering
     let steerQueue = [];
     let isSteeringLeft = false;
     let isSteeringRight = false;
     let selectedPinStyle = 1;
 
-    // --- Game State Variables ---
+    // Game Logic
     let players = [];
     let currentPlayerIndex = 0;
     let currentFrame = 0; 
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let pinsStanding = 10;
     let selectingColorFor = 0;
 
-    // --- DOM Elements ---
+    // DOM Elements
     const menuOverlay = document.getElementById('menu-overlay');
     const colorOverlay = document.getElementById('color-overlay');
     const pauseOverlay = document.getElementById('pause-overlay');
@@ -63,15 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const meterCursor = document.getElementById('meter-cursor');
     const meterInstruction = document.getElementById('meter-instruction');
     const steerControls = document.getElementById('steer-controls');
-    
-    // Read pin style setting immediately
-    document.querySelectorAll('input[name="pinstyle"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            selectedPinStyle = parseInt(e.target.value);
-        });
-    });
 
-    // --- Classes ---
     class Player {
         constructor(name, isCPU) {
             this.name = name;
@@ -134,10 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (this.x < -LANE_WIDTH/2 || this.x > LANE_WIDTH/2) {
                 if (this.isPin) {
-                     this.y = -10;
-                     this.vx = 0;
-                     this.vz = 0;
-                     this.knocked = true;
+                     this.y = -10; this.vx = 0; this.vz = 0; this.knocked = true;
                 } else {
                     this.vx = 0; 
                     this.x = this.x < 0 ? -LANE_WIDTH/2 + 2 : LANE_WIDTH/2 - 2;
@@ -192,8 +181,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Flow Management ---
+    // --- Core Flow ---
     function beginColorSelection(numPlayers) {
+        let radios = document.getElementsByName('pinstyle');
+        for (let i = 0; i < radios.length; i++) {
+            if (radios[i].checked) { selectedPinStyle = parseInt(radios[i].value); break; }
+        }
+
         players = [];
         if (numPlayers === 1) {
             players.push(new Player("Player 1", false));
@@ -248,11 +242,122 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             meterContainer.classList.remove('hidden');
             meterTrack.classList.add('hidden');
-            meterInstruction.textContent = "1. Move Mouse to Position. Click to Lock.";
+            meterInstruction.textContent = "1. Move to Position. Click to Lock.";
             gameState = 'POSITION';
         }
     }
 
+    // --- Inputs (Fixed for Mobile & Desktop) ---
+    const swatches = document.querySelectorAll('.color-swatch');
+    swatches.forEach(swatch => {
+        swatch.addEventListener('click', function() {
+            players[selectingColorFor].color = this.dataset.color;
+            selectingColorFor++;
+            showColorPicker();
+        });
+    });
+
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    modeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            let num = parseInt(this.dataset.players);
+            if(num > 0) beginColorSelection(num);
+        });
+    });
+
+    document.getElementById('return-btn').addEventListener('click', () => {
+        window.location.href = 'https://clicksyncgames.com';
+    });
+
+    document.getElementById('show-score-btn').addEventListener('click', () => { isPaused = true; renderScoreboard('scores-container'); scoreboardModal.classList.remove('hidden'); });
+    document.getElementById('close-score-btn').addEventListener('click', () => { scoreboardModal.classList.add('hidden'); isPaused = false; });
+    document.getElementById('pause-btn').addEventListener('click', () => { if(gameState==='MENU' || gameState==='COLORS') return; isPaused = !isPaused; pauseOverlay.classList.toggle('hidden', !isPaused); });
+    document.getElementById('resume-btn').addEventListener('click', () => { isPaused = false; pauseOverlay.classList.add('hidden'); });
+    document.getElementById('restart-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden'); });
+
+    // Canvas Aiming
+    canvas.addEventListener('mousemove', (e) => {
+        if (gameState === 'POSITION' && !isPaused) {
+            const rect = canvas.getBoundingClientRect();
+            let rawX = (e.clientX - rect.left) / rect.width; 
+            ball.x = (rawX - 0.5) * (LANE_WIDTH - BALL_RADIUS*2);
+        }
+    });
+
+    // Touch support for positioning
+    canvas.addEventListener('touchmove', (e) => {
+        if (gameState === 'POSITION' && !isPaused) {
+            const rect = canvas.getBoundingClientRect();
+            let rawX = (e.touches[0].clientX - rect.left) / rect.width; 
+            ball.x = (rawX - 0.5) * (LANE_WIDTH - BALL_RADIUS*2);
+        }
+    });
+
+    // Universal Click/Tap on Canvas for the Meter
+    function handleCanvasClick(e) {
+        if (isPaused || players.length === 0 || players[currentPlayerIndex].isCPU) return;
+        
+        if (gameState === 'POSITION') {
+            lockedPosition = ball.x;
+            gameState = 'ANGLE';
+            meterValue = 0.5; meterDirection = 1; meterSpeed = 0.03;
+            meterInstruction.textContent = "2. Click to Lock ANGLE";
+            meterTrack.classList.remove('hidden');
+            meterFill.style.width = '0%'; 
+        } 
+        else if (gameState === 'ANGLE') {
+            lockedAngle = (meterValue - 0.5) * 0.3; 
+            gameState = 'POWER';
+            meterValue = 0; meterDirection = 1; meterSpeed = 0.04;
+            meterInstruction.textContent = "3. Click to Lock POWER";
+        }
+        else if (gameState === 'POWER') {
+            lockedPower = meterValue * 80 + 20;
+            gameState = 'SPIN';
+            meterValue = 0.5; meterDirection = 1; meterSpeed = 0.03;
+            meterInstruction.textContent = "4. Click to Lock SPIN (Hook)";
+            meterFill.style.width = '0%'; 
+        }
+        else if (gameState === 'SPIN') {
+            lockedSpin = (meterValue - 0.5) * 2;
+            launchBall();
+        }
+    }
+
+    canvas.addEventListener('mousedown', handleCanvasClick);
+    meterContainer.addEventListener('mousedown', handleCanvasClick);
+    
+    // Steering controls
+    const btnLeft = document.getElementById('steer-left');
+    const btnRight = document.getElementById('steer-right');
+
+    const steerLeftOn = (e) => { if(e) e.preventDefault(); isSteeringLeft = true; };
+    const steerLeftOff = (e) => { if(e) e.preventDefault(); isSteeringLeft = false; };
+    const steerRightOn = (e) => { if(e) e.preventDefault(); isSteeringRight = true; };
+    const steerRightOff = (e) => { if(e) e.preventDefault(); isSteeringRight = false; };
+
+    btnLeft.addEventListener('mousedown', steerLeftOn);
+    btnLeft.addEventListener('touchstart', steerLeftOn);
+    btnLeft.addEventListener('mouseup', steerLeftOff);
+    btnLeft.addEventListener('mouseleave', steerLeftOff);
+    btnLeft.addEventListener('touchend', steerLeftOff);
+
+    btnRight.addEventListener('mousedown', steerRightOn);
+    btnRight.addEventListener('touchstart', steerRightOn);
+    btnRight.addEventListener('mouseup', steerRightOff);
+    btnRight.addEventListener('mouseleave', steerRightOff);
+    btnRight.addEventListener('touchend', steerRightOff);
+
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'ArrowLeft') isSteeringLeft = true;
+        if(e.key === 'ArrowRight') isSteeringRight = true;
+    });
+    document.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowLeft') isSteeringLeft = false;
+        if(e.key === 'ArrowRight') isSteeringRight = false;
+    });
+
+    // --- Action Methods ---
     function executeCPUTurn() {
         ball.x = (Math.random() - 0.5) * 15;
         let targetX = 0;
@@ -274,9 +379,228 @@ document.addEventListener("DOMContentLoaded", () => {
             steerControls.classList.remove('hidden');
         }
         
-        let speed = (lockedPower / 100) * 10 + 6; 
+        // Slower Speed
+        let speed = (lockedPower / 100) * 8 + 4; 
         ball.vz = Math.cos(lockedAngle) * speed;
         ball.vx = Math.sin(lockedAngle) * speed;
+    }
+
+    function updatePhysics() {
+        if (['ANGLE', 'POWER', 'SPIN'].includes(gameState)) {
+            meterValue += meterSpeed * meterDirection;
+            if (meterValue >= 1) { meterValue = 1; meterDirection = -1; }
+            if (meterValue <= 0) { meterValue = 0; meterDirection = 1; }
+            
+            if (gameState === 'POWER') {
+                meterFill.style.width = (meterValue * 100) + '%';
+                meterCursor.style.left = '100%'; 
+            } else {
+                meterFill.style.width = '0%';
+                meterCursor.style.left = (meterValue * 100) + '%'; 
+            }
+        }
+
+        if (gameState === 'ROLLING') {
+            if (isSteeringLeft) steerQueue.push({ time: Date.now() + 500, dir: -0.06 });
+            if (isSteeringRight) steerQueue.push({ time: Date.now() + 500, dir: 0.06 });
+
+            let now = Date.now();
+            steerQueue = steerQueue.filter(ev => {
+                if (now >= ev.time) { ball.vx += ev.dir; return false; }
+                return true;
+            });
+
+            ball.update();
+            pins.forEach(p => p.update());
+            checkCollisions();
+
+            targetCamZ = ball.z - 150;
+            if (targetCamZ > LANE_LENGTH - 200) targetCamZ = LANE_LENGTH - 200; 
+            camera.z += (targetCamZ - camera.z) * 0.1; 
+            camera.x += ((ball.x * 0.3) - camera.x) * 0.1; 
+
+            if (ball.z > LANE_LENGTH - 50) {
+                resolvingTimer += 16; 
+                if (resolvingTimer > 2000) {
+                    gameState = 'RESOLVING';
+                    steerControls.classList.add('hidden');
+                    resolveRoll();
+                }
+            }
+        }
+    }
+
+    function checkCollisions() {
+        let objects = [ball, ...pins.filter(p => p.isActive)];
+        for (let i = 0; i < objects.length; i++) {
+            for (let j = i + 1; j < objects.length; j++) {
+                let a = objects[i]; let b = objects[j];
+                let dx = b.x - a.x; let dy = b.y - a.y; let dz = b.z - a.z;
+                let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                let minDist = a.radius + b.radius;
+                
+                if (dist < minDist) {
+                    if (!a.isPin && b.isPin && b.vy === 0) b.vy = Math.random() * 3 + 1; 
+                    if (a.isPin && !b.isPin && a.vy === 0) a.vy = Math.random() * 3 + 1;
+
+                    let nx = dx / dist; let ny = dy / dist; let nz = dz / dist;
+                    let overlap = minDist - dist;
+                    a.x -= nx * overlap * 0.5; a.y -= ny * overlap * 0.5; a.z -= nz * overlap * 0.5;
+                    b.x += nx * overlap * 0.5; b.y += ny * overlap * 0.5; b.z += nz * overlap * 0.5;
+
+                    let kx = a.vx - b.vx; let ky = a.vy - b.vy; let kz = a.vz - b.vz;
+                    let p = 2.0 * (nx * kx + ny * ky + nz * kz) / (a.mass + b.mass);
+                    
+                    let dampener = 0.7;
+                    a.vx -= p * b.mass * nx * dampener; a.vy -= p * b.mass * ny * dampener; a.vz -= p * b.mass * nz * dampener;
+                    b.vx += p * a.mass * nx * dampener; b.vy += p * a.mass * ny * dampener; b.vz += p * a.mass * nz * dampener;
+                }
+            }
+        }
+    }
+
+    // --- Rendering ---
+    function drawPin(x, y, scale, knocked, wobble, style) {
+        ctx.save();
+        ctx.translate(x, y);
+        
+        if(knocked) {
+             ctx.rotate(Math.PI/2 + wobble);
+             y = y + 10*scale; 
+        } else {
+             ctx.rotate(wobble*0.1);
+        }
+
+        let w = 8 * scale;
+        let h = 24 * scale;
+
+        if(!knocked) {
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath(); ctx.ellipse(0, h/2, w*0.8, w*0.3, 0, 0, Math.PI*2); ctx.fill();
+        }
+
+        ctx.fillStyle = '#f8f9fa';
+        ctx.beginPath();
+        
+        if (style === 1) { 
+            ctx.arc(0, -h*0.35, w*0.35, Math.PI, 0); 
+            ctx.bezierCurveTo(w*0.2, -h*0.1, w*0.8, h*0.2, w*0.55, h*0.48); 
+            ctx.quadraticCurveTo(w*0.5, h*0.5, w*0.3, h*0.5); 
+            ctx.lineTo(-w*0.3, h*0.5); 
+            ctx.quadraticCurveTo(-w*0.5, h*0.5, -w*0.55, h*0.48); 
+            ctx.bezierCurveTo(-w*0.8, h*0.2, -w*0.2, -h*0.1, -w*0.35, -h*0.35); 
+        } else { 
+            ctx.arc(0, -h*0.35, w*0.45, Math.PI, 0); 
+            ctx.bezierCurveTo(w*0.4, -h*0.1, w*0.6, h*0.2, w*0.6, h*0.45); 
+            ctx.lineTo(w*0.4, h*0.5); ctx.lineTo(-w*0.4, h*0.5); ctx.lineTo(-w*0.6, h*0.45);
+            ctx.bezierCurveTo(-w*0.6, h*0.2, -w*0.4, -h*0.1, -w*0.45, -h*0.35); 
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        let grad = ctx.createLinearGradient(-w, 0, w, 0);
+        grad.addColorStop(0, 'rgba(0,0,0,0.3)'); grad.addColorStop(0.3, 'rgba(255,255,255,0.8)'); grad.addColorStop(1, 'rgba(0,0,0,0.5)');
+        ctx.fillStyle = grad; ctx.fill();
+
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1.5 * scale;
+        ctx.beginPath(); ctx.moveTo(-w*0.4, -h*0.2); ctx.lineTo(w*0.4, -h*0.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-w*0.45, -h*0.05); ctx.lineTo(w*0.45, -h*0.05); ctx.stroke();
+
+        ctx.restore();
+    }
+
+    function draw() {
+        let bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/4, 100, canvas.width/2, canvas.height/2, canvas.width);
+        bgGrad.addColorStop(0, '#1e293b'); bgGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const laneOffsets = [-LANE_WIDTH*3 - 40, -LANE_WIDTH*1.5 - 20, 0, LANE_WIDTH*1.5 + 20, LANE_WIDTH*3 + 40];
+        let startZ = Math.max(0, camera.z - 100); 
+        let endZ = LANE_LENGTH + 100;
+
+        laneOffsets.forEach((offsetX) => {
+            let tl = project(offsetX - LANE_WIDTH/2, 0, endZ); let tr = project(offsetX + LANE_WIDTH/2, 0, endZ);
+            let bl = project(offsetX - LANE_WIDTH/2, 0, startZ); let br = project(offsetX + LANE_WIDTH/2, 0, startZ);
+
+            if (tl && tr && bl && br) {
+                let laneGrad = ctx.createLinearGradient(bl.x, bl.y, tl.x, tl.y);
+                laneGrad.addColorStop(0, '#cda270'); laneGrad.addColorStop(1, '#6b4c2a'); 
+                
+                if (offsetX !== 0) {
+                     laneGrad.addColorStop(0, '#a5825a'); laneGrad.addColorStop(1, '#4d361d');
+                }
+
+                ctx.fillStyle = laneGrad; 
+                ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y); ctx.fill();
+                
+                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                for(let i= -LANE_WIDTH/2 + 10; i < LANE_WIDTH/2; i+=10) {
+                    let p1 = project(offsetX + i, 0, startZ); let p2 = project(offsetX + i, 0, endZ);
+                    if(p1 && p2) { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+                }
+
+                ctx.fillStyle = '#111827';
+                let gtl = project(offsetX - LANE_WIDTH/2 - 10, 0, endZ); let gbl = project(offsetX - LANE_WIDTH/2 - 10, 0, startZ);
+                if(gtl && gbl) { ctx.beginPath(); ctx.moveTo(gbl.x, gbl.y); ctx.lineTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.lineTo(gtl.x, gtl.y); ctx.fill(); }
+                
+                let gtr = project(offsetX + LANE_WIDTH/2 + 10, 0, endZ); let gbr = project(offsetX + LANE_WIDTH/2 + 10, 0, startZ);
+                if(gtr && gbr) { ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(gbr.x, gbr.y); ctx.lineTo(gtr.x, gtr.y); ctx.lineTo(tr.x, tr.y); ctx.fill(); }
+
+                if (offsetX === 0) {
+                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 15;
+                    ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        });
+
+        if (gameState === 'ANGLE' && !players[currentPlayerIndex].isCPU) {
+            let tempAngle = (meterValue - 0.5) * 0.3;
+            let guideZ = 400; let guideX = ball.x + Math.sin(tempAngle) * guideZ;
+            let projGuide = project(guideX, 0, guideZ); let projBall = project(ball.x, ball.radius, ball.z);
+            
+            if (projGuide && projBall) {
+                ctx.beginPath(); ctx.moveTo(projBall.x, projBall.y); ctx.lineTo(projGuide.x, projGuide.y);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 2; ctx.setLineDash([15, 15]); ctx.stroke(); ctx.setLineDash([]);
+            }
+        }
+
+        let drawables = [...backgroundPins, ...pins, ball].filter(obj => obj && obj.isActive);
+        drawables.sort((a, b) => b.z - a.z);
+
+        drawables.forEach(obj => {
+            let p = project(obj.x, obj.y, obj.z);
+            if (p && p.scale > 0) {
+                if (obj.isPin) {
+                    drawPin(p.x, p.y, p.scale, obj.knocked, obj.wobble, selectedPinStyle);
+                } else {
+                    let screenRadius = obj.radius * p.scale;
+                    if (obj.y > obj.radius) {
+                        let shadowP = project(obj.x, 0, obj.z);
+                        if (shadowP) {
+                            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                            ctx.beginPath(); ctx.ellipse(shadowP.x, shadowP.y, screenRadius, screenRadius*0.4, 0, 0, Math.PI*2); ctx.fill();
+                        }
+                    }
+                    let grad = ctx.createRadialGradient(p.x - screenRadius*0.3, p.y - screenRadius*0.3, screenRadius*0.1, p.x, p.y, screenRadius);
+                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, obj.color); grad.addColorStop(1, '#000000');
+                    ctx.beginPath(); ctx.arc(p.x, p.y, screenRadius, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
+                }
+            }
+        });
+        
+        let backWallY = project(0, 50, LANE_LENGTH + 20);
+        let backWallFloor = project(0, 0, LANE_LENGTH + 50);
+        if(backWallY && backWallFloor) {
+            ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, backWallY.y);
+            ctx.fillStyle = '#e11d48'; ctx.fillRect(0, backWallY.y-10, canvas.width, 10);
+        }
+    }
+
+    function gameLoop() {
+        if (!isPaused) { updatePhysics(); draw(); }
+        requestAnimationFrame(gameLoop);
     }
 
     function resolveRoll() {
@@ -312,372 +636,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (pinsStanding === 0 && currentFrame === 9) { pinsStanding = 10; setupPins(true); } 
             else setupPins(false);
         }
-
         startTurn();
-    }
-
-    function endGame() {
-        gameState = 'GAMEOVER'; hud.classList.add('hidden');
-        let winner = players.reduce((prev, current) => (prev.totalScore > current.totalScore) ? prev : current);
-        document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
-        renderScoreboard('final-scores-container');
-        gameOverOverlay.classList.remove('hidden');
-    }
-
-    // --- Inputs & Listeners ---
-    
-    // Main Menu Click Handler (Fix for stuck menu)
-    document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            let num = parseInt(e.target.dataset.players);
-            if(num > 0) beginColorSelection(num);
-        });
-    });
-
-    document.querySelectorAll('.color-swatch').forEach(swatch => {
-        swatch.addEventListener('click', (e) => {
-            players[selectingColorFor].color = e.target.dataset.color;
-            selectingColorFor++;
-            showColorPicker();
-        });
-    });
-
-    // Handle return properly to an absolute URL
-    document.getElementById('return-btn').addEventListener('click', () => {
-        window.location.href = 'https://clicksyncgames.com';
-    });
-
-    document.getElementById('show-score-btn').addEventListener('click', () => { isPaused = true; renderScoreboard('scores-container'); scoreboardModal.classList.remove('hidden'); });
-    document.getElementById('close-score-btn').addEventListener('click', () => { scoreboardModal.classList.add('hidden'); isPaused = false; });
-    document.getElementById('pause-btn').addEventListener('click', () => { if(gameState==='MENU' || gameState==='COLORS') return; isPaused = !isPaused; pauseOverlay.classList.toggle('hidden', !isPaused); });
-    document.getElementById('resume-btn').addEventListener('click', () => { isPaused = false; pauseOverlay.classList.add('hidden'); });
-    document.getElementById('restart-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden'); });
-
-    // Gameplay Clicks
-    canvas.addEventListener('mousemove', (e) => {
-        if (gameState === 'POSITION' && !isPaused) {
-            const rect = canvas.getBoundingClientRect();
-            let rawX = (e.clientX - rect.left) / rect.width; 
-            ball.x = (rawX - 0.5) * (LANE_WIDTH - BALL_RADIUS*2);
-        }
-    });
-
-    document.addEventListener('mousedown', (e) => {
-        if (isPaused || players.length === 0 || players[currentPlayerIndex].isCPU) return;
-        if (e.target.closest('.overlay:not(.hidden)') || e.target.closest('.hud-top') || e.target.closest('#steer-controls')) return;
-
-        if (gameState === 'POSITION') {
-            lockedPosition = ball.x;
-            gameState = 'ANGLE';
-            meterValue = 0.5; meterDirection = 1; meterSpeed = 0.03;
-            meterInstruction.textContent = "2. Click to Lock ANGLE";
-            meterTrack.classList.remove('hidden');
-            meterFill.style.width = '0%'; 
-        } 
-        else if (gameState === 'ANGLE') {
-            lockedAngle = (meterValue - 0.5) * 0.3; 
-            gameState = 'POWER';
-            meterValue = 0; meterDirection = 1; meterSpeed = 0.04;
-            meterInstruction.textContent = "3. Click to Lock POWER";
-        }
-        else if (gameState === 'POWER') {
-            lockedPower = meterValue * 80 + 20;
-            gameState = 'SPIN';
-            meterValue = 0.5; meterDirection = 1; meterSpeed = 0.03;
-            meterInstruction.textContent = "4. Click to Lock SPIN (Hook)";
-            meterFill.style.width = '0%'; 
-        }
-        else if (gameState === 'SPIN') {
-            lockedSpin = (meterValue - 0.5) * 2;
-            launchBall();
-        }
-    });
-
-    // Steering Handlers
-    const btnLeft = document.getElementById('steer-left');
-    const btnRight = document.getElementById('steer-right');
-
-    const steerLeft = (e) => { if(e) e.preventDefault(); isSteeringLeft = true; };
-    const endSteerLeft = (e) => { if(e) e.preventDefault(); isSteeringLeft = false; };
-    const steerRight = (e) => { if(e) e.preventDefault(); isSteeringRight = true; };
-    const endSteerRight = (e) => { if(e) e.preventDefault(); isSteeringRight = false; };
-
-    btnLeft.addEventListener('mousedown', steerLeft);
-    btnLeft.addEventListener('touchstart', steerLeft);
-    btnLeft.addEventListener('mouseup', endSteerLeft);
-    btnLeft.addEventListener('mouseleave', endSteerLeft);
-    btnLeft.addEventListener('touchend', endSteerLeft);
-
-    btnRight.addEventListener('mousedown', steerRight);
-    btnRight.addEventListener('touchstart', steerRight);
-    btnRight.addEventListener('mouseup', endSteerRight);
-    btnRight.addEventListener('mouseleave', endSteerRight);
-    btnRight.addEventListener('touchend', endSteerRight);
-
-    document.addEventListener('keydown', (e) => {
-        if(e.key === 'ArrowLeft') isSteeringLeft = true;
-        if(e.key === 'ArrowRight') isSteeringRight = true;
-    });
-    document.addEventListener('keyup', (e) => {
-        if(e.key === 'ArrowLeft') isSteeringLeft = false;
-        if(e.key === 'ArrowRight') isSteeringRight = false;
-    });
-
-    // --- Core Logic & Drawing ---
-    function updatePhysics() {
-        if (['ANGLE', 'POWER', 'SPIN'].includes(gameState)) {
-            meterValue += meterSpeed * meterDirection;
-            if (meterValue >= 1) { meterValue = 1; meterDirection = -1; }
-            if (meterValue <= 0) { meterValue = 0; meterDirection = 1; }
-            
-            if (gameState === 'POWER') {
-                meterFill.style.width = (meterValue * 100) + '%';
-                meterCursor.style.left = '100%'; 
-            } else {
-                meterFill.style.width = '0%';
-                meterCursor.style.left = (meterValue * 100) + '%'; 
-            }
-        }
-
-        if (gameState === 'ROLLING') {
-            if (isSteeringLeft) steerQueue.push({ time: Date.now() + 500, dir: -0.06 });
-            if (isSteeringRight) steerQueue.push({ time: Date.now() + 500, dir: 0.06 });
-
-            let now = Date.now();
-            steerQueue = steerQueue.filter(ev => {
-                if (now >= ev.time) {
-                    ball.vx += ev.dir;
-                    return false;
-                }
-                return true;
-            });
-
-            ball.update();
-            pins.forEach(p => p.update());
-            checkCollisions();
-
-            targetCamZ = ball.z - 150;
-            if (targetCamZ > LANE_LENGTH - 200) targetCamZ = LANE_LENGTH - 200; 
-            camera.z += (targetCamZ - camera.z) * 0.1; 
-            camera.x += ((ball.x * 0.3) - camera.x) * 0.1; 
-
-            if (ball.z > LANE_LENGTH - 50) {
-                resolvingTimer += 16; 
-                if (resolvingTimer > 2000) {
-                    gameState = 'RESOLVING';
-                    steerControls.classList.add('hidden');
-                    resolveRoll();
-                }
-            }
-        }
-    }
-
-    function checkCollisions() {
-        let objects = [ball, ...pins.filter(p => p.isActive)];
-        for (let i = 0; i < objects.length; i++) {
-            for (let j = i + 1; j < objects.length; j++) {
-                let a = objects[i]; let b = objects[j];
-                let dx = b.x - a.x; 
-                let dy = b.y - a.y;
-                let dz = b.z - a.z;
-                let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                let minDist = a.radius + b.radius;
-                
-                if (dist < minDist) {
-                    if (!a.isPin && b.isPin && b.vy === 0) b.vy = Math.random() * 3 + 1; 
-                    if (a.isPin && !b.isPin && a.vy === 0) a.vy = Math.random() * 3 + 1;
-
-                    let nx = dx / dist; let ny = dy / dist; let nz = dz / dist;
-                    let overlap = minDist - dist;
-                    a.x -= nx * overlap * 0.5; a.y -= ny * overlap * 0.5; a.z -= nz * overlap * 0.5;
-                    b.x += nx * overlap * 0.5; b.y += ny * overlap * 0.5; b.z += nz * overlap * 0.5;
-
-                    let kx = a.vx - b.vx; let ky = a.vy - b.vy; let kz = a.vz - b.vz;
-                    let p = 2.0 * (nx * kx + ny * ky + nz * kz) / (a.mass + b.mass);
-                    
-                    let dampener = 0.7;
-                    a.vx -= p * b.mass * nx * dampener; a.vy -= p * b.mass * ny * dampener; a.vz -= p * b.mass * nz * dampener;
-                    b.vx += p * a.mass * nx * dampener; b.vy += p * a.mass * ny * dampener; b.vz += p * a.mass * nz * dampener;
-                }
-            }
-        }
-    }
-
-    function drawPin(x, y, scale, knocked, wobble, style) {
-        ctx.save();
-        ctx.translate(x, y);
-        
-        if(knocked) {
-             ctx.rotate(Math.PI/2 + wobble);
-             y = y + 10*scale; 
-        } else {
-             ctx.rotate(wobble*0.1);
-        }
-
-        let w = 8 * scale;
-        let h = 24 * scale;
-
-        if(!knocked) {
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.beginPath();
-            ctx.ellipse(0, h/2, w*0.8, w*0.3, 0, 0, Math.PI*2);
-            ctx.fill();
-        }
-
-        ctx.fillStyle = '#f8f9fa';
-        ctx.beginPath();
-        
-        if (style === 1) { 
-            ctx.arc(0, -h*0.35, w*0.35, Math.PI, 0); 
-            ctx.bezierCurveTo(w*0.2, -h*0.1, w*0.8, h*0.2, w*0.55, h*0.48); 
-            ctx.quadraticCurveTo(w*0.5, h*0.5, w*0.3, h*0.5); 
-            ctx.lineTo(-w*0.3, h*0.5); 
-            ctx.quadraticCurveTo(-w*0.5, h*0.5, -w*0.55, h*0.48); 
-            ctx.bezierCurveTo(-w*0.8, h*0.2, -w*0.2, -h*0.1, -w*0.35, -h*0.35); 
-        } else { 
-            ctx.arc(0, -h*0.35, w*0.45, Math.PI, 0); 
-            ctx.bezierCurveTo(w*0.4, -h*0.1, w*0.6, h*0.2, w*0.6, h*0.45); 
-            ctx.lineTo(w*0.4, h*0.5);
-            ctx.lineTo(-w*0.4, h*0.5);
-            ctx.lineTo(-w*0.6, h*0.45);
-            ctx.bezierCurveTo(-w*0.6, h*0.2, -w*0.4, -h*0.1, -w*0.45, -h*0.35); 
-        }
-        ctx.closePath();
-        ctx.fill();
-
-        let grad = ctx.createLinearGradient(-w, 0, w, 0);
-        grad.addColorStop(0, 'rgba(0,0,0,0.3)');
-        grad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.5)');
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 1.5 * scale;
-        ctx.beginPath(); ctx.moveTo(-w*0.4, -h*0.2); ctx.lineTo(w*0.4, -h*0.2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(-w*0.45, -h*0.05); ctx.lineTo(w*0.45, -h*0.05); ctx.stroke();
-
-        ctx.restore();
-    }
-
-    function draw() {
-        let bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/4, 100, canvas.width/2, canvas.height/2, canvas.width);
-        bgGrad.addColorStop(0, '#1e293b');
-        bgGrad.addColorStop(1, '#020617');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const laneOffsets = [-LANE_WIDTH*3 - 40, -LANE_WIDTH*1.5 - 20, 0, LANE_WIDTH*1.5 + 20, LANE_WIDTH*3 + 40];
-        let startZ = Math.max(0, camera.z - 100); 
-        let endZ = LANE_LENGTH + 100;
-
-        laneOffsets.forEach((offsetX, idx) => {
-            let tl = project(offsetX - LANE_WIDTH/2, 0, endZ);
-            let tr = project(offsetX + LANE_WIDTH/2, 0, endZ);
-            let bl = project(offsetX - LANE_WIDTH/2, 0, startZ);
-            let br = project(offsetX + LANE_WIDTH/2, 0, startZ);
-
-            if (tl && tr && bl && br) {
-                let laneGrad = ctx.createLinearGradient(bl.x, bl.y, tl.x, tl.y);
-                laneGrad.addColorStop(0, '#cda270'); 
-                laneGrad.addColorStop(1, '#6b4c2a'); 
-                
-                if (offsetX !== 0) {
-                     laneGrad.addColorStop(0, '#a5825a'); 
-                     laneGrad.addColorStop(1, '#4d361d');
-                }
-
-                ctx.fillStyle = laneGrad; 
-                ctx.beginPath();
-                ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
-                ctx.fill();
-                
-                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-                for(let i= -LANE_WIDTH/2 + 10; i < LANE_WIDTH/2; i+=10) {
-                    let p1 = project(offsetX + i, 0, startZ); let p2 = project(offsetX + i, 0, endZ);
-                    if(p1 && p2) { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
-                }
-
-                ctx.fillStyle = '#111827';
-                let gtl = project(offsetX - LANE_WIDTH/2 - 10, 0, endZ); let gbl = project(offsetX - LANE_WIDTH/2 - 10, 0, startZ);
-                if(gtl && gbl) {
-                    ctx.beginPath(); ctx.moveTo(gbl.x, gbl.y); ctx.lineTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.lineTo(gtl.x, gtl.y); ctx.fill();
-                }
-                
-                let gtr = project(offsetX + LANE_WIDTH/2 + 10, 0, endZ); let gbr = project(offsetX + LANE_WIDTH/2 + 10, 0, startZ);
-                if(gtr && gbr) {
-                    ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(gbr.x, gbr.y); ctx.lineTo(gtr.x, gtr.y); ctx.lineTo(tr.x, tr.y); ctx.fill();
-                }
-
-                if (offsetX === 0) {
-                    ctx.strokeStyle = '#38bdf8';
-                    ctx.lineWidth = 2;
-                    ctx.shadowColor = '#38bdf8';
-                    ctx.shadowBlur = 15;
-                    ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.stroke();
-                    ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
-                    ctx.shadowBlur = 0;
-                }
-            }
-        });
-
-        if (gameState === 'ANGLE' && !players[currentPlayerIndex].isCPU) {
-            let tempAngle = (meterValue - 0.5) * 0.3;
-            let guideZ = 400;
-            let guideX = ball.x + Math.sin(tempAngle) * guideZ;
-            let projGuide = project(guideX, 0, guideZ);
-            let projBall = project(ball.x, ball.radius, ball.z);
-            
-            if (projGuide && projBall) {
-                ctx.beginPath();
-                ctx.moveTo(projBall.x, projBall.y);
-                ctx.lineTo(projGuide.x, projGuide.y);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([15, 15]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-
-        let drawables = [...backgroundPins, ...pins, ball].filter(obj => obj && obj.isActive);
-        drawables.sort((a, b) => b.z - a.z);
-
-        drawables.forEach(obj => {
-            let p = project(obj.x, obj.y, obj.z);
-            if (p && p.scale > 0) {
-                if (obj.isPin) {
-                    drawPin(p.x, p.y, p.scale, obj.knocked, obj.wobble, selectedPinStyle);
-                } else {
-                    let screenRadius = obj.radius * p.scale;
-                    
-                    if (obj.y > obj.radius) {
-                        let shadowP = project(obj.x, 0, obj.z);
-                        if (shadowP) {
-                            ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                            ctx.beginPath(); ctx.ellipse(shadowP.x, shadowP.y, screenRadius, screenRadius*0.4, 0, 0, Math.PI*2); ctx.fill();
-                        }
-                    }
-
-                    let grad = ctx.createRadialGradient(p.x - screenRadius*0.3, p.y - screenRadius*0.3, screenRadius*0.1, p.x, p.y, screenRadius);
-                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, obj.color); grad.addColorStop(1, '#000000');
-                    
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, screenRadius, 0, Math.PI * 2);
-                    ctx.fillStyle = grad;
-                    ctx.fill();
-                }
-            }
-        });
-        
-        let backWallY = project(0, 50, LANE_LENGTH + 20);
-        let backWallFloor = project(0, 0, LANE_LENGTH + 50);
-        if(backWallY && backWallFloor) {
-            ctx.fillStyle = '#0f172a'; 
-            ctx.fillRect(0, 0, canvas.width, backWallY.y);
-            ctx.fillStyle = '#e11d48';
-            ctx.fillRect(0, backWallY.y-10, canvas.width, 10);
-        }
     }
 
     function calculateScores() {
@@ -743,11 +702,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function gameLoop() {
-        if (!isPaused) { updatePhysics(); draw(); }
-        requestAnimationFrame(gameLoop);
+    function endGame() {
+        gameState = 'GAMEOVER'; hud.classList.add('hidden');
+        let winner = players.reduce((prev, current) => (prev.totalScore > current.totalScore) ? prev : current);
+        document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
+        renderScoreboard('final-scores-container');
+        gameOverOverlay.classList.remove('hidden');
     }
-    
-    // Start engine
+
     gameLoop();
 });
