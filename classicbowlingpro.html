@@ -48,10 +48,26 @@
                     </div>
                 </div>
 
+                <!-- On-Screen Steering Controls -->
+                <div id="steer-controls" class="hidden">
+                    <button id="steer-left" class="steer-btn">⬅️</button>
+                    <button id="steer-right" class="steer-btn">➡️</button>
+                </div>
+
                 <!-- Main Menu Overlay -->
                 <div id="menu-overlay" class="overlay">
                     <div class="menu-box">
                         <h2>Select Game Mode</h2>
+                        
+                        <div class="pin-style-selector">
+                            <h3 style="color:#fff; margin-bottom:10px; font-size:1.1rem;">Select Pin Style</h3>
+                            <div style="display:flex; justify-content:center; gap: 20px; margin-bottom: 20px; color:#fff;">
+                                <label><input type="radio" name="pinstyle" value="1" checked> Classic Bottle</label>
+                                <label><input type="radio" name="pinstyle" value="2"> Modern Thick</label>
+                            </div>
+                        </div>
+
+                        <!-- Ensure these data attributes exist for JS to read -->
                         <button class="mode-btn" data-players="1">1 Player vs CPU</button>
                         <button class="mode-btn" data-players="2">2 Players</button>
                         <button class="mode-btn" data-players="3">3 Players</button>
