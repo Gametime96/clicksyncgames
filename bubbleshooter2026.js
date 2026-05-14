@@ -2,20 +2,22 @@ window.addEventListener("load", function() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Internal logical resolution
+    // Internal logical resolution for math consistency
     canvas.width = 800;
     canvas.height = 1000;
 
     let gameState = 'MENU'; 
     let isPaused = false;
 
-    // Bubble Grid Setup
+    // Bubble Grid
     const ROW_COUNT = 16; 
     const COL_COUNT = 14; 
     const BUBBLE_RADIUS = 28; 
     const GRID_OFFSET_X = (canvas.width - (COL_COUNT * BUBBLE_RADIUS * 2)) / 2 + BUBBLE_RADIUS;
     const GRID_OFFSET_Y = BUBBLE_RADIUS + 10;
     const ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3); 
+
+    // Danger Line explicitly mapped
     const DANGER_Y = canvas.height - 150; 
 
     // Mechanics
@@ -147,6 +149,7 @@ window.addEventListener("load", function() {
             this.x = getGridX(row, col); this.y = getGridY(row);
             grid[row][col] = this;
 
+            gameState = 'ANIMATING';
             let cluster = findMatchCluster(row, col, this.color);
             
             if (cluster.length >= 3) {
@@ -345,8 +348,6 @@ window.addEventListener("load", function() {
 
     function handlePointerMove(e) {
         if (gameState !== 'PLAYING') return;
-        
-        // Calculate the actual rendered size of the canvas vs its internal 800x1000 size
         const rect = canvas.getBoundingClientRect();
         
         let clientX = e.clientX; 
@@ -356,7 +357,7 @@ window.addEventListener("load", function() {
             clientY = e.touches[0].clientY; 
         }
         
-        // Accurate coordinate mapping factoring in object-fit scaling
+        // Accurate translation from dynamic screen size back to 800x1000 logic space
         pointerX = (clientX - rect.left) * (canvas.width / rect.width);
         pointerY = (clientY - rect.top) * (canvas.height / rect.height);
     }
@@ -501,7 +502,7 @@ window.addEventListener("load", function() {
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Interactive Danger Line
+        // Interactive Danger Line
         ctx.beginPath(); ctx.moveTo(0, DANGER_Y); ctx.lineTo(canvas.width, DANGER_Y);
         ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)'; ctx.lineWidth = 4;
         ctx.setLineDash([15, 10]); ctx.stroke(); ctx.setLineDash([]);
