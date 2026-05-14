@@ -137,7 +137,7 @@
             transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
         }
 
-        /* Media Query for Mobile / Narrow Screens */
+        /* Media Query for Mobile Portrait / Narrow Screens */
         @media (max-width: 700px) {
             #ui-bar {
                 flex-wrap: wrap;
@@ -158,6 +158,23 @@
             .control-btn {
                 font-size: 0.8rem;
                 padding: 8px 12px;
+            }
+        }
+
+        /* Media Query for Mobile Landscape (Zooms out by ~10% to prevent cutoff) */
+        @media (orientation: landscape) and (max-height: 600px) {
+            #ui-bar {
+                padding: 5px 15px; /* Compact padding */
+            }
+            #game-board {
+                margin-top: 50px; 
+                /* Scaled down 10% from original constraints */
+                width: min(85vw, calc(90vh - 70px));
+                height: min(85vw, calc(90vh - 70px));
+            }
+            .control-btn {
+                font-size: 0.75rem;
+                padding: 5px 10px;
             }
         }
 
@@ -532,7 +549,6 @@
                     hasSeenTutorial = true;
                     startGame();
                 } else {
-                    // Level 1 without tutorial (Post Game Over or standard restart)
                     await levelIntroScene(lvl, lives);
                     startGame();
                 }
@@ -550,7 +566,7 @@
                     passengers.push({x: randomX, y: randomY});
                 }
                 drawPassengers();
-                saveLevelState(); // Snapshot for Level 2+ restarts
+                saveLevelState(); 
                 
                 await levelIntroScene(lvl, lives);
                 startGame();
@@ -654,7 +670,7 @@
             if (lives > 0) {
                 showModal("DERAILED", `Out of tracks!\nLives remaining: ${lives}`, async () => {
                     document.getElementById('modal-overlay').style.display = 'none';
-                    restoreLevelState(); // Reset tracks/train to level start
+                    restoreLevelState(); 
                     await levelIntroScene(level, lives);
                     startGame();
                 });
@@ -663,7 +679,7 @@
                     document.getElementById('modal-overlay').style.display = 'none';
                     await outOfLivesScene();
                     lives = 3;
-                    loadLevel(1); // Hard reset to level 1 (skipping tutorial)
+                    loadLevel(1); 
                 });
             }
         }
