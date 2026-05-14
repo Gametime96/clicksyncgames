@@ -38,8 +38,10 @@ window.addEventListener("load", function() {
     let nextBubbleColor = null;
     let score = 0;
     let level = 1;
-    let dropCounter = 0;
-    const DROPS_UNTIL_ADD = 6; 
+
+    // Time-based dropping
+    let lastDropTime = 0;
+    const DROP_INTERVAL_MS = 6000; // 6 seconds
 
     let particles = [];
     
@@ -167,24 +169,17 @@ window.addEventListener("load", function() {
             checkDangerLine();
 
             if (gameState !== 'GAMEOVER') {
-                dropCounter++;
-                if (dropCounter >= DROPS_UNTIL_ADD && cluster.length < 3) {
-                    dropCounter = 0; addNewRow();
-                }
-
                 if (isBoardEmpty()) {
                     level++; score += 1000 * level;
                     startLevel(); return;
                 }
 
-                if (gameState !== 'GAMEOVER') {
-                    setTimeout(() => { 
-                        if(gameState !== 'GAMEOVER') { 
-                            gameState = 'PLAYING'; 
-                            prepareNextBubble(); // Process queue
-                        } 
-                    }, cluster.length >= 3 ? 300 : 50);
-                }
+                setTimeout(() => { 
+                    if(gameState !== 'GAMEOVER') { 
+                        gameState = 'PLAYING'; 
+                        prepareNextBubble(); // Process queue
+                    } 
+                }, cluster.length >= 3 ? 300 : 50);
             }
         }
     }
@@ -233,7 +228,7 @@ window.addEventListener("load", function() {
     }
 
     function startLevel() {
-        grid = []; particles = []; dropCounter = 0;
+        grid = []; particles = [];
         let rowsToFill = 5 + Math.floor(level / 2);
         if(rowsToFill > 10) rowsToFill = 10;
 
@@ -246,6 +241,8 @@ window.addEventListener("load", function() {
         // Initialize the queue properly once per level
         nextBubbleColor = getExistingColor();
         prepareNextBubble();
+        
+        lastDropTime = performance.now(); // Reset drop timer
         
         updateHUD();
         menuOverlay.classList.add('hidden'); gameOverOverlay.classList.add('hidden'); pauseOverlay.classList.add('hidden');
@@ -395,6 +392,10 @@ window.addEventListener("load", function() {
         if (gameState === 'MENU' || gameState === 'GAMEOVER') return;
         isPaused = !isPaused;
         pauseOverlay.classList.toggle('hidden', !isPaused);
+        // Correct the timer so dropping doesn't happen instantly upon resume
+        if(!isPaused) {
+            lastDropTime = performance.now() - (lastDropTime > 0 ? performance.now() - lastDropTime : 0);
+        }
     }
 
     document.addEventListener('keydown', (e) => {
@@ -441,11 +442,10 @@ window.addEventListener("load", function() {
     }
 
     function drawShooter() {
-        // Draw Next Bubble
         if (nextBubbleColor) {
             ctx.beginPath(); ctx.arc(SHOOTER_X - 80, SHOOTER_Y, BUBBLE_RADIUS * 0.5, 0, Math.PI*2);
             ctx.fillStyle = nextBubbleColor; ctx.fill();
-            ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.stroke();
             
             ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 16px Nunito'; ctx.textAlign = 'center';
             ctx.fillText("NEXT", SHOOTER_X - 80, SHOOTER_Y + 30);
@@ -487,6 +487,15 @@ window.addEventListener("load", function() {
 
     function update() {
         if (isPaused) return;
+
+        // Check for time-based row drop
+        if (gameState === 'PLAYING') {
+            let now = performance.now();
+            if (now - lastDropTime > DROP_INTERVAL_MS) {
+                lastDropTime = now;
+                addNewRow();
+            }
+        }
 
         if (currentBubble && currentBubble.isMoving) currentBubble.update();
 
