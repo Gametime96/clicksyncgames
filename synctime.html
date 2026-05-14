@@ -155,38 +155,46 @@
         .overlay-screen h1 { font-size: 48px; color: var(--neon-cyan); letter-spacing: 6px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-cyan); text-align: center;}
         .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.6; margin-bottom: 25px;}
         
-        /* --- CSS Mechanics Visual Guide --- */
+        /* --- CSS Mechanics Visual Guide (Fixed Layout) --- */
         .visual-guide {
             display: flex;
-            justify-content: space-around;
+            flex-wrap: wrap; 
+            justify-content: space-evenly;
             align-items: center;
             width: 100%;
-            max-width: 500px;
-            height: 140px;
+            max-width: 600px;
             background: #0a0a1a;
             border: 1px solid #2a2a4a;
             border-radius: 8px;
             margin-bottom: 25px;
-            position: relative;
+            padding: 20px;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            gap: 30px;
+        }
+
+        .vg-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .vg-enemy-row {
+            flex-direction: row;
+            align-items: center;
+            gap: 15px;
         }
 
         .vg-player {
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
-            animation: slowSpin 10s linear infinite;
-        }
-
-        @keyframes slowSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            transform: rotate(60deg); /* Static angle, no animation */
         }
 
         .vg-core {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background: #0a0a1a;
             border: 3px solid var(--neon-cyan);
@@ -198,71 +206,56 @@
 
         .vg-core::after {
             content: '';
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             background: var(--neon-yellow);
             border-radius: 50%;
         }
 
         .vg-tether {
             width: 4px;
-            height: 40px;
+            height: 50px;
             background: var(--neon-cyan);
             box-shadow: 0 0 10px var(--neon-cyan);
             margin: -2px 0;
             z-index: 1;
         }
 
-        .vg-enemy-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-            animation: enemyApproach 2s infinite alternate ease-in-out;
-        }
-
-        @keyframes enemyApproach {
-            from { transform: translateX(30px); }
-            to { transform: translateX(-10px); }
-        }
-
         .vg-enemy-shape {
-            width: 16px;
-            height: 16px;
+            width: 24px;
+            height: 24px;
             background: var(--neon-magenta);
-            box-shadow: 0 0 10px var(--neon-magenta);
+            box-shadow: 0 0 15px var(--neon-magenta);
             transform: rotate(45deg);
         }
 
         .vg-label {
-            position: absolute;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            letter-spacing: 1px;
+            text-align: center;
             font-family: inherit;
         }
 
-        .vg-label-core {
-            color: var(--neon-yellow);
-            top: 20px;
-            left: 20%;
+        .vg-label span {
+            display: block;
+            font-size: 18px;
+            margin-top: 2px;
+            margin-bottom: 2px;
         }
 
-        .vg-label-tether {
-            color: var(--neon-cyan);
-            bottom: 20px;
-            left: 30%;
+        .vg-label-core { color: var(--neon-yellow); }
+        .vg-label-tether { color: var(--neon-cyan); }
+        .vg-label-enemy { 
+            color: var(--neon-magenta); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
         }
-
-        .vg-label-enemy {
-            color: var(--neon-magenta);
-            top: 50%;
-            right: 15%;
-            transform: translateY(-50%);
+        .vg-label-enemy span { 
+            display: inline; 
+            margin: 0; 
         }
-
         /* --- End Visual Guide --- */
 
         .guide-container { 
@@ -323,7 +316,7 @@
 <body>
 
     <div class="top-nav">
-        <a href="index.html" class="back-link">&larr; Back to ClickSync Games</a>
+        <a href="index.html" class="back-link">&larr; Back to ClickSyncGames</a>
     </div>
 
     <div id="gameWrapper">
@@ -344,19 +337,22 @@
                 <h1>SYNCTIME</h1>
                 <p class="subtitle">Survive 12 progressive levels (30 seconds each). Your pointer is the center point. <br><b>Your endpoints are vulnerable. Your center line is lethal.</b></p>
                 
-                <!-- Pure CSS Visual Diagram -->
+                <!-- Fixed Static CSS Visual Diagram -->
                 <div class="visual-guide">
-                    <div class="vg-label vg-label-core">CORES (Vulnerable) <span>↘</span></div>
-                    <div class="vg-label vg-label-tether">TETHER (Lethal) <span>↗</span></div>
-                    <div class="vg-label vg-label-enemy"><span>←</span> ENEMY (Target)</div>
-                    
-                    <div class="vg-player">
-                        <div class="vg-core"></div>
-                        <div class="vg-tether"></div>
-                        <div class="vg-core"></div>
+                    <!-- Player Column -->
+                    <div class="vg-col">
+                        <div class="vg-label vg-label-core">CORES (Vulnerable)<br><span>↓</span></div>
+                        <div class="vg-player">
+                            <div class="vg-core"></div>
+                            <div class="vg-tether"></div>
+                            <div class="vg-core"></div>
+                        </div>
+                        <div class="vg-label vg-label-tether"><span>↑</span><br>TETHER (Lethal)</div>
                     </div>
-                    
-                    <div class="vg-enemy-container">
+            
+                    <!-- Enemy Column -->
+                    <div class="vg-col vg-enemy-row">
+                        <div class="vg-label vg-label-enemy">ENEMY (Target) <span>→</span></div>
                         <div class="vg-enemy-shape"></div>
                     </div>
                 </div>
