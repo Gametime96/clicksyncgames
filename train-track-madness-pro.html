@@ -15,6 +15,7 @@
         body {
             margin: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -68,17 +69,18 @@
 
         /* Standard UI */
         #ui-bar {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; right: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 25px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             z-index: 300;
             font-weight: bold;
             letter-spacing: 1px;
             border-bottom: 2px solid #1abc9c;
+            box-sizing: border-box;
         }
 
         /* Top Controls (Buttons) */
@@ -99,18 +101,20 @@
         
         .control-btn:active { transform: scale(0.95); }
 
-        /* Pause Button: Light Grey background, White Text, Black outline */
+        /* Pause Button: Light Grey background, Black Text, White outline */
         #pause-btn {
             background-color: #a0a0a0; 
-            color: #ffffff;
+            color: #000000;
             border: 1px solid #000000;
+            text-shadow: -1px -1px 0 #ffffff, 1px -1px 0 #ffffff, -1px 1px 0 #ffffff, 1px 1px 0 #ffffff;
         }
 
-        /* Return Button: Opposite (White background, Light Grey text, Black outline) */
+        /* Return Button: White background, White text, Black outline */
         #return-btn {
             background-color: #ffffff;
-            color: #a0a0a0;
+            color: #ffffff;
             border: 1px solid #000000;
+            text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000;
         }
 
         #track-count-display {
@@ -118,14 +122,41 @@
         }
         .limit-reached { color: #e74c3c !important; }
 
+        /* Responsive Game Board */
         #game-board {
             position: relative;
-            width: 85vmin;
-            height: 85vmin;
+            /* Ensures it fits screen both horizontally and vertically, accounting for UI bar */
+            width: min(95vw, calc(100vh - 120px));
+            height: min(95vw, calc(100vh - 120px));
+            margin-top: 60px; /* Default margin to push below the absolute UI bar */
             background: #34495e;
             border: 4px solid #1abc9c;
             border-radius: 4px;
             transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
+        }
+
+        /* Media Query for Mobile / Narrow Screens */
+        @media (max-width: 700px) {
+            #ui-bar {
+                flex-wrap: wrap;
+                justify-content: space-around;
+                padding: 10px;
+                gap: 10px;
+            }
+            #top-controls {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+            #game-board {
+                margin-top: 100px; /* Increased margin for wrapped header */
+                width: min(95vw, calc(100vh - 140px));
+                height: min(95vw, calc(100vh - 140px));
+            }
+            .control-btn {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+            }
         }
 
         #grid {
@@ -484,19 +515,17 @@
             else {
                 updateUI();
                 passengers = [];
-                // Spawn coins equal to the level number + 1
                 for(let i=0; i<lvl; i++) {
                     let randomX, randomY;
                     do {
                         randomX = Math.floor(Math.random() * gridSize);
                         randomY = Math.floor(Math.random() * gridSize);
-                    } while (randomX === train.x && randomY === train.y); // Prevent spawning exactly ON the train
+                    } while (randomX === train.x && randomY === train.y); 
                     
                     passengers.push({x: randomX, y: randomY});
                 }
                 drawPassengers();
                 
-                // Allow a brief visual breath before moving again
                 setTimeout(startGame, 1000);
             }
         }
@@ -564,12 +593,12 @@
         }
 
         function executeTurn() {
-            updateTrainVisuals(); // Rotate in place
+            updateTrainVisuals(); 
             moveTimeout = setTimeout(() => {
                 if (!isPlaying) return;
                 train.x += train.dx;
                 train.y += train.dy;
-                updateTrainVisuals(); // Move forward after 1s pivot
+                updateTrainVisuals(); 
                 handleTileArrival();
             }, 1000);
         }
@@ -578,7 +607,7 @@
             const pIdx = passengers.findIndex(p => p.x === train.x && p.y === train.y);
             
             if (pIdx !== -1) {
-                // Wait for the 800ms travel transition to complete so it visually touches the coin
+                // Wait for the travel transition to complete so it visually touches the coin
                 moveTimeout = setTimeout(() => {
                     if (!isPlaying) return;
                     passengers.splice(pIdx, 1);
