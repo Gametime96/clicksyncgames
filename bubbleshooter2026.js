@@ -21,8 +21,9 @@ window.addEventListener("load", function() {
     // Mechanics
     const SHOOTER_X = canvas.width / 2;
     const SHOOTER_Y = canvas.height - 60;
-    const BUBBLE_SPEED = 30; // Fast snappy shooting
+    const BUBBLE_SPEED = 30; 
     
+    // Solid uniform colors 
     const COLORS = [
         '#ef4444', // Red
         '#3b82f6', // Blue
@@ -74,20 +75,17 @@ window.addEventListener("load", function() {
             ctx.save();
             ctx.translate(this.x, this.y);
             
-            // Base Color
-            ctx.beginPath(); ctx.arc(0, 0, this.radius - 1, 0, Math.PI * 2);
-            ctx.fillStyle = this.color; ctx.fill();
+            // Solid, uniform circle
+            ctx.beginPath(); 
+            ctx.arc(0, 0, this.radius - 1, 0, Math.PI * 2);
+            ctx.fillStyle = this.color; 
+            ctx.fill();
 
-            // Inner Shadow (3D effect)
-            let grad = ctx.createRadialGradient(-this.radius*0.3, -this.radius*0.3, this.radius*0.1, 0, 0, this.radius);
-            grad.addColorStop(0, 'rgba(255,255,255,0.6)'); grad.addColorStop(0.5, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.5)');
-            ctx.fillStyle = grad; ctx.fill();
-
-            // Highlight glint
-            ctx.beginPath(); ctx.ellipse(-this.radius*0.4, -this.radius*0.4, this.radius*0.3, this.radius*0.15, Math.PI/4, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.fill();
-
-            ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.stroke();
+            // Simple border
+            ctx.lineWidth = 2; 
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)'; 
+            ctx.stroke();
+            
             ctx.restore();
         }
 
@@ -117,7 +115,8 @@ window.addEventListener("load", function() {
                     let b = grid[r][c];
                     if (b && !b.isDropping) {
                         let dist = Math.sqrt(Math.pow(this.x - b.x, 2) + Math.pow(this.y - b.y, 2));
-                        if (dist < this.radius * 2 - 2) return true;
+                        // Slight tolerance to allow squeezing through tight gaps
+                        if (dist < this.radius * 2 - 4) return true;
                     }
                 }
             }
@@ -141,7 +140,6 @@ window.addEventListener("load", function() {
             if (col >= maxCols) col = maxCols - 1;
 
             if (grid[row] && grid[row][col]) {
-                // Find nearest empty neighbor
                 let neighbors = getNeighbors(row, col, true);
                 let emptyNeighbor = null;
                 let minDist = Infinity;
@@ -177,20 +175,22 @@ window.addEventListener("load", function() {
                 dropFloaters();
             }
 
-            if (row >= ROW_COUNT - 1) { triggerGameOver(false); return; }
-
-            dropCounter++;
-            if (dropCounter >= DROPS_UNTIL_ADD && cluster.length < 3) {
-                dropCounter = 0; addNewRow();
-            }
-
-            if (isBoardEmpty()) {
-                level++; score += 1000 * level;
-                startLevel(); return;
-            }
+            checkDangerLine();
 
             if (gameState !== 'GAMEOVER') {
-                setTimeout(() => { if(gameState !== 'GAMEOVER') { gameState = 'PLAYING'; prepareNextBubble(); } }, cluster.length >= 3 ? 300 : 50);
+                dropCounter++;
+                if (dropCounter >= DROPS_UNTIL_ADD && cluster.length < 3) {
+                    dropCounter = 0; addNewRow();
+                }
+
+                if (isBoardEmpty()) {
+                    level++; score += 1000 * level;
+                    startLevel(); return;
+                }
+
+                if (gameState !== 'GAMEOVER') {
+                    setTimeout(() => { if(gameState !== 'GAMEOVER') { gameState = 'PLAYING'; prepareNextBubble(); } }, cluster.length >= 3 ? 300 : 50);
+                }
             }
         }
     }
@@ -216,7 +216,6 @@ window.addEventListener("load", function() {
         }
     }
 
-    // --- Grid Helpers ---
     function getGridX(row, col) { return (row % 2 !== 0 ? GRID_OFFSET_X + BUBBLE_RADIUS : GRID_OFFSET_X) + (col * BUBBLE_RADIUS * 2); }
     function getGridY(row) { return GRID_OFFSET_Y + (row * ROW_HEIGHT); }
     function getRandomColor() { return COLORS[Math.floor(Math.random() * activeColors)]; }
@@ -232,7 +231,6 @@ window.addEventListener("load", function() {
         return arr.length === 0 ? getRandomColor() : arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // --- Game Logic ---
     function initGame(difficultyStr) {
         if(difficultyStr === 'easy') activeColors = 3;
         else if(difficultyStr === 'medium') activeColors = 4;
@@ -343,10 +341,20 @@ window.addEventListener("load", function() {
             newGrid.push(shiftedRow);
         }
         grid = newGrid;
+        
+        checkDangerLine();
+    }
 
-        if(grid.length >= ROW_COUNT) {
-            for(let c=0; c<grid[ROW_COUNT-1].length; c++) {
-                if(grid[ROW_COUNT-1][c]) { triggerGameOver(false); return; }
+    function checkDangerLine() {
+        let dangerY = getGridY(ROW_COUNT - 1) + BUBBLE_RADIUS;
+        for(let r=0; r<grid.length; r++) {
+            if(!grid[r]) continue;
+            for(let c=0; c<grid[r].length; c++) {
+                let b = grid[r][c];
+                if(b && !b.isDropping && (b.y + b.radius >= dangerY)) {
+                    triggerGameOver(false);
+                    return;
+                }
             }
         }
     }
@@ -364,7 +372,6 @@ window.addEventListener("load", function() {
         for(let i=0; i<10; i++) particles.push(new Particle(x, y, color));
     }
 
-    // --- Inputs ---
     function handlePointerMove(e) {
         if (gameState !== 'PLAYING') return;
         const rect = canvas.getBoundingClientRect();
@@ -381,7 +388,7 @@ window.addEventListener("load", function() {
 
         let dx = pointerX - SHOOTER_X;
         let dy = pointerY - SHOOTER_Y;
-        if (dy >= 0) return; // Prevent shooting down
+        if (dy >= 0) return; 
 
         let dist = Math.sqrt(dx*dx + dy*dy);
         currentBubble.vx = (dx / dist) * BUBBLE_SPEED;
@@ -395,7 +402,6 @@ window.addEventListener("load", function() {
         pauseOverlay.classList.toggle('hidden', !isPaused);
     }
 
-    // Keyboard support
     document.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'p') togglePause();
     });
@@ -405,7 +411,6 @@ window.addEventListener("load", function() {
     canvas.addEventListener('mousedown', handleShoot);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointerMove(e); handleShoot(e); }, {passive: false});
 
-    // --- UI Listeners ---
     document.getElementById('start-game-btn').addEventListener('click', () => {
         let diff = document.querySelector('input[name="difficulty"]:checked').value;
         initGame(diff);
@@ -431,7 +436,7 @@ window.addEventListener("load", function() {
         gameState = 'GAMEOVER';
         endTitle.textContent = win ? "LEVEL CLEARED!" : "GAME OVER";
         endTitle.style.color = win ? "#facc15" : "#ef4444";
-        endMessage.textContent = win ? "You cleared the board!" : "The bubbles reached the bottom.";
+        endMessage.textContent = win ? "You cleared the board!" : "The bubbles reached the bottom line.";
         finalScoreVal.textContent = score;
         gameOverOverlay.classList.remove('hidden');
     }
@@ -440,7 +445,6 @@ window.addEventListener("load", function() {
         hudScore.textContent = score; hudLevel.textContent = level;
     }
 
-    // --- Rendering & Update Loop ---
     function drawShooter() {
         if (nextBubbleColor) {
             ctx.beginPath(); ctx.arc(SHOOTER_X - 80, SHOOTER_Y, BUBBLE_RADIUS * 0.5, 0, Math.PI*2);
