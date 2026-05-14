@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport settings to prevent zooming/scrolling on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bubble Shooter 2026 - ClickSyncGames</title>
+    <link rel="stylesheet" href="bubbleshooter2026.css">
+</head>
+<body>
+    <div id="game-wrapper">
+        <!-- Landscape Orientation Warning (Only visible on mobile portrait) -->
+        <div id="orientation-warning">For best experience have the screen in landscape orientation</div>
+
+        <header id="csg-header">
+            <div id="csg-branding">
+                <span class="logo-shield">CSG</span>
+                <span id="game-title">Bubble Shooter 2026</span>
+            </div>
+            <div id="csg-navigation">
+                <!-- Added (P) hint for keyboard users -->
+                <button id="pause-btn" class="btn secondary">Pause (P)</button>
+                <button id="return-btn" class="btn primary">Return to ClickSyncGames</button>
+            </div>
+        </header>
+
+        <div id="main-content">
+            <div id="canvas-container">
+                <canvas id="gameCanvas"></canvas>
+                
+                <!-- Heads Up Display (HUD) -->
+                <div id="hud">
+                    <div class="hud-top">
+                        <div class="hud-score-info">
+                            <span class="hud-label">Score:</span>
+                            <span id="hud-score">0</span>
+                        </div>
+                        <div class="hud-level-info">
+                            <span class="hud-label">Level:</span>
+                            <span id="hud-level">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Menu Overlay -->
+                <div id="menu-overlay" class="overlay">
+                    <div class="menu-box">
+                        <h2 class="neon-text">BUBBLE SHOOTER 2026</h2>
+                        <p class="subtitle">Match 3 or more to clear!</p>
+                        
+                        <div class="difficulty-selector">
+                            <h3>Select Difficulty</h3>
+                            <div class="radio-group">
+                                <label><input type="radio" name="difficulty" value="easy" checked> Easy (3 Colors)</label>
+                                <label><input type="radio" name="difficulty" value="medium"> Medium (4 Colors)</label>
+                                <label><input type="radio" name="difficulty" value="hard"> Hard (5 Colors)</label>
+                            </div>
+                        </div>
+
+                        <button id="start-game-btn" class="mode-btn action">START GAME</button>
+                    </div>
+                </div>
+
+                <!-- Pause Overlay -->
+                <div id="pause-overlay" class="overlay hidden">
+                    <div class="menu-box">
+                        <h2>GAME PAUSED</h2>
+                        <button id="resume-btn" class="btn primary action">Resume (P)</button>
+                        <button id="restart-pause-btn" class="btn secondary action" style="margin-top:15px;">Restart Level</button>
+                    </div>
+                </div>
+
+                <!-- Game Over Overlay -->
+                <div id="game-over-overlay" class="overlay hidden">
+                    <div class="menu-box">
+                        <h2 id="end-title">GAME OVER</h2>
+                        <h3 id="final-score-text">Final Score: <span id="final-score-val">0</span></h3>
+                        <p id="end-message"></p>
+                        <button id="restart-btn" class="btn primary action" style="margin-top: 20px;">Play Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="bubbleshooter2026.js"></script>
+</body>
+</html>
