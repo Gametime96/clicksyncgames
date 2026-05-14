@@ -16,14 +16,28 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             background: #1a252f;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
-            touch-action: none;
+            /* Allows scrollbar ONLY if screen gets cut off */
+            overflow-x: hidden;
+            overflow-y: auto; 
+            /* Allows vertical finger swiping on mobile */
+            touch-action: pan-y; 
             color: #ecf0f1;
+        }
+
+        /* Safe wrapper to ensure scroll doesn't clip top UI */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            width: 100%;
+            padding-top: 90px; /* Space for the UI bar */
+            padding-bottom: 40px; /* Breathing room at the bottom */
+            box-sizing: border-box;
         }
 
         /* Cinematic Overlay */
@@ -128,13 +142,13 @@
         /* Responsive Game Board */
         #game-board {
             position: relative;
-            width: min(95vw, calc(100vh - 120px));
-            height: min(95vw, calc(100vh - 120px));
-            margin-top: 60px;
+            width: min(95vw, 600px);
+            height: min(95vw, 600px);
             background: #34495e;
             border: 4px solid #1abc9c;
             border-radius: 4px;
             transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
+            flex-shrink: 0; /* Prevents squishing when scrolling */
         }
 
         /* Media Query for Mobile Portrait / Narrow Screens */
@@ -150,10 +164,12 @@
                 width: 100%;
                 justify-content: center;
             }
+            #game-container {
+                padding-top: 140px; /* More top padding for stacked UI bar */
+            }
             #game-board {
-                margin-top: 100px; 
-                width: min(95vw, calc(100vh - 140px));
-                height: min(95vw, calc(100vh - 140px));
+                width: min(95vw, 400px);
+                height: min(95vw, 400px);
             }
             .control-btn {
                 font-size: 0.8rem;
@@ -161,20 +177,17 @@
             }
         }
 
-        /* Media Query for Mobile Landscape (Zooms out by ~10% to prevent cutoff) */
+        /* Media Query for Mobile Landscape */
         @media (orientation: landscape) and (max-height: 600px) {
             #ui-bar {
-                padding: 5px 15px; /* Compact padding */
+                padding: 5px 15px;
+            }
+            #game-container {
+                padding-top: 80px; 
             }
             #game-board {
-                margin-top: 50px; 
-                /* Scaled down 10% from original constraints */
-                width: min(85vw, calc(90vh - 70px));
-                height: min(85vw, calc(90vh - 70px));
-            }
-            .control-btn {
-                font-size: 0.75rem;
-                padding: 5px 10px;
+                width: min(85vw, 350px);
+                height: min(85vw, 350px);
             }
         }
 
@@ -291,14 +304,17 @@
         <div id="track-count-display">TRACKS: <span id="track-count">0</span> / 18</div>
     </div>
 
-    <div id="game-board">
-        <div id="grid"></div>
-        <div id="train-wrapper" style="display: none;">
-            <div id="train-body">
-                <div class="smokestack"></div>
-                <div class="cabin"></div>
-                <div class="side-rod left"></div>
-                <div class="side-rod right"></div>
+    <!-- Wrapping container ensures layout works perfectly with overflow auto -->
+    <div id="game-container">
+        <div id="game-board">
+            <div id="grid"></div>
+            <div id="train-wrapper" style="display: none;">
+                <div id="train-body">
+                    <div class="smokestack"></div>
+                    <div class="cabin"></div>
+                    <div class="side-rod left"></div>
+                    <div class="side-rod right"></div>
+                </div>
             </div>
         </div>
     </div>
