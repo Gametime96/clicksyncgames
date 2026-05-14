@@ -26,27 +26,47 @@
             height: 100vh;
             overflow: hidden;
             user-select: none;
-            /* Prevents long-press text selection on mobile */
             -webkit-touch-callout: none;
+        }
+
+        /* --- Force Persistent Scrollbars --- */
+        ::-webkit-scrollbar {
+            width: 10px;
+            -webkit-appearance: none;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+            border-left: 1px solid #374151;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 5px;
+            border: 2px solid #111827;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: #6b7280;
         }
 
         /* --- Global Back Link --- */
         #backLink {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            color: #9ca3af;
+            top: 15px;
+            left: 15px;
+            color: #d1d5db;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #d1d5db;
             z-index: 9999;
-            transition: color 0.2s;
-            background: rgba(10, 14, 23, 0.8);
-            padding: 5px 10px;
-            border-radius: 4px;
+            transition: all 0.2s;
+            background: rgba(10, 14, 23, 0.9);
+            padding: 8px 14px;
+            border-radius: 6px;
         }
 
         #backLink:hover {
             color: var(--neon-green);
+            border-color: var(--neon-green);
         }
 
         /* Make the wrapper responsive for mobile */
@@ -74,7 +94,7 @@
             border-bottom: 2px solid #374151;
             font-size: 16px;
             font-weight: bold;
-            flex-wrap: wrap; /* Allows wrapping on tight mobile screens */
+            flex-wrap: wrap; 
             gap: 5px;
         }
 
@@ -113,7 +133,7 @@
             border: none;
             border-right: 1px solid #374151;
             font-family: inherit;
-            font-size: 14px; /* Slightly smaller for mobile */
+            font-size: 14px; 
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
@@ -186,7 +206,7 @@
             width: 100%;
             height: 100%;
             cursor: crosshair;
-            touch-action: none; /* Prevents mobile scrolling when interacting with canvas */
+            touch-action: none;
         }
         
         #canopyOverlay {
@@ -201,7 +221,7 @@
         #terminalView {
             padding: 30px;
             gap: 20px;
-            overflow-y: auto;
+            overflow-y: scroll; /* Force continuous scrollbar */
         }
 
         .upgrade-card {
@@ -213,7 +233,7 @@
             align-items: center;
             border: 1px solid #374151;
             margin-bottom: 15px;
-            flex-wrap: wrap; /* Helps on very small screens */
+            flex-wrap: wrap; 
             gap: 10px;
         }
 
@@ -243,13 +263,25 @@
             background: rgba(10, 14, 23, 0.98);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start; /* Changed from center to allow top-down scrolling without clipping */
             align-items: center;
             z-index: 100;
+            overflow-y: scroll; /* Force persistent scroll on screens */
+        }
+
+        /* Inner wrapper centers content naturally but allows scrolling if taller than screen */
+        .overlay-inner {
+            margin: auto 0;
+            padding: 80px 20px 40px 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .overlay-screen h1 { font-size: 48px; color: var(--neon-green); letter-spacing: 4px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-green); text-align: center;}
-        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 600px; line-height: 1.6; margin-bottom: 30px; padding: 0 20px;}
+        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 600px; line-height: 1.6; margin-bottom: 30px;}
         
         /* --- Guide CSS --- */
         .guide-container {
@@ -258,7 +290,7 @@
             margin-bottom: 30px;
             width: 90%;
             max-width: 800px;
-            flex-wrap: wrap; /* Allows stacking on mobile */
+            flex-wrap: wrap; 
         }
 
         .guide-step {
@@ -413,47 +445,57 @@
         </div>
 
         <div id="startScreen" class="overlay-screen">
-            <h1>Flora.SYS</h1>
-            <p class="subtitle">There are <b>6 progressive threat levels</b> to conquer. Each level lasts exactly <b>4 minutes</b>. You must maintain core integrity to survive.</p>
-            
-            <div class="guide-container">
-                <div class="guide-step">
-                    <div class="guide-img"><div class="img-node"></div></div>
-                    <p><b>1. Gather</b>Click glowing green nodes in Roots to harvest Nutrients.</p>
+            <div class="overlay-inner">
+                <h1>Flora.SYS</h1>
+                <p class="subtitle">There are <b>6 progressive threat levels</b> to conquer. Each level lasts exactly <b>4 minutes</b>. You must maintain core integrity to survive.</p>
+                
+                <div class="guide-container">
+                    <div class="guide-step">
+                        <div class="guide-img"><div class="img-node"></div></div>
+                        <p><b>1. Gather</b>Click glowing green nodes in Roots to harvest Nutrients.</p>
+                    </div>
+                    <div class="guide-step">
+                        <div class="guide-img"><div class="img-turret"></div></div>
+                        <p><b>2. Defend</b>Spend Nutrients in Canopy to plant defensive turrets.</p>
+                    </div>
+                    <div class="guide-step">
+                        <div class="guide-img"><div class="img-terminal"></div></div>
+                        <p><b>3. Upgrade</b>Use the Terminal to buy upgrades and repair the core.</p>
+                    </div>
                 </div>
-                <div class="guide-step">
-                    <div class="guide-img"><div class="img-turret"></div></div>
-                    <p><b>2. Defend</b>Spend Nutrients in Canopy to plant defensive turrets.</p>
-                </div>
-                <div class="guide-step">
-                    <div class="guide-img"><div class="img-terminal"></div></div>
-                    <p><b>3. Upgrade</b>Use the Terminal to buy upgrades and repair the core.</p>
-                </div>
-            </div>
 
-            <button class="start-btn" id="startBtn">Initialize Sequence</button>
+                <button class="start-btn" id="startBtn">Initialize Sequence</button>
+            </div>
         </div>
 
         <div id="levelTransitionScreen" class="overlay-screen" style="display: none; background: rgba(10, 14, 23, 0.85);">
-            <h1 id="transitionTitle" style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple); text-align: center;">Now entering level 1</h1>
+            <div class="overlay-inner">
+                <h1 id="transitionTitle" style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple); text-align: center;">Now entering level 1</h1>
+            </div>
         </div>
 
         <div id="pauseScreen" class="overlay-screen" style="display: none; background: rgba(10, 14, 23, 0.85);">
-            <h1 style="color: #9ca3af; letter-spacing: 10px;">PAUSED</h1>
-            <button class="start-btn" id="continueBtn" style="background: #9ca3af; margin-top: 30px;">Continue</button>
+            <div class="overlay-inner">
+                <h1 style="color: #9ca3af; letter-spacing: 10px;">PAUSED</h1>
+                <button class="start-btn" id="continueBtn" style="background: #9ca3af; margin-top: 30px;">Continue</button>
+            </div>
         </div>
 
         <div id="gameOverScreen" class="overlay-screen" style="display: none;">
-            <h1 style="color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red);">SYSTEM FAILURE</h1>
-            <p style="color: #9ca3af; text-align: center;">Core Integrity reached 0%. The garden has been corrupted.</p>
-            <p id="survivalText" style="color: var(--neon-green); margin-top: 20px; font-size: 24px;">Survived to Level: 1</p>
-            <button class="start-btn" id="restartBtn" style="background: var(--neon-red); margin-top: 30px;">Reboot System</button>
+            <div class="overlay-inner">
+                <h1 style="color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red);">SYSTEM FAILURE</h1>
+                <p style="color: #9ca3af; text-align: center;">Core Integrity reached 0%. The garden has been corrupted.</p>
+                <p id="survivalText" style="color: var(--neon-green); margin-top: 20px; font-size: 24px;">Survived to Level: 1</p>
+                <button class="start-btn" id="restartBtn" style="background: var(--neon-red); margin-top: 30px;">Reboot System</button>
+            </div>
         </div>
 
         <div id="victoryScreen" class="overlay-screen" style="display: none;">
-            <h1 style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">THREAT PURGED</h1>
-            <p style="color: #9ca3af; text-align: center; padding: 0 20px;">You have successfully maintained the ecosystem through all 6 threat levels.</p>
-            <button class="start-btn" id="playAgainBtn" style="background: var(--neon-purple); margin-top: 30px;">Play Again</button>
+            <div class="overlay-inner">
+                <h1 style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">THREAT PURGED</h1>
+                <p style="color: #9ca3af; text-align: center; padding: 0 20px;">You have successfully maintained the ecosystem through all 6 threat levels.</p>
+                <button class="start-btn" id="playAgainBtn" style="background: var(--neon-purple); margin-top: 30px;">Play Again</button>
+            </div>
         </div>
     </div>
 
@@ -535,7 +577,6 @@
                 node.className = 'node';
                 node.dataset.index = i;
                 
-                // Changed from mousedown to pointerdown to capture both mouse and touch efficiently
                 node.addEventListener('pointerdown', (e) => {
                     if (state.isTransitioning || state.isPaused || !state.isRunning) return; 
                     
@@ -749,21 +790,16 @@
         }
 
         // --- CANOPY SUBSYSTEM (CANVAS) ---
-        // Upgraded from mousedown to pointerdown to fix mobile logic + coordinate mapping fix
         canvas.addEventListener('pointerdown', (e) => {
             if (state.activeTab !== 'canopyView' || !state.isRunning || state.isTransitioning || state.isPaused) return;
             
             const rect = canvas.getBoundingClientRect();
-            
-            // Calculate ratio between visual size (CSS) and actual logical resolution
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             
-            // Map event coordinates to exact internal canvas coordinates
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
 
-            // Prevent placing turrets too high (enemy spawn zone)
             if (y < 150) return;
 
             if (state.nutrients >= COSTS.turret) {
