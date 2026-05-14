@@ -4,14 +4,13 @@
 body, html { 
     width: 100%; height: 100%; font-family: 'Nunito', sans-serif; 
     background-color: #0f172a; color: #ecf0f1; 
-    overflow-y: auto; 
-    overflow-x: hidden;
-    touch-action: pan-y; 
+    overflow: hidden; 
+    touch-action: none; 
 }
 
 #game-wrapper { 
     display: flex; flex-direction: column; 
-    min-height: 100vh; 
+    height: 100vh; 
     width: 100vw; position: relative;
 }
 
@@ -26,10 +25,11 @@ body, html {
     z-index: 1000;
 }
 
+/* Header */
 #csg-header { 
     display: flex; justify-content: space-between; align-items: center; 
     padding: 10px 20px; background: #0f172a; border-bottom: 2px solid #8b5cf6;
-    min-height: 60px; z-index: 200; position: relative; flex-wrap: wrap; gap: 10px;
+    height: 60px; z-index: 200; position: relative; flex-wrap: wrap; gap: 10px;
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
 }
 #csg-branding { display: flex; align-items: center; gap: 10px; }
@@ -37,8 +37,8 @@ body, html {
 #game-title { font-size: 1.3rem; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);}
 #csg-navigation { display: flex; gap: 10px; flex-wrap: wrap; }
 
-/* Increased Button Sizes by 5% */
-.btn { padding: 11px 17px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+/* Buttons */
+.btn { padding: 10px 16px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
 .btn:active { transform: scale(0.95); }
 .btn.primary { background-color: #8b5cf6; color: white; }
 .btn.primary:hover { background-color: #7c3aed; }
@@ -46,24 +46,36 @@ body, html {
 .btn.secondary:hover { background-color: #475569; }
 .action { width: 100%; padding: 15px; font-size: 1.2rem; }
 
+/* Responsive Canvas Area */
 #main-content { 
     display: flex; flex: 1; position: relative; background: #020617; 
-    justify-content: center; 
+    justify-content: center; align-items: center;
+    overflow: hidden;
+    height: calc(100vh - 60px); /* Fill remaining height exactly */
 }
+
 #canvas-container { 
-    flex: 1; width: 100%; max-width: 800px; 
-    min-height: 800px; 
-    background: radial-gradient(circle at bottom center, #1e1b4b, #020617); 
     position: relative; 
+    background: radial-gradient(circle at bottom center, #1e1b4b, #020617); 
     border-left: 2px solid #1e293b; border-right: 2px solid #1e293b;
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    /* Lock the aspect ratio to match the 800x1000 logical resolution (4:5) */
+    aspect-ratio: 4 / 5;
+    /* Never get taller than the screen, never get wider than 800px */
+    max-height: 100%;
+    max-width: 800px;
+    /* Fallback width calculation for narrow screens */
+    width: auto;
+    height: 100%;
 }
+
 canvas { 
     width: 100%; height: 100%; display: block; 
     touch-action: none; 
     cursor: crosshair;
 }
 
+/* HUD */
 #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; padding: 15px;}
 .hud-top { display: flex; justify-content: space-between; pointer-events: auto; }
 .hud-score-info, .hud-level-info { 
@@ -75,6 +87,7 @@ canvas {
 #hud-score { color: #facc15; }
 #hud-level { color: #38bdf8; }
 
+/* Menus & Overlays */
 .overlay { 
     position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
     background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; 
@@ -105,10 +118,17 @@ canvas {
 #end-message { color: #94a3b8; margin-bottom: 20px; font-size: 1.1rem;}
 
 @media (max-width: 600px) {
-    #csg-header { flex-direction: column; padding: 10px; }
+    #csg-header { flex-direction: column; padding: 10px; height: auto;}
     #csg-navigation { width: 100%; justify-content: center;}
     .hud-score-info, .hud-level-info { font-size: 1rem; padding: 6px 10px;}
     .neon-text { font-size: 1.8rem;}
+    
+    #canvas-container {
+        /* On very narrow phones, enforce width and let height follow aspect ratio */
+        height: auto;
+        width: 100%;
+        max-height: calc(100vh - 90px); 
+    }
 }
 
 @media screen and (orientation: portrait) and (max-width: 768px) {
