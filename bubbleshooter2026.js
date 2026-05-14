@@ -2,54 +2,46 @@ window.addEventListener("load", function() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Internal logical resolution for math consistency
+    // Internal logical resolution 
     canvas.width = 800;
     canvas.height = 1000;
 
     let gameState = 'MENU'; 
     let isPaused = false;
 
-    // Bubble Grid
-    const ROW_COUNT = 16; 
+    // Grid Setup
     const COL_COUNT = 14; 
     const BUBBLE_RADIUS = 28; 
     const GRID_OFFSET_X = (canvas.width - (COL_COUNT * BUBBLE_RADIUS * 2)) / 2 + BUBBLE_RADIUS;
     const GRID_OFFSET_Y = BUBBLE_RADIUS + 10;
     const ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3); 
 
+    // **CRITICAL FIX: Explicit Danger Line**
+    // The line is drawn 150px above the bottom. The game ONLY ends if a resting bubble's center crosses this line.
+    const DANGER_Y = canvas.height - 150; 
+
     // Mechanics
     const SHOOTER_X = canvas.width / 2;
     const SHOOTER_Y = canvas.height - 60;
     const BUBBLE_SPEED = 30; 
     
-    // Solid uniform colors 
-    const COLORS = [
-        '#ef4444', // Red
-        '#3b82f6', // Blue
-        '#22c55e', // Green
-        '#eab308', // Yellow
-        '#a855f7', // Purple
-        '#ec4899'  // Pink
-    ];
+    const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899'];
 
     let activeColors = 3; 
-    let grid = []; 
+    let grid = []; // 2D array [row][col]
     let currentBubble = null;
     let nextBubbleColor = null;
     let score = 0;
     let level = 1;
 
-    // Time-based dropping
     let lastDropTime = 0;
     const DROP_INTERVAL_MS = 6000; // 6 seconds
 
     let particles = [];
     
-    // Pointer
     let pointerX = SHOOTER_X;
     let pointerY = SHOOTER_Y - 100;
 
-    // DOM
     const menuOverlay = document.getElementById('menu-overlay');
     const pauseOverlay = document.getElementById('pause-overlay');
     const gameOverOverlay = document.getElementById('game-over-overlay');
@@ -87,9 +79,12 @@ window.addEventListener("load", function() {
         update() {
             if (this.isMoving) {
                 this.x += this.vx; this.y += this.vy;
+                
+                // Walls
                 if (this.x - this.radius <= 0) { this.x = this.radius; this.vx *= -1; } 
                 else if (this.x + this.radius >= canvas.width) { this.x = canvas.width - this.radius; this.vx *= -1; }
 
+                // Ceiling or Bubble hit
                 if (this.y - this.radius <= 0) {
                     this.y = this.radius; this.snapToGrid();
                 } else if (this.checkGridCollision()) {
@@ -130,6 +125,7 @@ window.addEventListener("load", function() {
             if (col < 0) col = 0;
             if (col >= maxCols) col = maxCols - 1;
 
+            // If slot taken, find nearest empty space
             if (grid[row] && grid[row][col]) {
                 let neighbors = getNeighbors(row, col, true);
                 let emptyNeighbor = null;
@@ -146,7 +142,8 @@ window.addEventListener("load", function() {
                 if (emptyNeighbor) {
                     row = emptyNeighbor.r; col = emptyNeighbor.c;
                 } else {
-                    triggerGameOver(false); return;
+                    // Force a new row if we somehow can't find a spot
+                    row = grid.length;
                 }
             }
 
@@ -156,7 +153,6 @@ window.addEventListener("load", function() {
             this.x = getGridX(row, col); this.y = getGridY(row);
             grid[row][col] = this;
 
-            gameState = 'ANIMATING';
             let cluster = findMatchCluster(row, col, this.color);
             
             if (cluster.length >= 3) {
@@ -166,21 +162,19 @@ window.addEventListener("load", function() {
                 dropFloaters();
             }
 
-            checkDangerLine();
-
-            if (gameState !== 'GAMEOVER') {
-                if (isBoardEmpty()) {
-                    level++; score += 1000 * level;
-                    startLevel(); return;
-                }
-
-                setTimeout(() => { 
-                    if(gameState !== 'GAMEOVER') { 
-                        gameState = 'PLAYING'; 
-                        prepareNextBubble(); // Process queue
-                    } 
-                }, cluster.length >= 3 ? 300 : 50);
+            // **CRITICAL FIX: Check the Danger Line**
+            if (checkDangerLine()) {
+                triggerGameOver(false);
+                return;
             }
+
+            if (isBoardEmpty()) {
+                level++; score += 1000 * level;
+                startLevel(); return;
+            }
+
+            gameState = 'PLAYING';
+            prepareNextBubble();
         }
     }
 
@@ -195,9 +189,7 @@ window.addEventListener("load", function() {
             this.decay = Math.random() * 0.05 + 0.02;
             this.size = Math.random() * 6 + 4;
         }
-        update() {
-            this.x += this.vx; this.y += this.vy; this.vy += 0.2; this.life -= this.decay;
-        }
+        update() { this.x += this.vx; this.y += this.vy; this.vy += 0.2; this.life -= this.decay; }
         draw(ctx) {
             ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
@@ -238,11 +230,10 @@ window.addEventListener("load", function() {
             for (let c = 0; c < cols; c++) grid[r][c] = new Bubble(getGridX(r, c), getGridY(r), r, c, getRandomColor());
         }
 
-        // Initialize the queue properly once per level
         nextBubbleColor = getExistingColor();
         prepareNextBubble();
         
-        lastDropTime = performance.now(); // Reset drop timer
+        lastDropTime = performance.now(); 
         
         updateHUD();
         menuOverlay.classList.add('hidden'); gameOverOverlay.classList.add('hidden'); pauseOverlay.classList.add('hidden');
@@ -250,7 +241,6 @@ window.addEventListener("load", function() {
     }
 
     function prepareNextBubble() {
-        // Shift queue: current becomes next, next gets a new roll
         currentBubble = new Bubble(SHOOTER_X, SHOOTER_Y, -1, -1, nextBubbleColor);
         nextBubbleColor = getExistingColor();
     }
@@ -258,16 +248,11 @@ window.addEventListener("load", function() {
     function getNeighbors(row, col, includeBelow = false) {
         let isOffset = row % 2 !== 0;
         let neighbors = [{r: row, c: col - 1}, {r: row, c: col + 1}, {r: row - 1, c: col}];
-        
-        if (isOffset) neighbors.push({r: row - 1, c: col + 1}); 
-        else neighbors.push({r: row - 1, c: col - 1}); 
-
+        if (isOffset) neighbors.push({r: row - 1, c: col + 1}); else neighbors.push({r: row - 1, c: col - 1}); 
         if (includeBelow) {
             neighbors.push({r: row + 1, c: col});
-            if (isOffset) neighbors.push({r: row + 1, c: col + 1});
-            else neighbors.push({r: row + 1, c: col - 1});
+            if (isOffset) neighbors.push({r: row + 1, c: col + 1}); else neighbors.push({r: row + 1, c: col - 1});
         }
-
         return neighbors.filter(n => n.r >= 0 && n.c >= 0 && n.c < ((n.r % 2 !== 0) ? COL_COUNT - 1 : COL_COUNT));
     }
 
@@ -334,21 +319,24 @@ window.addEventListener("load", function() {
         }
         grid = newGrid;
         
-        checkDangerLine();
+        if (checkDangerLine()) {
+            triggerGameOver(false);
+        }
     }
 
+    // **CRITICAL FIX:** Only checks physical Y position against the danger line
     function checkDangerLine() {
-        let dangerY = getGridY(ROW_COUNT - 1) + BUBBLE_RADIUS;
         for(let r=0; r<grid.length; r++) {
             if(!grid[r]) continue;
             for(let c=0; c<grid[r].length; c++) {
                 let b = grid[r][c];
-                if(b && !b.isDropping && (b.y + b.radius >= dangerY)) {
-                    triggerGameOver(false);
-                    return;
+                // If a resting bubble's center crosses the danger line
+                if(b && !b.isDropping && (b.y >= DANGER_Y)) {
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     function isBoardEmpty() {
@@ -392,7 +380,6 @@ window.addEventListener("load", function() {
         if (gameState === 'MENU' || gameState === 'GAMEOVER') return;
         isPaused = !isPaused;
         pauseOverlay.classList.toggle('hidden', !isPaused);
-        // Correct the timer so dropping doesn't happen instantly upon resume
         if(!isPaused) {
             lastDropTime = performance.now() - (lastDropTime > 0 ? performance.now() - lastDropTime : 0);
         }
@@ -414,16 +401,13 @@ window.addEventListener("load", function() {
 
     document.getElementById('pause-btn').addEventListener('click', togglePause);
     document.getElementById('resume-btn').addEventListener('click', togglePause);
-
     document.getElementById('restart-pause-btn').addEventListener('click', () => {
         let diff = document.querySelector('input[name="difficulty"]:checked').value;
         initGame(diff);
     });
-
     document.getElementById('restart-btn').addEventListener('click', () => {
         gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden');
     });
-
     document.getElementById('return-btn').addEventListener('click', () => {
         window.location.href = 'https://clicksyncgames.com';
     });
@@ -432,7 +416,7 @@ window.addEventListener("load", function() {
         gameState = 'GAMEOVER';
         endTitle.textContent = win ? "LEVEL CLEARED!" : "GAME OVER";
         endTitle.style.color = win ? "#facc15" : "#ef4444";
-        endMessage.textContent = win ? "You cleared the board!" : "The bubbles reached the bottom line.";
+        endMessage.textContent = win ? "You cleared the board!" : "The bubbles reached the danger zone.";
         finalScoreVal.textContent = score;
         gameOverOverlay.classList.remove('hidden');
     }
@@ -488,7 +472,6 @@ window.addEventListener("load", function() {
     function update() {
         if (isPaused) return;
 
-        // Check for time-based row drop
         if (gameState === 'PLAYING') {
             let now = performance.now();
             if (now - lastDropTime > DROP_INTERVAL_MS) {
@@ -519,10 +502,15 @@ window.addEventListener("load", function() {
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        let dangerY = getGridY(ROW_COUNT - 1) + BUBBLE_RADIUS;
-        ctx.beginPath(); ctx.moveTo(0, dangerY); ctx.lineTo(canvas.width, dangerY);
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; ctx.lineWidth = 4;
-        ctx.setLineDash([20, 20]); ctx.stroke(); ctx.setLineDash([]);
+        // Draw Interactive Danger Line
+        ctx.beginPath(); ctx.moveTo(0, DANGER_Y); ctx.lineTo(canvas.width, DANGER_Y);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)'; ctx.lineWidth = 4;
+        ctx.setLineDash([15, 10]); ctx.stroke(); ctx.setLineDash([]);
+        
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        ctx.font = 'bold 16px Nunito';
+        ctx.textAlign = 'right';
+        ctx.fillText("DANGER ZONE", canvas.width - 10, DANGER_Y - 10);
 
         for (let r = 0; r < grid.length; r++) {
             if(!grid[r]) continue;
