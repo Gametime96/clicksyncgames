@@ -47,7 +47,7 @@
         .top-nav {
             width: 100%;
             max-width: 900px;
-            padding: 20px 15px;
+            padding: 15px 15px; /* Condensing top spacing */
             text-align: left;
             box-sizing: border-box;
         }
@@ -90,10 +90,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
+            padding: 12px 20px; /* Reduced padding */
             background: #111122;
             border-bottom: 2px solid #2a2a4a;
-            font-size: 16px; 
+            font-size: 15px; 
             font-weight: bold;
             flex-wrap: wrap; 
             gap: 10px;
@@ -144,7 +144,7 @@
 
         .overlay-inner {
             margin: auto 0;
-            padding: 40px 20px;
+            padding: 20px; /* Condensed inner padding */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -152,10 +152,10 @@
             box-sizing: border-box;
         }
 
-        .overlay-screen h1 { font-size: 48px; color: var(--neon-cyan); letter-spacing: 6px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-cyan); text-align: center;}
-        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.6; margin-bottom: 25px;}
+        .overlay-screen h1 { font-size: 40px; color: var(--neon-cyan); letter-spacing: 6px; margin-bottom: 0; text-shadow: 0 0 20px var(--neon-cyan); text-align: center;}
+        .overlay-screen p.subtitle { font-size: 15px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.5; margin-bottom: 15px; margin-top: 10px;}
         
-        /* --- CSS Mechanics Visual Guide (Fixed Layout) --- */
+        /* --- CSS Mechanics Visual Guide (Condensed & Aligned) --- */
         .visual-guide {
             display: flex;
             flex-wrap: wrap; 
@@ -166,17 +166,17 @@
             background: #0a0a1a;
             border: 1px solid #2a2a4a;
             border-radius: 8px;
-            margin-bottom: 25px;
-            padding: 20px;
+            margin-bottom: 15px; /* Condensed */
+            padding: 15px; /* Condensed */
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-            gap: 30px;
+            gap: 20px;
         }
 
         .vg-col {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 5px; /* Tighter gap so arrows touch */
         }
 
         .vg-enemy-row {
@@ -189,12 +189,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transform: rotate(60deg); /* Static angle, no animation */
+            transform: rotate(60deg); 
         }
 
         .vg-core {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             background: #0a0a1a;
             border: 3px solid var(--neon-cyan);
@@ -214,7 +214,7 @@
 
         .vg-tether {
             width: 4px;
-            height: 50px;
+            height: 45px;
             background: var(--neon-cyan);
             box-shadow: 0 0 10px var(--neon-cyan);
             margin: -2px 0;
@@ -222,8 +222,8 @@
         }
 
         .vg-enemy-shape {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background: var(--neon-magenta);
             box-shadow: 0 0 15px var(--neon-magenta);
             transform: rotate(45deg);
@@ -245,7 +245,12 @@
         }
 
         .vg-label-core { color: var(--neon-yellow); }
+        
+        /* Shifting the down arrow to aim accurately at the top right core */
+        .vg-label-core span { transform: translateX(20px); } 
+
         .vg-label-tether { color: var(--neon-cyan); }
+        
         .vg-label-enemy { 
             color: var(--neon-magenta); 
             display: flex; 
@@ -260,8 +265,8 @@
 
         .guide-container { 
             display: flex; 
-            gap: 15px; 
-            margin-bottom: 30px; 
+            gap: 10px; /* Tighter gap */
+            margin-bottom: 15px; /* Condensed margin */
             width: 90%; 
             max-width: 800px;
             flex-wrap: wrap; 
@@ -269,20 +274,20 @@
         
         .guide-step { 
             flex: 1; 
-            min-width: 200px; 
+            min-width: 180px; 
             background: #111122; 
-            padding: 15px; 
+            padding: 12px; /* Condensed padding */
             border-radius: 8px; 
             text-align: center; 
             border: 1px solid #2a2a4a; 
         }
         
-        .guide-step p { font-size: 13px; color: #d1d5db; margin: 10px 0 0 0; line-height: 1.4; }
-        .guide-step b { color: var(--neon-cyan); font-size: 15px; display: block; margin-bottom: 5px; }
+        .guide-step p { font-size: 12px; color: #d1d5db; margin: 8px 0 0 0; line-height: 1.4; }
+        .guide-step b { color: var(--neon-cyan); font-size: 14px; display: block; margin-bottom: 3px; }
 
         .start-btn {
-            padding: 15px 40px;
-            font-size: 20px;
+            padding: 12px 30px; /* Reduced height to fit on screen */
+            font-size: 18px;
             background: var(--neon-cyan);
             color: #000;
             border: none;
@@ -292,7 +297,7 @@
             border-radius: 4px;
             text-transform: uppercase;
             transition: 0.2s;
-            margin-top: 10px;
+            margin-top: 5px;
         }
         .start-btn:hover { box-shadow: 0 0 25px var(--neon-cyan); }
 
@@ -316,6 +321,7 @@
 <body>
 
     <div class="top-nav">
+        <!-- Changed to ClickSyncGames as one word -->
         <a href="index.html" class="back-link">&larr; Back to ClickSyncGames</a>
     </div>
 
@@ -337,9 +343,7 @@
                 <h1>SYNCTIME</h1>
                 <p class="subtitle">Survive 12 progressive levels (30 seconds each). Your pointer is the center point. <br><b>Your endpoints are vulnerable. Your center line is lethal.</b></p>
                 
-                <!-- Fixed Static CSS Visual Diagram -->
                 <div class="visual-guide">
-                    <!-- Player Column -->
                     <div class="vg-col">
                         <div class="vg-label vg-label-core">CORES (Vulnerable)<br><span>↓</span></div>
                         <div class="vg-player">
@@ -350,7 +354,6 @@
                         <div class="vg-label vg-label-tether"><span>↑</span><br>TETHER (Lethal)</div>
                     </div>
             
-                    <!-- Enemy Column -->
                     <div class="vg-col vg-enemy-row">
                         <div class="vg-label vg-label-enemy">ENEMY (Target) <span>→</span></div>
                         <div class="vg-enemy-shape"></div>
