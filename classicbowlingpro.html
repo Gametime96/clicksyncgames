@@ -8,7 +8,6 @@
 </head>
 <body>
     <div id="game-wrapper">
-        <!-- Brand and Navigation -->
         <header id="csg-header">
             <div id="csg-branding">
                 <span class="logo-shield">CSG</span>
@@ -21,11 +20,10 @@
         </header>
 
         <div id="main-content">
-            <!-- Main Game Canvas -->
             <div id="canvas-container">
                 <canvas id="gameCanvas"></canvas>
                 
-                <!-- On-Screen HUD (Heads Up Display) -->
+                <!-- Heads Up Display (HUD) -->
                 <div id="hud" class="hidden">
                     <div class="hud-top">
                         <div class="hud-player-info">
@@ -39,7 +37,7 @@
                         <button id="show-score-btn" class="btn secondary">View Scoreboard</button>
                     </div>
 
-                    <!-- Interactive On-Screen Meter -->
+                    <!-- 4-Step Interactive Meter -->
                     <div id="meter-container" class="hidden">
                         <h3 id="meter-instruction">1. Move Mouse to Position. Click to Lock.</h3>
                         <div id="meter-track" class="hidden">
@@ -52,49 +50,57 @@
 
                 <!-- Main Menu Overlay -->
                 <div id="menu-overlay" class="overlay">
-                    <h2>Select Game Mode</h2>
-                    <button class="mode-btn" data-players="1">1 Player vs CPU</button>
-                    <button class="mode-btn" data-players="2">2 Players</button>
-                    <button class="mode-btn" data-players="3">3 Players</button>
-                    <button class="mode-btn" data-players="4">4 Players</button>
+                    <div class="menu-box">
+                        <h2>Select Game Mode</h2>
+                        <button class="mode-btn" data-players="1">1 Player vs CPU</button>
+                        <button class="mode-btn" data-players="2">2 Players</button>
+                        <button class="mode-btn" data-players="3">3 Players</button>
+                        <button class="mode-btn" data-players="4">4 Players</button>
+                    </div>
                 </div>
 
                 <!-- Color Selection Overlay -->
                 <div id="color-overlay" class="overlay hidden">
-                    <h2 id="color-title">Player 1: Select Your Ball Color</h2>
-                    <div id="color-options">
-                        <div class="color-swatch" data-color="white" style="background: white;"></div>
-                        <div class="color-swatch" data-color="grey" style="background: grey;"></div>
-                        <div class="color-swatch" data-color="orange" style="background: orange;"></div>
-                        <div class="color-swatch" data-color="red" style="background: red;"></div>
-                        <div class="color-swatch" data-color="green" style="background: green;"></div>
-                        <div class="color-swatch" data-color="blue" style="background: #3498db;"></div>
-                        <div class="color-swatch" data-color="purple" style="background: purple;"></div>
-                        <div class="color-swatch" data-color="black" style="background: #222; border: 1px solid #555;"></div>
+                    <div class="menu-box">
+                        <h2 id="color-title">Player 1: Select Your Ball Color</h2>
+                        <div id="color-options">
+                            <div class="color-swatch" data-color="#ecf0f1" style="background: radial-gradient(circle at 30% 30%, #ffffff, #bdc3c7);"></div>
+                            <div class="color-swatch" data-color="#7f8c8d" style="background: radial-gradient(circle at 30% 30%, #bdc3c7, #34495e);"></div>
+                            <div class="color-swatch" data-color="#e67e22" style="background: radial-gradient(circle at 30% 30%, #f39c12, #d35400);"></div>
+                            <div class="color-swatch" data-color="#e74c3c" style="background: radial-gradient(circle at 30% 30%, #ff7675, #c0392b);"></div>
+                            <div class="color-swatch" data-color="#2ecc71" style="background: radial-gradient(circle at 30% 30%, #55efc4, #27ae60);"></div>
+                            <div class="color-swatch" data-color="#3498db" style="background: radial-gradient(circle at 30% 30%, #74b9ff, #2980b9);"></div>
+                            <div class="color-swatch" data-color="#9b59b6" style="background: radial-gradient(circle at 30% 30%, #a29bfe, #8e44ad);"></div>
+                            <div class="color-swatch" data-color="#111111" style="background: radial-gradient(circle at 30% 30%, #555555, #000000); border: 1px solid #444;"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Full Scoreboard Modal -->
+                <!-- Scoreboard Modal -->
                 <div id="scoreboard-modal" class="overlay hidden">
                     <div class="modal-content">
                         <h2>Scoreboard</h2>
                         <div id="scores-container"></div>
-                        <button id="close-score-btn" class="btn primary">Back to Game</button>
+                        <button id="close-score-btn" class="btn primary" style="margin-top: 20px;">Back to Game</button>
                     </div>
                 </div>
 
                 <!-- Pause Overlay -->
                 <div id="pause-overlay" class="overlay hidden">
-                    <h2>GAME PAUSED</h2>
-                    <button id="resume-btn" class="btn primary">Resume</button>
+                    <div class="menu-box">
+                        <h2>GAME PAUSED</h2>
+                        <button id="resume-btn" class="btn primary">Resume</button>
+                    </div>
                 </div>
 
                 <!-- Game Over Overlay -->
                 <div id="game-over-overlay" class="overlay hidden">
-                    <h2>GAME OVER</h2>
-                    <h3 id="winner-text"></h3>
-                    <div id="final-scores-container"></div>
-                    <button id="restart-btn" class="btn primary" style="margin-top: 20px;">Play Again</button>
+                    <div class="menu-box">
+                        <h2>GAME OVER</h2>
+                        <h3 id="winner-text" style="color: #2ecc71; margin-bottom: 20px; font-size: 2rem;"></h3>
+                        <div id="final-scores-container"></div>
+                        <button id="restart-btn" class="btn primary" style="margin-top: 30px;">Play Again</button>
+                    </div>
                 </div>
             </div>
         </div>
