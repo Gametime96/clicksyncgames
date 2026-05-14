@@ -14,17 +14,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const LANE_LENGTH = 1200;
     const PIN_RADIUS = 5;
     const BALL_RADIUS = 10;
-    const GRAVITY = 0.8; // Increased gravity so pins don't fly forever
-    const RESTITUTION = 0.5; // Bounciness (lower = less extreme explosions)
+    const GRAVITY = 0.8; 
+    const RESTITUTION = 0.5;
 
     let ball = null;
-    let pins = []; // Main lane pins
-    let backgroundPins = []; // Pins for the adjacent lanes
+    let pins = []; 
+    let backgroundPins = []; 
     
     // Smooth 3D Camera
     let camera = { x: 0, y: 50, z: -150 };
     let targetCamZ = -150;
-    let resolvingTimer = 0; // Timer to manage the end of the roll
+    let resolvingTimer = 0; 
 
     // HUD Meters
     let meterValue = 0; 
@@ -35,6 +35,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let lockedAngle = 0;
     let lockedPower = 0;
     let lockedSpin = 0;
+    
+    // Steering mechanics
+    let steerQueue = [];
+    let isSteeringLeft = false;
+    let isSteeringRight = false;
+    let selectedPinStyle = 1;
 
     // Game Logic
     let players = [];
@@ -57,6 +63,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const meterFill = document.getElementById('meter-fill');
     const meterCursor = document.getElementById('meter-cursor');
     const meterInstruction = document.getElementById('meter-instruction');
+    const steerControls = document.getElementById('steer-controls');
+    
+    // Read pin style setting
+    document.querySelectorAll('input[name="pinstyle"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            selectedPinStyle = parseInt(e.target.value);
+        });
+    });
 
     class Player {
         constructor(name, isCPU) {
@@ -77,8 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
             this.color = color;
             this.isPin = isPin;
             this.isActive = true;
-            this.wobble = 0; // for drawing pins
-            this.knocked = false; // logic state
+            this.wobble = 0; 
+            this.knocked = false; 
         }
 
         update() {
@@ -99,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 this.y = this.radius;
                 if (this.vy < -2) {
-                    this.vy = -this.vy * RESTITUTION; // Controlled bounce
+                    this.vy = -this.vy * RESTITUTION; 
                     this.vx *= 0.7; 
                     this.vz *= 0.7;
                 } else {
@@ -107,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             
-            // Mark pin as knocked over if it has fallen or moved significantly
             if (this.isPin && !this.knocked) {
                 if (Math.abs(this.vx) > 1 || Math.abs(this.vz) > 1 || this.y > this.radius * 2) {
                     this.knocked = true;
@@ -117,7 +130,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (Math.abs(this.vx) < 0.05) this.vx = 0;
             if (Math.abs(this.vz) < 0.05) this.vz = 0;
 
-            // Curve (Spin)
             if (!this.isPin && gameState === 'ROLLING' && this.vz > 1) {
                 this.vx += lockedSpin * 0.06;
             }
@@ -125,7 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Gutters
             if (this.x < -LANE_WIDTH/2 || this.x > LANE_WIDTH/2) {
                 if (this.isPin) {
-                     // Pin falls into gutter and stops
                      this.y = -10;
                      this.vx = 0;
                      this.vz = 0;
@@ -137,7 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             
-            // Back Pit (Cleanup)
             if (this.z > LANE_LENGTH + 80) {
                 this.isActive = false;
                 if (this.isPin) this.knocked = true;
@@ -145,7 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- 3D Projection Engine ---
     function project(x, y, z) {
         let relZ = z - camera.z;
         if (relZ <= 1) relZ = 1; 
@@ -170,7 +179,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             
-            // Setup Background Lanes (Decorative)
             backgroundPins = [];
             let laneOffsets = [-LANE_WIDTH*1.5 - 20, LANE_WIDTH*1.5 + 20, -LANE_WIDTH*3 - 40, LANE_WIDTH*3 + 40];
             laneOffsets.forEach(offsetX => {
@@ -184,12 +192,10 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
         } else {
-            // Remove knocked pins
             pins = pins.filter(p => p.isActive && !p.knocked);
         }
     }
 
-    // --- Game Flow Methods ---
     function beginColorSelection(numPlayers) {
         players = [];
         if (numPlayers === 1) {
@@ -236,9 +242,13 @@ document.addEventListener("DOMContentLoaded", () => {
         targetCamZ = -150;
         lockedSpin = 0;
         resolvingTimer = 0;
+        steerQueue = [];
+        isSteeringLeft = false;
+        isSteeringRight = false;
+        steerControls.classList.add('hidden');
         
         let pColor = players[currentPlayerIndex].color;
-        ball = new Entity(0, BALL_RADIUS, 0, BALL_RADIUS, 20, pColor, false); // Heavier ball
+        ball = new Entity(0, BALL_RADIUS, 0, BALL_RADIUS, 20, pColor, false); 
         
         updateHUD();
 
@@ -254,7 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- On-Screen Input Sequence ---
     canvas.addEventListener('mousemove', (e) => {
         if (gameState === 'POSITION' && !isPaused) {
             const rect = canvas.getBoundingClientRect();
@@ -264,7 +273,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.addEventListener('mousedown', (e) => {
-        if (isPaused || e.target.tagName === 'BUTTON' || players[currentPlayerIndex].isCPU) return;
+        if (isPaused || players[currentPlayerIndex].isCPU) return;
+        if (e.target.closest('.overlay:not(.hidden)') || e.target.closest('.hud-top') || e.target.closest('#steer-controls')) return;
 
         if (gameState === 'POSITION') {
             lockedPosition = ball.x;
@@ -275,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
             meterFill.style.width = '0%'; 
         } 
         else if (gameState === 'ANGLE') {
-            lockedAngle = (meterValue - 0.5) * 0.3; // Very subtle angle for realism
+            lockedAngle = (meterValue - 0.5) * 0.3; 
             gameState = 'POWER';
             meterValue = 0; meterDirection = 1; meterSpeed = 0.04;
             meterInstruction.textContent = "3. Click to Lock POWER";
@@ -293,6 +303,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Steering Controls (0.5s lag)
+    const btnLeft = document.getElementById('steer-left');
+    const btnRight = document.getElementById('steer-right');
+
+    btnLeft.addEventListener('mousedown', () => isSteeringLeft = true);
+    btnLeft.addEventListener('mouseup', () => isSteeringLeft = false);
+    btnLeft.addEventListener('mouseleave', () => isSteeringLeft = false);
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); isSteeringLeft = true; });
+    btnLeft.addEventListener('touchend', (e) => { e.preventDefault(); isSteeringLeft = false; });
+
+    btnRight.addEventListener('mousedown', () => isSteeringRight = true);
+    btnRight.addEventListener('mouseup', () => isSteeringRight = false);
+    btnRight.addEventListener('mouseleave', () => isSteeringRight = false);
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); isSteeringRight = true; });
+    btnRight.addEventListener('touchend', (e) => { e.preventDefault(); isSteeringRight = false; });
+
+    document.addEventListener('keydown', (e) => {
+        if(e.key === 'ArrowLeft') isSteeringLeft = true;
+        if(e.key === 'ArrowRight') isSteeringRight = true;
+    });
+    document.addEventListener('keyup', (e) => {
+        if(e.key === 'ArrowLeft') isSteeringLeft = false;
+        if(e.key === 'ArrowRight') isSteeringRight = false;
+    });
+
     function executeCPUTurn() {
         ball.x = (Math.random() - 0.5) * 15;
         let targetX = 0;
@@ -302,7 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         let dx = targetX - ball.x;
         lockedAngle = Math.atan2(dx, LANE_LENGTH) + (Math.random() - 0.5) * 0.02;
-        lockedPower = 75 + Math.random() * 25;
+        lockedPower = 60 + Math.random() * 20;
         lockedSpin = (Math.random() - 0.5) * 0.4;
         launchBall();
     }
@@ -310,13 +345,16 @@ document.addEventListener("DOMContentLoaded", () => {
     function launchBall() {
         gameState = 'ROLLING';
         meterContainer.classList.add('hidden');
+        if (!players[currentPlayerIndex].isCPU) {
+            steerControls.classList.remove('hidden');
+        }
         
-        let speed = (lockedPower / 100) * 20 + 15; 
+        // Slower Speed formulation
+        let speed = (lockedPower / 100) * 10 + 6; 
         ball.vz = Math.cos(lockedAngle) * speed;
         ball.vx = Math.sin(lockedAngle) * speed;
     }
 
-    // --- Core Update Loop ---
     function updatePhysics() {
         if (['ANGLE', 'POWER', 'SPIN'].includes(gameState)) {
             meterValue += meterSpeed * meterDirection;
@@ -333,22 +371,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (gameState === 'ROLLING') {
+            // Apply steering queue with 0.5s lag
+            if (isSteeringLeft) steerQueue.push({ time: Date.now() + 500, dir: -0.06 });
+            if (isSteeringRight) steerQueue.push({ time: Date.now() + 500, dir: 0.06 });
+
+            let now = Date.now();
+            steerQueue = steerQueue.filter(ev => {
+                if (now >= ev.time) {
+                    ball.vx += ev.dir;
+                    return false;
+                }
+                return true;
+            });
+
             ball.update();
             pins.forEach(p => p.update());
             checkCollisions();
 
-            // Dynamic Camera Follow
             targetCamZ = ball.z - 150;
-            // Stop camera slightly before pins for a good view
             if (targetCamZ > LANE_LENGTH - 200) targetCamZ = LANE_LENGTH - 200; 
             camera.z += (targetCamZ - camera.z) * 0.1; 
             camera.x += ((ball.x * 0.3) - camera.x) * 0.1; 
 
-            // Progress to resolving exactly 2.5 seconds after ball passes the pin line
+            // Progress to resolving exactly 2.0 seconds after ball passes the pin line
             if (ball.z > LANE_LENGTH - 50) {
-                resolvingTimer += 16; // approx ms per frame
-                if (resolvingTimer > 2500) {
+                resolvingTimer += 16; 
+                if (resolvingTimer > 2000) {
                     gameState = 'RESOLVING';
+                    steerControls.classList.add('hidden');
                     resolveRoll();
                 }
             }
@@ -367,7 +417,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 let minDist = a.radius + b.radius;
                 
                 if (dist < minDist) {
-                    // Realistic collision impulse
+                    if (!a.isPin && b.isPin && b.vy === 0) b.vy = Math.random() * 3 + 1; 
+                    if (a.isPin && !b.isPin && a.vy === 0) a.vy = Math.random() * 3 + 1;
+
                     let nx = dx / dist; let ny = dy / dist; let nz = dz / dist;
                     let overlap = minDist - dist;
                     a.x -= nx * overlap * 0.5; a.y -= ny * overlap * 0.5; a.z -= nz * overlap * 0.5;
@@ -376,8 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     let kx = a.vx - b.vx; let ky = a.vy - b.vy; let kz = a.vz - b.vz;
                     let p = 2.0 * (nx * kx + ny * ky + nz * kz) / (a.mass + b.mass);
                     
-                    // Controlled explosion (dampened)
-                    let dampener = 0.8;
+                    let dampener = 0.7;
                     a.vx -= p * b.mass * nx * dampener; a.vy -= p * b.mass * ny * dampener; a.vz -= p * b.mass * nz * dampener;
                     b.vx += p * a.mass * nx * dampener; b.vy += p * a.mass * ny * dampener; b.vz += p * a.mass * nz * dampener;
                 }
@@ -385,16 +436,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Premium Rendering ---
-    // Helper to draw a realistic pin
-    function drawPin(x, y, scale, knocked, wobble) {
+    function drawPin(x, y, scale, knocked, wobble, style) {
         ctx.save();
         ctx.translate(x, y);
         
-        // If knocked, rotate it over
         if(knocked) {
              ctx.rotate(Math.PI/2 + wobble);
-             y = y + 10*scale; // lower it visually
+             y = y + 10*scale; 
         } else {
              ctx.rotate(wobble*0.1);
         }
@@ -402,7 +450,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let w = 8 * scale;
         let h = 24 * scale;
 
-        // Draw drop shadow if standing
         if(!knocked) {
             ctx.fillStyle = 'rgba(0,0,0,0.4)';
             ctx.beginPath();
@@ -410,19 +457,29 @@ document.addEventListener("DOMContentLoaded", () => {
             ctx.fill();
         }
 
-        // Draw Pin Body (Bottle shape)
+        // Draw Pin Body 
         ctx.fillStyle = '#f8f9fa';
         ctx.beginPath();
-        ctx.moveTo(-w*0.3, -h/2); // Top left
-        ctx.quadraticCurveTo(-w*0.8, -h*0.1, -w*0.6, h*0.2); // Neck to belly
-        ctx.quadraticCurveTo(-w*1.2, h/2, -w*0.5, h/2); // Belly to base
-        ctx.lineTo(w*0.5, h/2); // Base
-        ctx.quadraticCurveTo(w*1.2, h/2, w*0.6, h*0.2); // Base to belly right
-        ctx.quadraticCurveTo(w*0.8, -h*0.1, w*0.3, -h/2); // Belly to neck right
+        
+        if (style === 1) { // Classic Bottle
+            ctx.arc(0, -h*0.35, w*0.35, Math.PI, 0); // Head
+            ctx.bezierCurveTo(w*0.2, -h*0.1, w*0.8, h*0.2, w*0.55, h*0.48); // Right Neck & Belly
+            ctx.quadraticCurveTo(w*0.5, h*0.5, w*0.3, h*0.5); // Right Base Corner
+            ctx.lineTo(-w*0.3, h*0.5); // Base
+            ctx.quadraticCurveTo(-w*0.5, h*0.5, -w*0.55, h*0.48); // Left Base Corner
+            ctx.bezierCurveTo(-w*0.8, h*0.2, -w*0.2, -h*0.1, -w*0.35, -h*0.35); // Left Belly & Neck
+        } else { // Modern Thick
+            ctx.arc(0, -h*0.35, w*0.45, Math.PI, 0); // Larger Head
+            ctx.bezierCurveTo(w*0.4, -h*0.1, w*0.6, h*0.2, w*0.6, h*0.45); // Straighter Right Side
+            ctx.lineTo(w*0.4, h*0.5);
+            ctx.lineTo(-w*0.4, h*0.5);
+            ctx.lineTo(-w*0.6, h*0.45);
+            ctx.bezierCurveTo(-w*0.6, h*0.2, -w*0.4, -h*0.1, -w*0.45, -h*0.35); // Straighter Left Side
+        }
         ctx.closePath();
         ctx.fill();
 
-        // 3D Shading on Pin
+        // 3D Shading
         let grad = ctx.createLinearGradient(-w, 0, w, 0);
         grad.addColorStop(0, 'rgba(0,0,0,0.3)');
         grad.addColorStop(0.3, 'rgba(255,255,255,0.8)');
@@ -433,27 +490,23 @@ document.addEventListener("DOMContentLoaded", () => {
         // Red Neck Stripes
         ctx.strokeStyle = '#e74c3c';
         ctx.lineWidth = 1.5 * scale;
-        ctx.beginPath(); ctx.moveTo(-w*0.45, -h*0.2); ctx.lineTo(w*0.45, -h*0.2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(-w*0.5, -h*0.05); ctx.lineTo(w*0.5, -h*0.05); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-w*0.4, -h*0.2); ctx.lineTo(w*0.4, -h*0.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-w*0.45, -h*0.05); ctx.lineTo(w*0.45, -h*0.05); ctx.stroke();
 
         ctx.restore();
     }
 
     function draw() {
-        // Dark bowling alley background
         let bgGrad = ctx.createRadialGradient(canvas.width/2, canvas.height/4, 100, canvas.width/2, canvas.height/2, canvas.width);
         bgGrad.addColorStop(0, '#1e293b');
         bgGrad.addColorStop(1, '#020617');
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Define Lanes 
         const laneOffsets = [-LANE_WIDTH*3 - 40, -LANE_WIDTH*1.5 - 20, 0, LANE_WIDTH*1.5 + 20, LANE_WIDTH*3 + 40];
-        
         let startZ = Math.max(0, camera.z - 100); 
         let endZ = LANE_LENGTH + 100;
 
-        // Draw all lanes
         laneOffsets.forEach((offsetX, idx) => {
             let tl = project(offsetX - LANE_WIDTH/2, 0, endZ);
             let tr = project(offsetX + LANE_WIDTH/2, 0, endZ);
@@ -461,12 +514,10 @@ document.addEventListener("DOMContentLoaded", () => {
             let br = project(offsetX + LANE_WIDTH/2, 0, startZ);
 
             if (tl && tr && bl && br) {
-                // Fixed Wood Lane Color
                 let laneGrad = ctx.createLinearGradient(bl.x, bl.y, tl.x, tl.y);
-                laneGrad.addColorStop(0, '#cda270'); // Consistent light wood
-                laneGrad.addColorStop(1, '#6b4c2a'); // Fades to dark in distance
+                laneGrad.addColorStop(0, '#cda270'); 
+                laneGrad.addColorStop(1, '#6b4c2a'); 
                 
-                // Darken side lanes slightly
                 if (offsetX !== 0) {
                      laneGrad.addColorStop(0, '#a5825a'); 
                      laneGrad.addColorStop(1, '#4d361d');
@@ -477,14 +528,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
                 ctx.fill();
                 
-                // Lane Boards (Lines)
                 ctx.strokeStyle = 'rgba(0,0,0,0.15)';
                 for(let i= -LANE_WIDTH/2 + 10; i < LANE_WIDTH/2; i+=10) {
                     let p1 = project(offsetX + i, 0, startZ); let p2 = project(offsetX + i, 0, endZ);
                     if(p1 && p2) { ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
                 }
 
-                // Gutters (Dark grey)
                 ctx.fillStyle = '#111827';
                 let gtl = project(offsetX - LANE_WIDTH/2 - 10, 0, endZ); let gbl = project(offsetX - LANE_WIDTH/2 - 10, 0, startZ);
                 if(gtl && gbl) {
@@ -496,7 +545,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(gbr.x, gbr.y); ctx.lineTo(gtr.x, gtr.y); ctx.lineTo(tr.x, tr.y); ctx.fill();
                 }
 
-                // Neon Edge Lights (Main lane only)
                 if (offsetX === 0) {
                     ctx.strokeStyle = '#38bdf8';
                     ctx.lineWidth = 2;
@@ -509,9 +557,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        // Draw Aiming Guide (Main lane only)
         if (gameState === 'ANGLE' && !players[currentPlayerIndex].isCPU) {
-            let tempAngle = (meterValue - 0.5) * 0.4;
+            let tempAngle = (meterValue - 0.5) * 0.3;
             let guideZ = 400;
             let guideX = ball.x + Math.sin(tempAngle) * guideZ;
             let projGuide = project(guideX, 0, guideZ);
@@ -529,7 +576,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Draw Objects (Sorted by Z for proper overlap)
         let drawables = [...backgroundPins, ...pins, ball].filter(obj => obj && obj.isActive);
         drawables.sort((a, b) => b.z - a.z);
 
@@ -537,11 +583,10 @@ document.addEventListener("DOMContentLoaded", () => {
             let p = project(obj.x, obj.y, obj.z);
             if (p && p.scale > 0) {
                 if (obj.isPin) {
-                    drawPin(p.x, p.y, p.scale, obj.knocked, obj.wobble);
+                    drawPin(p.x, p.y, p.scale, obj.knocked, obj.wobble, selectedPinStyle);
                 } else {
                     let screenRadius = obj.radius * p.scale;
                     
-                    // Ball Drop Shadow
                     if (obj.y > obj.radius) {
                         let shadowP = project(obj.x, 0, obj.z);
                         if (shadowP) {
@@ -550,7 +595,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
 
-                    // Ball Body
                     let grad = ctx.createRadialGradient(p.x - screenRadius*0.3, p.y - screenRadius*0.3, screenRadius*0.1, p.x, p.y, screenRadius);
                     grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, obj.color); grad.addColorStop(1, '#000000');
                     
@@ -562,21 +606,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
         
-        // Draw the pinsetter masking unit (the wall above the pins)
         let backWallY = project(0, 50, LANE_LENGTH + 20);
         let backWallFloor = project(0, 0, LANE_LENGTH + 50);
         if(backWallY && backWallFloor) {
-            ctx.fillStyle = '#0f172a'; // Dark wall
+            ctx.fillStyle = '#0f172a'; 
             ctx.fillRect(0, 0, canvas.width, backWallY.y);
-            // Red stripe line
             ctx.fillStyle = '#e11d48';
             ctx.fillRect(0, backWallY.y-10, canvas.width, 10);
-            
-            // Draw CSG Logo on back wall
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.font = 'bold 80px Nunito';
-            ctx.textAlign = 'center';
-            ctx.fillText("ClickSyncGames", canvas.width/2, backWallY.y - 50);
+            // Removed Logo Text as requested
         }
     }
 
@@ -585,7 +622,6 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(gameLoop);
     }
 
-    // --- Scoring & UI Logic ---
     function resolveRoll() {
         let player = players[currentPlayerIndex];
         let frame = player.frames[currentFrame];
@@ -694,14 +730,22 @@ document.addEventListener("DOMContentLoaded", () => {
         gameOverOverlay.classList.remove('hidden');
     }
 
-    // --- Listeners ---
     document.querySelectorAll('.mode-btn').forEach(btn => btn.addEventListener('click', (e) => beginColorSelection(parseInt(e.target.dataset.players))));
     document.getElementById('show-score-btn').addEventListener('click', () => { isPaused = true; renderScoreboard('scores-container'); scoreboardModal.classList.remove('hidden'); });
     document.getElementById('close-score-btn').addEventListener('click', () => { scoreboardModal.classList.add('hidden'); isPaused = false; });
     document.getElementById('pause-btn').addEventListener('click', () => { if(gameState==='MENU' || gameState==='COLORS') return; isPaused = !isPaused; pauseOverlay.classList.toggle('hidden', !isPaused); });
     document.getElementById('resume-btn').addEventListener('click', () => { isPaused = false; pauseOverlay.classList.add('hidden'); });
-    document.getElementById('return-btn').addEventListener('click', () => window.location.href = '[https://clicksyncgames.com](https://clicksyncgames.com)');
+    document.getElementById('return-btn').addEventListener('click', () => window.location.href = 'https://clicksyncgames.com');
     document.getElementById('restart-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden'); });
 
     gameLoop();
 });
+"""
+
+zip_path = "/mnt/data/Classic_Bowling_Pro_V5.zip"
+with zipfile.ZipFile(zip_path, 'w') as zipf:
+    zipf.writestr("classicbowlingpro.html", html_content)
+    zipf.writestr("classicbowlingpro.css", css_content)
+    zipf.writestr("classicbowlingpro.js", js_content)
+
+print(f"[file-tag: {zip_path}]")}Sorry, something went wrong. Please try your request again.
