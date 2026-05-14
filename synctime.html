@@ -15,7 +15,6 @@
             --text-main: #e5e7eb;
         }
 
-        /* Updated Body to allow scrolling and centering */
         body {
             margin: 0;
             padding: 0;
@@ -30,7 +29,6 @@
             -webkit-touch-callout: none;
         }
 
-        /* Force Persistent Scrollbars for Mobile */
         ::-webkit-scrollbar {
             width: 8px;
             -webkit-appearance: none;
@@ -46,7 +44,6 @@
             background-color: var(--neon-cyan);
         }
 
-        /* Nav link container & Styled Button */
         .top-nav {
             width: 100%;
             max-width: 900px;
@@ -96,9 +93,9 @@
             padding: 15px 20px;
             background: #111122;
             border-bottom: 2px solid #2a2a4a;
-            font-size: 16px; /* Slightly reduced for better mobile wrap */
+            font-size: 16px; 
             font-weight: bold;
-            flex-wrap: wrap; /* Allows wrapping on narrow screens */
+            flex-wrap: wrap; 
             gap: 10px;
         }
 
@@ -123,7 +120,7 @@
             flex: 1;
             position: relative;
             cursor: crosshair;
-            touch-action: none; /* Prevents scrolling when touching the game canvas */
+            touch-action: none; 
         }
 
         canvas {
@@ -139,10 +136,10 @@
             background: rgba(5, 5, 16, 0.95);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* Changed to flex-start for scrollability */
+            justify-content: flex-start; 
             align-items: center;
             z-index: 100;
-            overflow-y: auto; /* Allows scrolling on mobile */
+            overflow-y: auto; 
         }
 
         .overlay-inner {
@@ -156,29 +153,139 @@
         }
 
         .overlay-screen h1 { font-size: 48px; color: var(--neon-cyan); letter-spacing: 6px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-cyan); text-align: center;}
-        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.6; margin-bottom: 30px;}
+        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.6; margin-bottom: 25px;}
         
+        /* --- CSS Mechanics Visual Guide --- */
+        .visual-guide {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            height: 140px;
+            background: #0a0a1a;
+            border: 1px solid #2a2a4a;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .vg-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            animation: slowSpin 10s linear infinite;
+        }
+
+        @keyframes slowSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .vg-core {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0a0a1a;
+            border: 3px solid var(--neon-cyan);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .vg-core::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--neon-yellow);
+            border-radius: 50%;
+        }
+
+        .vg-tether {
+            width: 4px;
+            height: 40px;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            margin: -2px 0;
+            z-index: 1;
+        }
+
+        .vg-enemy-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            animation: enemyApproach 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes enemyApproach {
+            from { transform: translateX(30px); }
+            to { transform: translateX(-10px); }
+        }
+
+        .vg-enemy-shape {
+            width: 16px;
+            height: 16px;
+            background: var(--neon-magenta);
+            box-shadow: 0 0 10px var(--neon-magenta);
+            transform: rotate(45deg);
+        }
+
+        .vg-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: inherit;
+        }
+
+        .vg-label-core {
+            color: var(--neon-yellow);
+            top: 20px;
+            left: 20%;
+        }
+
+        .vg-label-tether {
+            color: var(--neon-cyan);
+            bottom: 20px;
+            left: 30%;
+        }
+
+        .vg-label-enemy {
+            color: var(--neon-magenta);
+            top: 50%;
+            right: 15%;
+            transform: translateY(-50%);
+        }
+
+        /* --- End Visual Guide --- */
+
         .guide-container { 
             display: flex; 
-            gap: 20px; 
+            gap: 15px; 
             margin-bottom: 30px; 
             width: 90%; 
             max-width: 800px;
-            flex-wrap: wrap; /* Allows stacking on narrow screens */
+            flex-wrap: wrap; 
         }
         
         .guide-step { 
             flex: 1; 
-            min-width: 200px; /* Minimum width before stacking */
+            min-width: 200px; 
             background: #111122; 
-            padding: 20px; 
+            padding: 15px; 
             border-radius: 8px; 
             text-align: center; 
             border: 1px solid #2a2a4a; 
         }
         
-        .guide-step p { font-size: 14px; color: #d1d5db; margin: 10px 0 0 0; line-height: 1.4; }
-        .guide-step b { color: var(--neon-cyan); font-size: 16px; display: block; margin-bottom: 5px; }
+        .guide-step p { font-size: 13px; color: #d1d5db; margin: 10px 0 0 0; line-height: 1.4; }
+        .guide-step b { color: var(--neon-cyan); font-size: 15px; display: block; margin-bottom: 5px; }
 
         .start-btn {
             padding: 15px 40px;
@@ -196,7 +303,6 @@
         }
         .start-btn:hover { box-shadow: 0 0 25px var(--neon-cyan); }
 
-        /* --- Transition Animations --- */
         .fade-in-first {
             opacity: 0;
             animation: textFade 0.6s ease-out forwards;
@@ -238,6 +344,23 @@
                 <h1>SYNCTIME</h1>
                 <p class="subtitle">Survive 12 progressive levels (30 seconds each). Your pointer is the center point. <br><b>Your endpoints are vulnerable. Your center line is lethal.</b></p>
                 
+                <!-- Pure CSS Visual Diagram -->
+                <div class="visual-guide">
+                    <div class="vg-label vg-label-core">CORES (Vulnerable) <span>↘</span></div>
+                    <div class="vg-label vg-label-tether">TETHER (Lethal) <span>↗</span></div>
+                    <div class="vg-label vg-label-enemy"><span>←</span> ENEMY (Target)</div>
+                    
+                    <div class="vg-player">
+                        <div class="vg-core"></div>
+                        <div class="vg-tether"></div>
+                        <div class="vg-core"></div>
+                    </div>
+                    
+                    <div class="vg-enemy-container">
+                        <div class="vg-enemy-shape"></div>
+                    </div>
+                </div>
+
                 <div class="guide-container">
                     <div class="guide-step">
                         <b style="color: var(--neon-cyan);">THE TETHER (Weapon)</b>
@@ -287,16 +410,6 @@
         </div>
     </div>
 
-    <div style="max-width: 900px; width: 95%; margin: 40px auto; padding: 30px; background-color: #111122; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.1); color: #d1d5db; text-align: left; border: 1px solid #2a2a4a; box-sizing: border-box;">
-        <h2 style="color: var(--neon-cyan); border-bottom: 2px solid #2a2a4a; padding-bottom: 10px; margin-top: 0; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4);">Mastering the Laser Tether Mechanics</h2>
-        <p style="line-height: 1.6; margin-bottom: 15px;">
-            <strong>Synctime</strong> is an intense arcade survival web game that tests your reflexes and spatial awareness. You control a dual-core entity connected by a lethal laser tether. The objective is to survive 12 increasingly difficult levels by slicing through incoming enemy swarms.
-        </p>
-        <p style="line-height: 1.6; margin-bottom: 0;">
-            The core defense simulator mechanics dictate that your glowing tether is your only weapon, instantly destroying enemies on contact. However, the physical cores at the ends of the tether are highly vulnerable. You must strategically manage your spin direction, expand your radius to strike, and contract it to weave through tight clusters of threats.
-        </p>
-    </div>
-
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -335,17 +448,14 @@
         const uiIntegrity = document.getElementById('uiIntegrity');
 
         // --- INPUT HANDLING ---
-        // Upgraded to pointermove for robust mobile touch dragging
         canvas.addEventListener('pointermove', (e) => {
             const rect = canvas.getBoundingClientRect();
-            // Scale logic mapped for smaller screens
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             state.mouseX = (e.clientX - rect.left) * scaleX;
             state.mouseY = (e.clientY - rect.top) * scaleY;
         });
 
-        // Upgraded to pointerdown for clicks and taps
         canvas.addEventListener('pointerdown', (e) => {
             if (state.isRunning && !state.isPaused && !state.isTransitioning) {
                 state.spinDirection *= -1; 
