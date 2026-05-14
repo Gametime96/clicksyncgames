@@ -128,97 +128,68 @@
         .tr-v::after { right: 25%; top: 0; width: 4px; height: 100%; background: var(--rail-color); }
 
         /* 90-Degree Corners */
-        /* South-East Curve */
         .tr-se::before { bottom: 0; right: 0; width: 25%; height: 25%; border-top-left-radius: 100%; border-top: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
         .tr-se::after { bottom: 0; right: 0; width: 75%; height: 75%; border-top-left-radius: 100%; border-top: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
-
-        /* South-West Curve */
         .tr-sw::before { bottom: 0; left: 0; width: 25%; height: 25%; border-top-right-radius: 100%; border-top: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
         .tr-sw::after { bottom: 0; left: 0; width: 75%; height: 75%; border-top-right-radius: 100%; border-top: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
-
-        /* North-East Curve */
         .tr-ne::before { top: 0; right: 0; width: 25%; height: 25%; border-bottom-left-radius: 100%; border-bottom: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
         .tr-ne::after { top: 0; right: 0; width: 75%; height: 75%; border-bottom-left-radius: 100%; border-bottom: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
-
-        /* North-West Curve */
         .tr-nw::before { top: 0; left: 0; width: 25%; height: 25%; border-bottom-right-radius: 100%; border-bottom: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
         .tr-nw::after { top: 0; left: 0; width: 75%; height: 75%; border-bottom-right-radius: 100%; border-bottom: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
 
-
-        /* Train Visals (Classic Iron Horse) */
+        /* Train Visuals (Minimalist Flat Square) */
         #train-wrapper {
             position: absolute; 
             width: calc(100% / var(--grid-size)); 
             height: calc(100% / var(--grid-size));
             z-index: 20; 
-            /* Linear for movement, ease-in-out for smooth pivot rotation */
             transition: transform 0.8s ease-in-out, left 0.8s linear, top 0.8s linear;
             display: flex; justify-content: center; align-items: center;
         }
 
         #train-body {
-            width: 70%; height: 85%; 
-            background: linear-gradient(to right, #111, #333 30%, #333 70%, #111); 
-            border-radius: 50% 50% 10% 10%;
+            width: 60%; height: 75%; 
+            background: #c0392b; 
+            border-radius: 6px;
             position: relative;
-            box-shadow: inset 0 0 8px #000, 0 5px 10px rgba(0,0,0,0.6);
             display: flex; flex-direction: column; align-items: center;
-            border: 1px solid #000;
+            border: 2px solid #1a252f;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
         }
 
-        /* Front Cowcatcher / Grill */
-        #train-body::before {
-            content: ''; position: absolute;
-            top: -6px; width: 60%; height: 10px;
-            background: #c0392b;
-            clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
-            border-bottom: 2px solid #000;
-        }
-
-        /* Smokestack */
+        /* Flat Dark Smokestack */
         .smokestack {
-            width: 18px; height: 18px;
-            background: #000; border-radius: 50%;
-            border: 3px solid #7f8c8d;
-            margin-top: 5px;
-            box-shadow: inset 0 0 5px #000;
+            width: 14px; height: 14px;
+            background: #1a252f; 
+            border-radius: 50%;
+            margin-top: 8px;
             z-index: 2;
         }
 
-        /* Gold Dome / Detail */
-        .dome {
-            width: 12px; height: 12px;
-            background: #f1c40f; border-radius: 50%;
-            margin-top: 10px;
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5);
-        }
-
-        /* Rear Cabin */
+        /* Flat Dark Cabin */
         .cabin {
-            width: 90%; height: 35%;
-            background: #8e44ad;
-            position: absolute; bottom: 3px;
-            border-radius: 4px;
-            border: 2px solid #f1c40f;
-            box-shadow: inset 0 0 5px #000;
+            width: 75%; height: 35%;
+            background: #1a252f;
+            position: absolute; bottom: 4px;
+            border-radius: 3px;
         }
 
-        /* Moving Red Side Rods */
+        /* Moving Side Rods (Kept per request) */
         .side-rod {
             position: absolute; width: 4px; height: 60%;
-            background: #e74c3c;
+            background: #bdc3c7;
             top: 20%;
             z-index: 25;
-            box-shadow: 1px 1px 3px #000;
+            box-shadow: 1px 1px 2px #000;
             border-radius: 2px;
         }
-        .side-rod.left { left: -5px; }
-        .side-rod.right { right: -5px; }
+        .side-rod.left { left: -6px; }
+        .side-rod.right { right: -6px; }
 
         @keyframes pump {
-            0% { transform: translateY(-6px); }
-            50% { transform: translateY(6px); }
-            100% { transform: translateY(-6px); }
+            0% { transform: translateY(-5px); }
+            50% { transform: translateY(5px); }
+            100% { transform: translateY(-5px); }
         }
         .is-moving .side-rod { animation: pump 0.5s infinite linear; }
 
@@ -226,33 +197,34 @@
         .smoke-particle {
             position: absolute;
             width: 15px; height: 15px;
-            background: rgba(189, 195, 199, 0.8);
+            background: rgba(189, 195, 199, 0.7);
             border-radius: 50%;
             pointer-events: none;
             z-index: 15;
             transform: translate(-50%, -50%) scale(1);
             animation: smokeDrift 1.5s forwards ease-out;
-            filter: blur(1px);
+            filter: blur(2px);
         }
         @keyframes smokeDrift {
-            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; filter: blur(3px); }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; filter: blur(4px); }
         }
 
-        /* Passengers */
+        /* Passengers / Coins */
         .passenger {
-            position: absolute; width: 40%; height: 40%; top: 30%; left: 30%;
-            background: #f1c40f; border-radius: 50%; box-shadow: 0 0 10px #f1c40f;
-            animation: pulse 0.6s infinite alternate;
+            position: absolute; width: 35%; height: 35%; top: 32.5%; left: 32.5%;
+            background: #f1c40f; border-radius: 50%; 
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
             z-index: 5;
+            transition: transform 0.3s, opacity 0.3s;
         }
-        @keyframes pulse { from { transform: scale(0.8); } to { transform: scale(1.1); } }
 
         /* Modals */
         #modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9);
             display: none; justify-content: center; align-items: center; z-index: 500;
         }
-        #modal { background: #2c3e50; padding: 40px; border-radius: 15px; text-align: center; border: 2px solid #1abc9c; max-width: 80%; }
+        #modal { background: #2c3e50; padding: 40px; border-radius: 10px; text-align: center; border: 2px solid #1abc9c; max-width: 80%; }
+        #modal-title { margin-top: 0; font-size: 2rem; letter-spacing: 2px; }
         .modal-btn { padding: 15px 30px; background: #1abc9c; border: none; color: white; cursor: pointer; font-size: 1.2rem; margin-top: 20px; font-weight: bold; border-radius: 5px;}
         .modal-btn:hover { background: #16a085; }
     </style>
@@ -274,7 +246,6 @@
         <div id="train-wrapper" style="display: none;">
             <div id="train-body">
                 <div class="smokestack"></div>
-                <div class="dome"></div>
                 <div class="cabin"></div>
                 <div class="side-rod left"></div>
                 <div class="side-rod right"></div>
@@ -379,15 +350,14 @@
                     const e = (x < gridSize-1 && grid[y][x+1].hasTrack);
                     const w = (x > 0 && grid[y][x-1].hasTrack);
 
-                    // Dynamically map proper 90-degree corners and straights
                     if (n && e) cell.el.classList.add('tr-ne');
                     else if (n && w) cell.el.classList.add('tr-nw');
                     else if (s && e) cell.el.classList.add('tr-se');
                     else if (s && w) cell.el.classList.add('tr-sw');
                     else if (n && s) cell.el.classList.add('tr-v');
                     else if (e && w) cell.el.classList.add('tr-h');
-                    else if (n || s) cell.el.classList.add('tr-v'); // Isolated track with vertical neighbor aligns vertically
-                    else cell.el.classList.add('tr-h'); // Defaults to horizontal
+                    else if (n || s) cell.el.classList.add('tr-v'); 
+                    else cell.el.classList.add('tr-h'); 
                 });
             });
         }
@@ -398,18 +368,17 @@
             
             if (lvl === 1) {
                 const level1Tracks = [
-                    [3,2], [4,2], [5,2], [6,2], [7,2], // Top edge
-                    [7,3], [7,4], [7,5], [7,6], [7,7], // Right edge
-                    [6,7], [5,7], [4,7], [3,7], [2,7], // Bottom edge
-                    [2,6], [2,5]                       // Left edge leading to gap
+                    [3,2], [4,2], [5,2], [6,2], [7,2], 
+                    [7,3], [7,4], [7,5], [7,6], [7,7], 
+                    [6,7], [5,7], [4,7], [3,7], [2,7], 
+                    [2,6], [2,5]                       
                 ];
                 
                 level1Tracks.forEach(coord => { grid[coord[1]][coord[0]].hasTrack = true; });
                 grid[4][5].hasTrack = true; // Decoy
                 
-                // Train facing East (90 deg)
                 train = { x: 3, y: 2, dx: 1, dy: 0, rot: 90 };
-                passengers = [{x: 2, y: 3}];
+                passengers = [{x: 2, y: 4}]; // Coin exactly where the track is missing
                 
                 updateGridConnections();
                 drawPassengers();
@@ -432,7 +401,7 @@
                 await new Promise(r => setTimeout(r, 2000));
                 
                 grid[4][5].hasTrack = false;
-                grid[4][2].hasTrack = true;
+                grid[4][2].hasTrack = true; // User places track over the coin
                 
                 updateGridConnections();
                 updateUI();
@@ -480,24 +449,25 @@
             let nextY = train.y + train.dy;
             const hasTrack = (x, y) => x>=0 && x<gridSize && y>=0 && y<gridSize && grid[y][x].hasTrack;
 
-            // If path directly ahead is blocked or ending, look for a 90-degree turn
+            // If track ahead is blocked, attempt to pivot
             if (!hasTrack(nextX, nextY)) {
-                let lDx = train.dy, lDy = -train.dx; // Left vector mapping
-                let rDx = -train.dy, rDy = train.dx; // Right vector mapping
+                let lDx = train.dy, lDy = -train.dx;
+                let rDx = -train.dy, rDy = train.dx;
 
                 if (hasTrack(train.x + lDx, train.y + lDy)) {
                     train.dx = lDx; train.dy = lDy;
-                    train.rot -= 90; // Accumulate rotation negatively for left turn
+                    train.rot -= 90;
                     executeTurn();
                     return;
                 }
                 else if (hasTrack(train.x + rDx, train.y + rDy)) {
                     train.dx = rDx; train.dy = rDy;
-                    train.rot += 90; // Accumulate rotation positively for right turn
+                    train.rot += 90;
                     executeTurn();
                     return;
                 }
                 else {
+                    // No track ahead and no turns. Visually move off slightly and derail.
                     derail();
                     return;
                 }
@@ -507,36 +477,42 @@
             train.x += train.dx;
             train.y += train.dy;
             updateTrainVisuals();
-            checkPassengerAndContinue();
+            
+            // Check for coins on arrival. Delay ensures train visually reaches the tile first.
+            handleTileArrival();
         }
 
         function executeTurn() {
-            // Apply visual rotation immediately
-            updateTrainVisuals();
-            
-            // Allow 1000ms (1 full second) to complete the pivot before moving to the next tile
+            updateTrainVisuals(); // Rotate in place
             moveTimeout = setTimeout(() => {
                 if (!isPlaying) return;
                 train.x += train.dx;
                 train.y += train.dy;
-                updateTrainVisuals();
-                checkPassengerAndContinue();
+                updateTrainVisuals(); // Move forward after 1s pivot
+                handleTileArrival();
             }, 1000);
         }
 
-        function checkPassengerAndContinue() {
+        function handleTileArrival() {
             const pIdx = passengers.findIndex(p => p.x === train.x && p.y === train.y);
+            
             if (pIdx !== -1) {
-                passengers.splice(pIdx, 1);
-                drawPassengers();
-                if (passengers.length === 0) {
-                    winLevel();
-                    return;
-                }
-            }
-            if (isPlaying) {
-                // Slower, smoother straight movement matched with the CSS transition speed
-                moveTimeout = setTimeout(runGameLoop, 800); 
+                // Wait for the 800ms travel transition to complete so it visually touches the coin
+                moveTimeout = setTimeout(() => {
+                    if (!isPlaying) return;
+                    passengers.splice(pIdx, 1);
+                    drawPassengers(); // Remove coin visually
+                    
+                    if (passengers.length === 0) {
+                        winLevel();
+                    } else {
+                        // Keep going if there are more coins
+                        runGameLoop();
+                    }
+                }, 800); 
+            } else {
+                // No coin, just smoothly queue the next move
+                moveTimeout = setTimeout(runGameLoop, 800);
             }
         }
 
