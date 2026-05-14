@@ -8,6 +8,7 @@
 </head>
 <body>
     <div id="game-wrapper">
+        <!-- Brand and Navigation -->
         <header id="csg-header">
             <div id="csg-branding">
                 <span class="logo-shield">CSG</span>
@@ -20,10 +21,35 @@
         </header>
 
         <div id="main-content">
-            <!-- Main Game Area -->
+            <!-- Main Game Canvas -->
             <div id="canvas-container">
                 <canvas id="gameCanvas"></canvas>
                 
+                <!-- On-Screen HUD (Heads Up Display) -->
+                <div id="hud" class="hidden">
+                    <div class="hud-top">
+                        <div class="hud-player-info">
+                            <div class="player-color-dot" id="hud-color-dot"></div>
+                            <span id="hud-name">Player 1</span>
+                            <span class="hud-score-text">Score: <span id="hud-score">0</span></span>
+                        </div>
+                        <div class="hud-frame-info">
+                            Frame <span id="hud-frame">1</span> | Roll <span id="hud-roll">1</span>
+                        </div>
+                        <button id="show-score-btn" class="btn secondary">View Scoreboard</button>
+                    </div>
+
+                    <!-- Interactive On-Screen Meter -->
+                    <div id="meter-container" class="hidden">
+                        <h3 id="meter-instruction">1. Move Mouse to Position. Click to Lock.</h3>
+                        <div id="meter-track" class="hidden">
+                            <div id="meter-fill"></div>
+                            <div id="meter-cursor"></div>
+                            <div id="meter-center-mark"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Menu Overlay -->
                 <div id="menu-overlay" class="overlay">
                     <h2>Select Game Mode</h2>
@@ -48,6 +74,15 @@
                     </div>
                 </div>
 
+                <!-- Full Scoreboard Modal -->
+                <div id="scoreboard-modal" class="overlay hidden">
+                    <div class="modal-content">
+                        <h2>Scoreboard</h2>
+                        <div id="scores-container"></div>
+                        <button id="close-score-btn" class="btn primary">Back to Game</button>
+                    </div>
+                </div>
+
                 <!-- Pause Overlay -->
                 <div id="pause-overlay" class="overlay hidden">
                     <h2>GAME PAUSED</h2>
@@ -58,44 +93,10 @@
                 <div id="game-over-overlay" class="overlay hidden">
                     <h2>GAME OVER</h2>
                     <h3 id="winner-text"></h3>
-                    <button id="restart-btn" class="btn primary">Play Again</button>
+                    <div id="final-scores-container"></div>
+                    <button id="restart-btn" class="btn primary" style="margin-top: 20px;">Play Again</button>
                 </div>
             </div>
-
-            <!-- Scoreboard Sidebar -->
-            <aside id="scoreboard-panel">
-                <div id="current-turn-info">
-                    <h2 id="current-player-name">Player 1's Turn</h2>
-                    <p id="frame-info">Frame 1 - Roll 1</p>
-                </div>
-                
-                <!-- Game Progression Controls -->
-                <div id="controls-area" class="hidden">
-                    <div id="aim-section">
-                        <label for="aim-slider">Position (Aim)</label>
-                        <input type="range" id="aim-slider" min="-15" max="15" value="0">
-                        <button id="lock-aim-btn" class="btn action">Lock Aim</button>
-                    </div>
-
-                    <div id="power-section" class="hidden">
-                        <label for="power-slider">Power: <span id="power-val">60</span></label>
-                        <input type="range" id="power-slider" min="20" max="100" value="60">
-                        <button id="launch-btn" class="btn action">LAUNCH</button>
-                    </div>
-                    
-                    <div id="steer-section" class="hidden">
-                        <p>Steer Ball (0.5s lag)</p>
-                        <div class="steer-buttons">
-                            <button id="steer-left-btn" class="btn secondary">◄ Left</button>
-                            <button id="steer-right-btn" class="btn secondary">Right ►</button>
-                        </div>
-                        <p style="font-size: 0.8rem; margin-top: 5px; color:#bdc3c7;">(Or use Keyboard Arrows)</p>
-                    </div>
-                </div>
-
-                <!-- Score Tables -->
-                <div id="scores-container"></div>
-            </aside>
         </div>
     </div>
     <script src="classicbowlingpro.js"></script>
