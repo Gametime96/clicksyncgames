@@ -2,22 +2,23 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
-/* Lock the body completely to prevent scrolling */
+/* Enable scrolling on the body for a fallback, but lock horizontal */
 body, html { 
     width: 100%; height: 100%; 
     font-family: 'Nunito', sans-serif; 
     background-color: #0f172a; color: #ecf0f1; 
-    overflow: hidden; 
-    touch-action: none; 
+    overflow-y: auto; 
+    overflow-x: hidden;
+    touch-action: pan-y; /* Allow scrolling but prevent swipe-to-refresh */
 }
 
 #game-wrapper { 
     display: flex; flex-direction: column; 
-    height: 100vh; /* Lock to viewport height */
+    min-height: 100vh;
+    min-height: 100svh; /* Uses exact visible viewport on modern mobile */
     width: 100vw; position: relative;
 }
 
-/* Orientation Warning */
 #orientation-warning {
     display: none;
     background-color: rgba(239, 68, 68, 0.9);
@@ -33,9 +34,7 @@ body, html {
 #csg-header { 
     display: flex; justify-content: space-between; align-items: center; 
     padding: 10px 20px; background: #0f172a; border-bottom: 2px solid #8b5cf6;
-    height: 60px; /* Fixed height for exact calculation */
-    flex-shrink: 0; /* Prevent header from shrinking */
-    z-index: 200; position: relative; flex-wrap: wrap; gap: 10px;
+    min-height: 60px; z-index: 200; position: relative; flex-wrap: wrap; gap: 10px;
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
 }
 #csg-branding { display: flex; align-items: center; gap: 10px; }
@@ -60,33 +59,41 @@ body, html {
 .btn.secondary:hover { background-color: #475569; }
 .action { width: 100%; padding: 15px; font-size: 1.2rem; }
 
-/* Strict Responsive Canvas Area */
+/* Main Content Area */
 #main-content { 
     display: flex; flex: 1; position: relative; background: #020617; 
     justify-content: center; align-items: center;
-    /* Lock height to remainder of screen */
-    height: calc(100vh - 60px); 
-    overflow: hidden;
+    padding: 10px; /* Provides breathing room from edges */
+    box-sizing: border-box;
 }
 
+/* Strict Auto-Scaling Canvas Container */
 #canvas-container { 
     position: relative; 
     background: radial-gradient(circle at bottom center, #1e1b4b, #020617); 
-    border-left: 2px solid #1e293b; border-right: 2px solid #1e293b;
+    border: 2px solid #1e293b;
+    border-radius: 8px; 
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    /* Set an aspect ratio that matches the internal 800x1000 resolution */
+    
+    /* Lock the shape to 800x1000 */
     aspect-ratio: 4 / 5;
-    /* Strict limits */
-    max-height: 100%; 
-    max-width: 100%;
+    
+    /* Scale width automatically based on height restrictions */
+    width: auto;
+    height: 100%;
+    
+    /* Maximum limits so it NEVER exceeds the screen */
+    max-width: 800px;
+    max-height: calc(100vh - 90px); 
+    max-height: calc(100svh - 90px); /* Subtracts header height + padding */
 }
 
 canvas { 
     width: 100%; height: 100%; display: block; 
-    /* Force canvas to fit entirely inside container without stretching */
-    object-fit: contain; 
-    touch-action: none; 
+    object-fit: contain; /* Guarantees pure internal scaling without stretching */
+    touch-action: none; /* Disables page scroll while aiming */
     cursor: crosshair;
+    border-radius: 8px;
 }
 
 /* HUD */
@@ -131,15 +138,19 @@ canvas {
 #final-score-text { color: #38bdf8; margin-bottom: 10px; font-size: 1.5rem; }
 #end-message { color: #94a3b8; margin-bottom: 20px; font-size: 1.1rem;}
 
-/* Mobile Header Adjustment */
+/* Extreme Mobile Adjustments */
 @media (max-width: 600px) {
     #csg-header { flex-direction: column; padding: 10px; height: auto;}
     #csg-navigation { width: 100%; justify-content: center;}
     .hud-score-info, .hud-level-info { font-size: 1rem; padding: 6px 10px;}
     .neon-text { font-size: 1.8rem;}
     
-    /* Dynamically calculate height to account for taller wrapping header */
-    #main-content { height: calc(100vh - 100px); }
+    #canvas-container {
+        width: 100%;
+        height: auto; 
+        max-height: calc(100vh - 120px); 
+        max-height: calc(100svh - 120px); 
+    }
 }
 
 /* Portrait Warning Logic */
