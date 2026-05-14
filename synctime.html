@@ -47,7 +47,7 @@
         .top-nav {
             width: 100%;
             max-width: 900px;
-            padding: 15px 15px; /* Condensing top spacing */
+            padding: 15px 15px; 
             text-align: left;
             box-sizing: border-box;
         }
@@ -90,7 +90,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px; /* Reduced padding */
+            padding: 12px 20px; 
             background: #111122;
             border-bottom: 2px solid #2a2a4a;
             font-size: 15px; 
@@ -144,7 +144,7 @@
 
         .overlay-inner {
             margin: auto 0;
-            padding: 20px; /* Condensed inner padding */
+            padding: 20px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -155,7 +155,7 @@
         .overlay-screen h1 { font-size: 40px; color: var(--neon-cyan); letter-spacing: 6px; margin-bottom: 0; text-shadow: 0 0 20px var(--neon-cyan); text-align: center;}
         .overlay-screen p.subtitle { font-size: 15px; color: #9ca3af; text-align: center; max-width: 650px; line-height: 1.5; margin-bottom: 15px; margin-top: 10px;}
         
-        /* --- CSS Mechanics Visual Guide (Condensed & Aligned) --- */
+        /* --- CSS Mechanics Visual Guide (+40% Scaled) --- */
         .visual-guide {
             display: flex;
             flex-wrap: wrap; 
@@ -166,8 +166,8 @@
             background: #0a0a1a;
             border: 1px solid #2a2a4a;
             border-radius: 8px;
-            margin-bottom: 15px; /* Condensed */
-            padding: 15px; /* Condensed */
+            margin-bottom: 15px; 
+            padding: 15px; 
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
             gap: 20px;
         }
@@ -176,7 +176,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px; /* Tighter gap so arrows touch */
+            gap: 5px; 
         }
 
         .vg-enemy-row {
@@ -193,11 +193,11 @@
         }
 
         .vg-core {
-            width: 22px;
-            height: 22px;
+            width: 30px; /* Scaled up 40% from 22 */
+            height: 30px; /* Scaled up 40% from 22 */
             border-radius: 50%;
             background: #0a0a1a;
-            border: 3px solid var(--neon-cyan);
+            border: 4px solid var(--neon-cyan); /* Scaled from 3 */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -206,15 +206,15 @@
 
         .vg-core::after {
             content: '';
-            width: 8px;
-            height: 8px;
+            width: 11px; /* Scaled up 40% from 8 */
+            height: 11px; /* Scaled up 40% from 8 */
             background: var(--neon-yellow);
             border-radius: 50%;
         }
 
         .vg-tether {
-            width: 4px;
-            height: 45px;
+            width: 6px; /* Scaled up 40% from 4 */
+            height: 63px; /* Scaled up 40% from 45 */
             background: var(--neon-cyan);
             box-shadow: 0 0 10px var(--neon-cyan);
             margin: -2px 0;
@@ -222,8 +222,8 @@
         }
 
         .vg-enemy-shape {
-            width: 22px;
-            height: 22px;
+            width: 30px; /* Scaled up 40% from 22 */
+            height: 30px; /* Scaled up 40% from 22 */
             background: var(--neon-magenta);
             box-shadow: 0 0 15px var(--neon-magenta);
             transform: rotate(45deg);
@@ -245,9 +245,7 @@
         }
 
         .vg-label-core { color: var(--neon-yellow); }
-        
-        /* Shifting the down arrow to aim accurately at the top right core */
-        .vg-label-core span { transform: translateX(20px); } 
+        .vg-label-core span { transform: translateX(25px); } 
 
         .vg-label-tether { color: var(--neon-cyan); }
         
@@ -265,8 +263,8 @@
 
         .guide-container { 
             display: flex; 
-            gap: 10px; /* Tighter gap */
-            margin-bottom: 15px; /* Condensed margin */
+            gap: 10px; 
+            margin-bottom: 15px; 
             width: 90%; 
             max-width: 800px;
             flex-wrap: wrap; 
@@ -276,7 +274,7 @@
             flex: 1; 
             min-width: 180px; 
             background: #111122; 
-            padding: 12px; /* Condensed padding */
+            padding: 12px; 
             border-radius: 8px; 
             text-align: center; 
             border: 1px solid #2a2a4a; 
@@ -286,7 +284,7 @@
         .guide-step b { color: var(--neon-cyan); font-size: 14px; display: block; margin-bottom: 3px; }
 
         .start-btn {
-            padding: 12px 30px; /* Reduced height to fit on screen */
+            padding: 12px 30px; 
             font-size: 18px;
             background: var(--neon-cyan);
             color: #000;
@@ -321,7 +319,6 @@
 <body>
 
     <div class="top-nav">
-        <!-- Changed to ClickSyncGames as one word -->
         <a href="index.html" class="back-link">&larr; Back to ClickSyncGames</a>
     </div>
 
@@ -413,7 +410,7 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // --- GAME STATE ---
+        // --- GAME STATE (+40% SCALED VALUES) ---
         const state = {
             isRunning: false,
             isTransitioning: false,
@@ -429,9 +426,9 @@
             angle: 0,
             spinSpeed: 0.05,
             spinDirection: 1, 
-            baseRadius: 40,
-            targetRadius: 40,
-            currentRadius: 40,
+            baseRadius: 56, // Scaled from 40
+            targetRadius: 56, // Scaled from 40
+            currentRadius: 56, // Scaled from 40
             
             enemies: [],
             particles: []
@@ -464,13 +461,13 @@
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault(); 
-                state.targetRadius = 100;
+                state.targetRadius = 140; // Scaled from 100
             }
             if (e.key.toLowerCase() === 'p') togglePause();
         });
 
         window.addEventListener('keyup', (e) => {
-            if (e.code === 'Space') state.targetRadius = 40;
+            if (e.code === 'Space') state.targetRadius = 56; // Scaled from 40
         });
 
         // --- MATH HELPERS ---
@@ -523,7 +520,7 @@
             
             state.mouseX = canvas.width / 2;
             state.mouseY = canvas.height / 2;
-            state.targetRadius = 40;
+            state.targetRadius = 56;
             
             updateUI();
             showTransition(state.level);
@@ -567,7 +564,7 @@
 
             state.enemies.push({
                 x: ex, y: ey,
-                radius: 8,
+                radius: 11, // Scaled up from 8
                 speed: speedBase + (Math.random() * 0.5), 
                 isChaser: isChaser
             });
@@ -645,7 +642,8 @@
 
                 let destroyed = false;
 
-                if (circleCollide(e, core1, e.radius, 12) || circleCollide(e, core2, e.radius, 12)) {
+                // Scaled collision radius from 12 to 17
+                if (circleCollide(e, core1, e.radius, 17) || circleCollide(e, core2, e.radius, 17)) {
                     takeDamage(15);
                     spawnParticles(e.x, e.y, '#ff00ea', 15);
                     destroyed = true;
@@ -700,7 +698,7 @@
             };
 
             ctx.beginPath();
-            ctx.arc(state.mouseX, state.mouseY, 3, 0, Math.PI*2);
+            ctx.arc(state.mouseX, state.mouseY, 4, 0, Math.PI*2); // Center pointer scaled from 3 to 4
             ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.fill();
 
@@ -708,7 +706,7 @@
             ctx.moveTo(core1.x, core1.y);
             ctx.lineTo(core2.x, core2.y);
             ctx.strokeStyle = '#00f3ff';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 6; // Tether line width scaled from 4 to 6
             ctx.shadowBlur = 15;
             ctx.shadowColor = '#00f3ff';
             ctx.stroke();
@@ -716,15 +714,15 @@
 
             [core1, core2].forEach(c => {
                 ctx.beginPath();
-                ctx.arc(c.x, c.y, 12, 0, Math.PI*2);
+                ctx.arc(c.x, c.y, 17, 0, Math.PI*2); // Core outer circle scaled from 12 to 17
                 ctx.fillStyle = '#0a0a1a';
                 ctx.fill();
                 ctx.strokeStyle = '#00f3ff';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 4; // Core border scaled from 3 to 4
                 ctx.stroke();
 
                 ctx.beginPath();
-                ctx.arc(c.x, c.y, 4, 0, Math.PI*2);
+                ctx.arc(c.x, c.y, 6, 0, Math.PI*2); // Core inner yellow circle scaled from 4 to 6
                 ctx.fillStyle = '#fffb00';
                 ctx.fill();
             });
@@ -742,7 +740,7 @@
                 
                 if (e.isChaser) {
                     ctx.strokeStyle = '#ff00ea';
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 3; // Scaled up chaser border
                     ctx.stroke();
                 } else {
                     ctx.fillStyle = '#ff00ea';
@@ -755,7 +753,7 @@
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.arc(p.x, p.y, 3, 0, Math.PI*2); // Particles scaled from 2 to 3
                 ctx.fill();
             });
             ctx.globalAlpha = 1.0;
