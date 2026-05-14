@@ -10,7 +10,6 @@
             --cell-bg: #34495e;
             --track-color: #7f8c8d;
             --rail-color: #bdc3c7;
-            --smoke-color: rgba(236, 240, 241, 0.6);
         }
 
         body {
@@ -51,19 +50,20 @@
         }
 
         .cinematic-active #cinematic-overlay {
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             pointer-events: all;
         }
 
         /* Tutorial Arrow */
         #tutorial-arrow {
             position: absolute;
-            font-size: 50px;
+            font-size: 45px;
             color: #f1c40f;
             z-index: 250;
             display: none;
             filter: drop-shadow(0 0 10px black);
             pointer-events: none;
+            transform: translate(-50%, -50%);
         }
 
         /* Standard UI */
@@ -73,10 +73,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.6);
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.7);
             z-index: 10;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #1abc9c;
         }
+
+        #track-count-display {
+            transition: color 0.3s;
+        }
+        .limit-reached { color: #e74c3c !important; }
 
         #game-board {
             position: relative;
@@ -85,7 +93,7 @@
             background: #34495e;
             border: 4px solid #1abc9c;
             border-radius: 4px;
-            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s;
         }
 
         #grid {
@@ -98,46 +106,155 @@
 
         .cell {
             width: 100%; height: 100%;
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
             position: relative;
             cursor: pointer;
+            transition: background 0.2s;
         }
+        .cell:hover { background: rgba(255, 255, 255, 0.08); }
 
-        /* Track Styles */
+        /* Perfected Track & Corner Styles */
         .track { background: var(--track-color); position: relative; }
         .track::before, .track::after {
-            content: ''; position: absolute; background: var(--rail-color);
+            content: ''; position: absolute; box-sizing: border-box; background: transparent; pointer-events: none;
         }
-        .track::before { top: 25%; left: 0; right: 0; height: 3px; }
-        .track::after { bottom: 25%; left: 0; right: 0; height: 3px; }
-        .tr-v::before { top: 0; bottom: 0; left: 25%; width: 3px; height: auto; }
-        .tr-v::after { top: 0; bottom: 0; right: 25%; width: 3px; height: auto; }
-        .tr-c-se::before { top: 25%; left: 25%; right: 0; height: 3px; width: auto; }
-        .tr-c-se::after { top: 25%; left: 25%; bottom: 0; width: 3px; height: auto; } 
 
-        /* Train */
-        #train {
-            position: absolute; width: calc(100% / var(--grid-size)); height: calc(100% / var(--grid-size));
-            z-index: 10; transition-timing-function: linear;
+        /* Horizontal Rails */
+        .tr-h::before { top: 25%; left: 0; width: 100%; height: 4px; background: var(--rail-color); }
+        .tr-h::after { bottom: 25%; left: 0; width: 100%; height: 4px; background: var(--rail-color); }
+
+        /* Vertical Rails (Equidistant Center) */
+        .tr-v::before { left: 25%; top: 0; width: 4px; height: 100%; background: var(--rail-color); }
+        .tr-v::after { right: 25%; top: 0; width: 4px; height: 100%; background: var(--rail-color); }
+
+        /* 90-Degree Corners */
+        /* South-East Curve */
+        .tr-se::before { bottom: 0; right: 0; width: 25%; height: 25%; border-top-left-radius: 100%; border-top: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
+        .tr-se::after { bottom: 0; right: 0; width: 75%; height: 75%; border-top-left-radius: 100%; border-top: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
+
+        /* South-West Curve */
+        .tr-sw::before { bottom: 0; left: 0; width: 25%; height: 25%; border-top-right-radius: 100%; border-top: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
+        .tr-sw::after { bottom: 0; left: 0; width: 75%; height: 75%; border-top-right-radius: 100%; border-top: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
+
+        /* North-East Curve */
+        .tr-ne::before { top: 0; right: 0; width: 25%; height: 25%; border-bottom-left-radius: 100%; border-bottom: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
+        .tr-ne::after { top: 0; right: 0; width: 75%; height: 75%; border-bottom-left-radius: 100%; border-bottom: 4px solid var(--rail-color); border-left: 4px solid var(--rail-color); }
+
+        /* North-West Curve */
+        .tr-nw::before { top: 0; left: 0; width: 25%; height: 25%; border-bottom-right-radius: 100%; border-bottom: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
+        .tr-nw::after { top: 0; left: 0; width: 75%; height: 75%; border-bottom-right-radius: 100%; border-bottom: 4px solid var(--rail-color); border-right: 4px solid var(--rail-color); }
+
+
+        /* Train Visals (Classic Iron Horse) */
+        #train-wrapper {
+            position: absolute; 
+            width: calc(100% / var(--grid-size)); 
+            height: calc(100% / var(--grid-size));
+            z-index: 20; 
+            /* Linear for movement, ease-in-out for smooth pivot rotation */
+            transition: transform 0.8s ease-in-out, left 0.8s linear, top 0.8s linear;
+            display: flex; justify-content: center; align-items: center;
         }
+
         #train-body {
-            width: 80%; height: 60%; background: #c0392b; border-radius: 4px;
-            margin: 20% 10%; position: relative;
+            width: 70%; height: 85%; 
+            background: linear-gradient(to right, #111, #333 30%, #333 70%, #111); 
+            border-radius: 50% 50% 10% 10%;
+            position: relative;
+            box-shadow: inset 0 0 8px #000, 0 5px 10px rgba(0,0,0,0.6);
+            display: flex; flex-direction: column; align-items: center;
+            border: 1px solid #000;
         }
 
+        /* Front Cowcatcher / Grill */
+        #train-body::before {
+            content: ''; position: absolute;
+            top: -6px; width: 60%; height: 10px;
+            background: #c0392b;
+            clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+            border-bottom: 2px solid #000;
+        }
+
+        /* Smokestack */
+        .smokestack {
+            width: 18px; height: 18px;
+            background: #000; border-radius: 50%;
+            border: 3px solid #7f8c8d;
+            margin-top: 5px;
+            box-shadow: inset 0 0 5px #000;
+            z-index: 2;
+        }
+
+        /* Gold Dome / Detail */
+        .dome {
+            width: 12px; height: 12px;
+            background: #f1c40f; border-radius: 50%;
+            margin-top: 10px;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Rear Cabin */
+        .cabin {
+            width: 90%; height: 35%;
+            background: #8e44ad;
+            position: absolute; bottom: 3px;
+            border-radius: 4px;
+            border: 2px solid #f1c40f;
+            box-shadow: inset 0 0 5px #000;
+        }
+
+        /* Moving Red Side Rods */
+        .side-rod {
+            position: absolute; width: 4px; height: 60%;
+            background: #e74c3c;
+            top: 20%;
+            z-index: 25;
+            box-shadow: 1px 1px 3px #000;
+            border-radius: 2px;
+        }
+        .side-rod.left { left: -5px; }
+        .side-rod.right { right: -5px; }
+
+        @keyframes pump {
+            0% { transform: translateY(-6px); }
+            50% { transform: translateY(6px); }
+            100% { transform: translateY(-6px); }
+        }
+        .is-moving .side-rod { animation: pump 0.5s infinite linear; }
+
+        /* Smoke Particles */
+        .smoke-particle {
+            position: absolute;
+            width: 15px; height: 15px;
+            background: rgba(189, 195, 199, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 15;
+            transform: translate(-50%, -50%) scale(1);
+            animation: smokeDrift 1.5s forwards ease-out;
+            filter: blur(1px);
+        }
+        @keyframes smokeDrift {
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; filter: blur(3px); }
+        }
+
+        /* Passengers */
         .passenger {
             position: absolute; width: 40%; height: 40%; top: 30%; left: 30%;
             background: #f1c40f; border-radius: 50%; box-shadow: 0 0 10px #f1c40f;
             animation: pulse 0.6s infinite alternate;
+            z-index: 5;
         }
         @keyframes pulse { from { transform: scale(0.8); } to { transform: scale(1.1); } }
 
+        /* Modals */
         #modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9);
             display: none; justify-content: center; align-items: center; z-index: 500;
         }
-        #modal { background: #2c3e50; padding: 40px; border-radius: 15px; text-align: center; border: 2px solid #1abc9c; }
-        .modal-btn { padding: 15px 30px; background: #1abc9c; border: none; color: white; cursor: pointer; font-size: 1.2rem; margin-top: 20px; }
+        #modal { background: #2c3e50; padding: 40px; border-radius: 15px; text-align: center; border: 2px solid #1abc9c; max-width: 80%; }
+        .modal-btn { padding: 15px 30px; background: #1abc9c; border: none; color: white; cursor: pointer; font-size: 1.2rem; margin-top: 20px; font-weight: bold; border-radius: 5px;}
+        .modal-btn:hover { background: #16a085; }
     </style>
 </head>
 <body class="cinematic-active">
@@ -148,14 +265,20 @@
     <div id="tutorial-arrow">➔</div>
 
     <div id="ui-bar">
-        <div>LEVEL: <span id="level-display">1</span></div>
-        <div>TRACKS AVAILABLE: <span id="track-count">0</span> / 18</div>
+        <div>LEVEL <span id="level-display">1</span></div>
+        <div id="track-count-display">TRACKS: <span id="track-count">0</span> / 18</div>
     </div>
 
     <div id="game-board">
         <div id="grid"></div>
-        <div id="train" style="display: none;">
-            <div id="train-body"></div>
+        <div id="train-wrapper" style="display: none;">
+            <div id="train-body">
+                <div class="smokestack"></div>
+                <div class="dome"></div>
+                <div class="cabin"></div>
+                <div class="side-rod left"></div>
+                <div class="side-rod right"></div>
+            </div>
         </div>
     </div>
 
@@ -172,16 +295,17 @@
         const TRACK_LIMIT = 18;
         let grid = [];
         let level = 1;
-        let trackInventory = 0;
-        let train = { x: 0, y: 0, dx: 0, dy: 1 };
+        let train = { x: 0, y: 0, dx: 0, dy: -1, rot: 0 }; 
         let passengers = [];
         let isPlaying = false;
-        let gameLoop = null;
+        let moveTimeout = null;
+        let smokeInterval = null;
         let pendingAction = null;
 
         const gridEl = document.getElementById('grid');
         const boardEl = document.getElementById('game-board');
-        const trainEl = document.getElementById('train');
+        const trainEl = document.getElementById('train-wrapper');
+        const trainBody = document.getElementById('train-body');
 
         function initGrid() {
             gridEl.innerHTML = '';
@@ -203,7 +327,6 @@
             if (!isPlaying || document.body.classList.contains('cinematic-active')) return;
             const cell = grid[y][x];
             
-            // Total tracks currently on board
             let tracksOnBoard = grid.flat().filter(c => c.hasTrack).length;
 
             if (cell.hasTrack) {
@@ -212,9 +335,12 @@
                 if (tracksOnBoard < TRACK_LIMIT) {
                     cell.hasTrack = true;
                 } else {
-                    // Flash the board red briefly to show limit reached
                     boardEl.style.borderColor = '#e74c3c';
-                    setTimeout(() => boardEl.style.borderColor = '#1abc9c', 200);
+                    document.getElementById('track-count-display').classList.add('limit-reached');
+                    setTimeout(() => {
+                        boardEl.style.borderColor = '#1abc9c';
+                        document.getElementById('track-count-display').classList.remove('limit-reached');
+                    }, 300);
                     return;
                 }
             }
@@ -229,11 +355,11 @@
             
             if (zoomTarget) {
                 const {x, y} = zoomTarget;
-                boardEl.style.transform = `scale(2.5) translate(${(4.5-x)*10}%, ${(4.5-y)*10}%)`;
+                boardEl.style.transform = `scale(2) translate(${(4.5-x)*8}%, ${(4.5-y)*8}%)`;
             }
 
             txtEl.style.opacity = 1;
-            await new Promise(r => setTimeout(r, 4000));
+            await new Promise(r => setTimeout(r, 4500));
             txtEl.style.opacity = 0;
             await new Promise(r => setTimeout(r, 1000));
             
@@ -247,12 +373,21 @@
                     cell.el.className = 'cell';
                     if (!cell.hasTrack) return;
                     cell.el.classList.add('track');
+
                     const n = (y > 0 && grid[y-1][x].hasTrack);
                     const s = (y < gridSize-1 && grid[y+1][x].hasTrack);
                     const e = (x < gridSize-1 && grid[y][x+1].hasTrack);
                     const w = (x > 0 && grid[y][x-1].hasTrack);
-                    if (n && s) cell.el.classList.add('tr-v');
-                    if (s && e) cell.el.classList.add('tr-c-se');
+
+                    // Dynamically map proper 90-degree corners and straights
+                    if (n && e) cell.el.classList.add('tr-ne');
+                    else if (n && w) cell.el.classList.add('tr-nw');
+                    else if (s && e) cell.el.classList.add('tr-se');
+                    else if (s && w) cell.el.classList.add('tr-sw');
+                    else if (n && s) cell.el.classList.add('tr-v');
+                    else if (e && w) cell.el.classList.add('tr-h');
+                    else if (n || s) cell.el.classList.add('tr-v'); // Isolated track with vertical neighbor aligns vertically
+                    else cell.el.classList.add('tr-h'); // Defaults to horizontal
                 });
             });
         }
@@ -262,100 +397,165 @@
             initGrid();
             
             if (lvl === 1) {
-                // Level 1: 17 tracks on perimeter, 1 in center = 18 total.
-                // One gap left at (0, 8) to be filled.
-                for(let i=0; i<9; i++) grid[i][0].hasTrack = true; // Left side (gap at 0,9)
-                for(let i=0; i<8; i++) grid[9][i].hasTrack = true; // Bottom
-                grid[5][5].hasTrack = true; // The "useless" center track
+                const level1Tracks = [
+                    [3,2], [4,2], [5,2], [6,2], [7,2], // Top edge
+                    [7,3], [7,4], [7,5], [7,6], [7,7], // Right edge
+                    [6,7], [5,7], [4,7], [3,7], [2,7], // Bottom edge
+                    [2,6], [2,5]                       // Left edge leading to gap
+                ];
                 
-                train = { x: 0, y: 0, dx: 0, dy: 1 };
-                passengers = [{x: 0, y: 9}];
+                level1Tracks.forEach(coord => { grid[coord[1]][coord[0]].hasTrack = true; });
+                grid[4][5].hasTrack = true; // Decoy
+                
+                // Train facing East (90 deg)
+                train = { x: 3, y: 2, dx: 1, dy: 0, rot: 90 };
+                passengers = [{x: 2, y: 3}];
                 
                 updateGridConnections();
                 drawPassengers();
                 updateUI();
                 updateTrainVisuals(true);
 
-                await cinematicScene("Welcome to Train Track Madness.<br>The grid is tight. You only have 18 tracks.");
-                await cinematicScene("Notice the gap in the perimeter?", {x: 0, y: 9});
+                await cinematicScene("Welcome to Train Track Madness Pro.<br>You have exactly 18 tracks to secure the route.");
+                await cinematicScene("Notice the gap in the perimeter?", {x: 2, y: 4});
                 
-                // Tutorial Animation: Drag center track to gap
                 const arrow = document.getElementById('tutorial-arrow');
                 arrow.style.display = 'block';
-                arrow.style.left = '55%'; arrow.style.top = '55%';
+                arrow.style.transition = "none";
+                arrow.style.left = '55%'; arrow.style.top = '45%';
                 
                 await new Promise(r => setTimeout(r, 500));
-                arrow.style.transition = "all 2s ease";
-                arrow.style.left = '5%'; arrow.style.top = '95%';
+                
+                arrow.style.transition = "all 1.5s ease-in-out";
+                arrow.style.left = '25%'; arrow.style.top = '45%';
                 
                 await new Promise(r => setTimeout(r, 2000));
-                grid[5][5].hasTrack = false;
-                grid[9][0].hasTrack = true;
+                
+                grid[4][5].hasTrack = false;
+                grid[4][2].hasTrack = true;
+                
                 updateGridConnections();
                 updateUI();
                 arrow.style.display = 'none';
                 
                 await cinematicScene("Route connected. Commencing transit.");
             } else {
-                // Random passengers for level 2+
                 for(let i=0; i<lvl+1; i++) {
                     passengers.push({x: Math.floor(Math.random()*8)+1, y: Math.floor(Math.random()*8)+1});
                 }
                 drawPassengers();
             }
             
+            startGame();
+        }
+
+        function startGame() {
             isPlaying = true;
+            trainBody.classList.add('is-moving');
+            smokeInterval = setInterval(spawnSmoke, 250);
             runGameLoop();
+        }
+
+        function stopGame() {
+            isPlaying = false;
+            trainBody.classList.remove('is-moving');
+            clearTimeout(moveTimeout);
+            clearInterval(smokeInterval);
+        }
+
+        function spawnSmoke() {
+            if(!isPlaying) return;
+            const smoke = document.createElement('div');
+            smoke.className = 'smoke-particle';
+            smoke.style.left = `${(train.x * 10) + 5}%`;
+            smoke.style.top = `${(train.y * 10) + 5}%`;
+            boardEl.appendChild(smoke);
+            setTimeout(() => { if(smoke.parentNode) smoke.remove(); }, 1500);
         }
 
         function runGameLoop() {
             if (!isPlaying) return;
-            moveTrain();
-            gameLoop = setTimeout(runGameLoop, 600);
-        }
 
-        function moveTrain() {
             let nextX = train.x + train.dx;
             let nextY = train.y + train.dy;
-
-            // Simple AI: check straight, then left, then right
             const hasTrack = (x, y) => x>=0 && x<gridSize && y>=0 && y<gridSize && grid[y][x].hasTrack;
 
+            // If path directly ahead is blocked or ending, look for a 90-degree turn
             if (!hasTrack(nextX, nextY)) {
-                let lDx = train.dy, lDy = -train.dx;
-                let rDx = -train.dy, rDy = train.dx;
-                if (hasTrack(train.x + lDx, train.y + lDy)) { train.dx = lDx; train.dy = lDy; }
-                else if (hasTrack(train.x + rDx, train.y + rDy)) { train.dx = rDx; train.dy = rDy; }
-                else { derail(); return; }
+                let lDx = train.dy, lDy = -train.dx; // Left vector mapping
+                let rDx = -train.dy, rDy = train.dx; // Right vector mapping
+
+                if (hasTrack(train.x + lDx, train.y + lDy)) {
+                    train.dx = lDx; train.dy = lDy;
+                    train.rot -= 90; // Accumulate rotation negatively for left turn
+                    executeTurn();
+                    return;
+                }
+                else if (hasTrack(train.x + rDx, train.y + rDy)) {
+                    train.dx = rDx; train.dy = rDy;
+                    train.rot += 90; // Accumulate rotation positively for right turn
+                    executeTurn();
+                    return;
+                }
+                else {
+                    derail();
+                    return;
+                }
             }
 
+            // Normal Straight Movement
             train.x += train.dx;
             train.y += train.dy;
             updateTrainVisuals();
+            checkPassengerAndContinue();
+        }
 
+        function executeTurn() {
+            // Apply visual rotation immediately
+            updateTrainVisuals();
+            
+            // Allow 1000ms (1 full second) to complete the pivot before moving to the next tile
+            moveTimeout = setTimeout(() => {
+                if (!isPlaying) return;
+                train.x += train.dx;
+                train.y += train.dy;
+                updateTrainVisuals();
+                checkPassengerAndContinue();
+            }, 1000);
+        }
+
+        function checkPassengerAndContinue() {
             const pIdx = passengers.findIndex(p => p.x === train.x && p.y === train.y);
             if (pIdx !== -1) {
                 passengers.splice(pIdx, 1);
                 drawPassengers();
-                if (passengers.length === 0) winLevel();
+                if (passengers.length === 0) {
+                    winLevel();
+                    return;
+                }
+            }
+            if (isPlaying) {
+                // Slower, smoother straight movement matched with the CSS transition speed
+                moveTimeout = setTimeout(runGameLoop, 800); 
             }
         }
 
         function derail() {
-            isPlaying = false;
+            stopGame();
             showModal("DERAILED", "Out of tracks! You must recycle tracks from behind the train to build ahead.", () => location.reload());
         }
 
         function winLevel() {
-            isPlaying = false;
+            stopGame();
             showModal("LEVEL COMPLETE", "Route cleared. Prepare for increased complexity.", () => loadLevel(level + 1));
         }
 
         function updateTrainVisuals(instant = false) {
-            trainEl.style.display = 'block';
-            trainEl.style.transition = instant ? 'none' : 'all 0.6s linear';
+            trainEl.style.display = 'flex';
+            trainEl.style.transitionDuration = instant ? '0s' : '0.8s';
             trainEl.style.left = `${(train.x / gridSize) * 100}%`;
             trainEl.style.top = `${(train.y / gridSize) * 100}%`;
+            trainEl.style.transform = `rotate(${train.rot}deg)`;
         }
 
         function drawPassengers() {
