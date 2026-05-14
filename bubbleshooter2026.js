@@ -6,7 +6,6 @@ window.addEventListener("load", function() {
     canvas.width = 800;
     canvas.height = 1000;
 
-    // --- Game State & Constants ---
     let gameState = 'MENU'; 
     let isPaused = false;
 
@@ -58,7 +57,6 @@ window.addEventListener("load", function() {
     const endTitle = document.getElementById('end-title');
     const endMessage = document.getElementById('end-message');
 
-    // --- Classes ---
     class Bubble {
         constructor(x, y, row, col, color) {
             this.x = x; this.y = y;
@@ -74,30 +72,22 @@ window.addEventListener("load", function() {
         draw(ctx) {
             ctx.save();
             ctx.translate(this.x, this.y);
-            
-            // Solid, uniform circle
             ctx.beginPath(); 
             ctx.arc(0, 0, this.radius - 1, 0, Math.PI * 2);
             ctx.fillStyle = this.color; 
             ctx.fill();
-
-            // Simple border
             ctx.lineWidth = 2; 
             ctx.strokeStyle = 'rgba(0,0,0,0.5)'; 
             ctx.stroke();
-            
             ctx.restore();
         }
 
         update() {
             if (this.isMoving) {
                 this.x += this.vx; this.y += this.vy;
-
-                // Wall bounce
                 if (this.x - this.radius <= 0) { this.x = this.radius; this.vx *= -1; } 
                 else if (this.x + this.radius >= canvas.width) { this.x = canvas.width - this.radius; this.vx *= -1; }
 
-                // Ceiling/Grid collision
                 if (this.y - this.radius <= 0) {
                     this.y = this.radius; this.snapToGrid();
                 } else if (this.checkGridCollision()) {
@@ -115,7 +105,6 @@ window.addEventListener("load", function() {
                     let b = grid[r][c];
                     if (b && !b.isDropping) {
                         let dist = Math.sqrt(Math.pow(this.x - b.x, 2) + Math.pow(this.y - b.y, 2));
-                        // Slight tolerance to allow squeezing through tight gaps
                         if (dist < this.radius * 2 - 4) return true;
                     }
                 }
@@ -189,7 +178,12 @@ window.addEventListener("load", function() {
                 }
 
                 if (gameState !== 'GAMEOVER') {
-                    setTimeout(() => { if(gameState !== 'GAMEOVER') { gameState = 'PLAYING'; prepareNextBubble(); } }, cluster.length >= 3 ? 300 : 50);
+                    setTimeout(() => { 
+                        if(gameState !== 'GAMEOVER') { 
+                            gameState = 'PLAYING'; 
+                            prepareNextBubble(); // Process queue
+                        } 
+                    }, cluster.length >= 3 ? 300 : 50);
                 }
             }
         }
@@ -249,17 +243,18 @@ window.addEventListener("load", function() {
             for (let c = 0; c < cols; c++) grid[r][c] = new Bubble(getGridX(r, c), getGridY(r), r, c, getRandomColor());
         }
 
-        nextBubbleColor = getRandomColor();
+        // Initialize the queue properly once per level
+        nextBubbleColor = getExistingColor();
         prepareNextBubble();
-        updateHUD();
         
+        updateHUD();
         menuOverlay.classList.add('hidden'); gameOverOverlay.classList.add('hidden'); pauseOverlay.classList.add('hidden');
         gameState = 'PLAYING';
     }
 
     function prepareNextBubble() {
-        let col = getExistingColor();
-        currentBubble = new Bubble(SHOOTER_X, SHOOTER_Y, -1, -1, col);
+        // Shift queue: current becomes next, next gets a new roll
+        currentBubble = new Bubble(SHOOTER_X, SHOOTER_Y, -1, -1, nextBubbleColor);
         nextBubbleColor = getExistingColor();
     }
 
@@ -446,10 +441,11 @@ window.addEventListener("load", function() {
     }
 
     function drawShooter() {
+        // Draw Next Bubble
         if (nextBubbleColor) {
             ctx.beginPath(); ctx.arc(SHOOTER_X - 80, SHOOTER_Y, BUBBLE_RADIUS * 0.5, 0, Math.PI*2);
             ctx.fillStyle = nextBubbleColor; ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2; ctx.stroke();
             
             ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 16px Nunito'; ctx.textAlign = 'center';
             ctx.fillText("NEXT", SHOOTER_X - 80, SHOOTER_Y + 30);
