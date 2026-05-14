@@ -2,22 +2,20 @@ window.addEventListener("load", function() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Internal logical resolution 
+    // Internal logical resolution
     canvas.width = 800;
     canvas.height = 1000;
 
     let gameState = 'MENU'; 
     let isPaused = false;
 
-    // Grid Setup
+    // Bubble Grid Setup
+    const ROW_COUNT = 16; 
     const COL_COUNT = 14; 
     const BUBBLE_RADIUS = 28; 
     const GRID_OFFSET_X = (canvas.width - (COL_COUNT * BUBBLE_RADIUS * 2)) / 2 + BUBBLE_RADIUS;
     const GRID_OFFSET_Y = BUBBLE_RADIUS + 10;
     const ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3); 
-
-    // **CRITICAL FIX: Explicit Danger Line**
-    // The line is drawn 150px above the bottom. The game ONLY ends if a resting bubble's center crosses this line.
     const DANGER_Y = canvas.height - 150; 
 
     // Mechanics
@@ -28,14 +26,14 @@ window.addEventListener("load", function() {
     const COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899'];
 
     let activeColors = 3; 
-    let grid = []; // 2D array [row][col]
+    let grid = []; 
     let currentBubble = null;
     let nextBubbleColor = null;
     let score = 0;
     let level = 1;
 
     let lastDropTime = 0;
-    const DROP_INTERVAL_MS = 6000; // 6 seconds
+    const DROP_INTERVAL_MS = 6000; 
 
     let particles = [];
     
@@ -80,11 +78,9 @@ window.addEventListener("load", function() {
             if (this.isMoving) {
                 this.x += this.vx; this.y += this.vy;
                 
-                // Walls
                 if (this.x - this.radius <= 0) { this.x = this.radius; this.vx *= -1; } 
                 else if (this.x + this.radius >= canvas.width) { this.x = canvas.width - this.radius; this.vx *= -1; }
 
-                // Ceiling or Bubble hit
                 if (this.y - this.radius <= 0) {
                     this.y = this.radius; this.snapToGrid();
                 } else if (this.checkGridCollision()) {
@@ -125,7 +121,6 @@ window.addEventListener("load", function() {
             if (col < 0) col = 0;
             if (col >= maxCols) col = maxCols - 1;
 
-            // If slot taken, find nearest empty space
             if (grid[row] && grid[row][col]) {
                 let neighbors = getNeighbors(row, col, true);
                 let emptyNeighbor = null;
@@ -142,7 +137,6 @@ window.addEventListener("load", function() {
                 if (emptyNeighbor) {
                     row = emptyNeighbor.r; col = emptyNeighbor.c;
                 } else {
-                    // Force a new row if we somehow can't find a spot
                     row = grid.length;
                 }
             }
@@ -162,7 +156,6 @@ window.addEventListener("load", function() {
                 dropFloaters();
             }
 
-            // **CRITICAL FIX: Check the Danger Line**
             if (checkDangerLine()) {
                 triggerGameOver(false);
                 return;
@@ -324,13 +317,11 @@ window.addEventListener("load", function() {
         }
     }
 
-    // **CRITICAL FIX:** Only checks physical Y position against the danger line
     function checkDangerLine() {
         for(let r=0; r<grid.length; r++) {
             if(!grid[r]) continue;
             for(let c=0; c<grid[r].length; c++) {
                 let b = grid[r][c];
-                // If a resting bubble's center crosses the danger line
                 if(b && !b.isDropping && (b.y >= DANGER_Y)) {
                     return true;
                 }
@@ -354,10 +345,18 @@ window.addEventListener("load", function() {
 
     function handlePointerMove(e) {
         if (gameState !== 'PLAYING') return;
-        const rect = canvas.getBoundingClientRect();
-        let clientX = e.clientX; let clientY = e.clientY;
-        if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
         
+        // Calculate the actual rendered size of the canvas vs its internal 800x1000 size
+        const rect = canvas.getBoundingClientRect();
+        
+        let clientX = e.clientX; 
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) { 
+            clientX = e.touches[0].clientX; 
+            clientY = e.touches[0].clientY; 
+        }
+        
+        // Accurate coordinate mapping factoring in object-fit scaling
         pointerX = (clientX - rect.left) * (canvas.width / rect.width);
         pointerY = (clientY - rect.top) * (canvas.height / rect.height);
     }
