@@ -26,11 +26,35 @@
             height: 100vh;
             overflow: hidden;
             user-select: none;
+            /* Prevents long-press text selection on mobile */
+            -webkit-touch-callout: none;
         }
 
+        /* --- Global Back Link --- */
+        #backLink {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #9ca3af;
+            text-decoration: none;
+            font-size: 12px;
+            z-index: 9999;
+            transition: color 0.2s;
+            background: rgba(10, 14, 23, 0.8);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        #backLink:hover {
+            color: var(--neon-green);
+        }
+
+        /* Make the wrapper responsive for mobile */
         #gameWrapper {
-            width: 900px;
-            height: 650px;
+            width: 100%;
+            max-width: 900px;
+            height: 100%;
+            max-height: 650px;
             background-color: var(--panel-bg);
             border: 2px solid #1f2937;
             border-radius: 8px;
@@ -50,6 +74,8 @@
             border-bottom: 2px solid #374151;
             font-size: 16px;
             font-weight: bold;
+            flex-wrap: wrap; /* Allows wrapping on tight mobile screens */
+            gap: 5px;
         }
 
         .stat { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
@@ -87,7 +113,7 @@
             border: none;
             border-right: 1px solid #374151;
             font-family: inherit;
-            font-size: 16px;
+            font-size: 14px; /* Slightly smaller for mobile */
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
@@ -160,6 +186,7 @@
             width: 100%;
             height: 100%;
             cursor: crosshair;
+            touch-action: none; /* Prevents mobile scrolling when interacting with canvas */
         }
         
         #canopyOverlay {
@@ -174,6 +201,7 @@
         #terminalView {
             padding: 30px;
             gap: 20px;
+            overflow-y: auto;
         }
 
         .upgrade-card {
@@ -185,6 +213,8 @@
             align-items: center;
             border: 1px solid #374151;
             margin-bottom: 15px;
+            flex-wrap: wrap; /* Helps on very small screens */
+            gap: 10px;
         }
 
         .upgrade-info h3 { margin: 0 0 5px 0; color: var(--neon-purple); }
@@ -200,6 +230,7 @@
             font-family: inherit;
             font-weight: bold;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         
         .buy-btn:hover:not(:disabled) { background: var(--neon-green); color: #000; }
@@ -217,19 +248,22 @@
             z-index: 100;
         }
 
-        .overlay-screen h1 { font-size: 48px; color: var(--neon-green); letter-spacing: 4px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-green);}
-        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 600px; line-height: 1.6; margin-bottom: 30px;}
+        .overlay-screen h1 { font-size: 48px; color: var(--neon-green); letter-spacing: 4px; margin-bottom: 5px; text-shadow: 0 0 20px var(--neon-green); text-align: center;}
+        .overlay-screen p.subtitle { font-size: 16px; color: #9ca3af; text-align: center; max-width: 600px; line-height: 1.6; margin-bottom: 30px; padding: 0 20px;}
         
         /* --- Guide CSS --- */
         .guide-container {
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
-            width: 80%;
+            width: 90%;
+            max-width: 800px;
+            flex-wrap: wrap; /* Allows stacking on mobile */
         }
 
         .guide-step {
             flex: 1;
+            min-width: 150px;
             background: #1f2937;
             padding: 20px;
             border-radius: 8px;
@@ -325,6 +359,8 @@
 </head>
 <body>
 
+    <a href="https://clicksyncgames.com" id="backLink">← Back to ClickSyncGames</a>
+
     <div id="gameWrapper">
         <div id="header">
             <div>SYS.LEVEL: <span id="uiLevel" class="stat">1</span> / 6</div>
@@ -346,7 +382,7 @@
         </div>
 
         <div id="canopyView" class="view">
-            <div id="canopyOverlay">Click to plant Blossom Turret (Cost: 50)</div>
+            <div id="canopyOverlay">Tap/Click to plant Blossom Turret (Cost: 50)</div>
             <canvas id="gameCanvas" width="900" height="526"></canvas>
         </div>
 
@@ -399,7 +435,7 @@
         </div>
 
         <div id="levelTransitionScreen" class="overlay-screen" style="display: none; background: rgba(10, 14, 23, 0.85);">
-            <h1 id="transitionTitle" style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">Now entering level 1</h1>
+            <h1 id="transitionTitle" style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple); text-align: center;">Now entering level 1</h1>
         </div>
 
         <div id="pauseScreen" class="overlay-screen" style="display: none; background: rgba(10, 14, 23, 0.85);">
@@ -409,14 +445,14 @@
 
         <div id="gameOverScreen" class="overlay-screen" style="display: none;">
             <h1 style="color: var(--neon-red); text-shadow: 0 0 20px var(--neon-red);">SYSTEM FAILURE</h1>
-            <p style="color: #9ca3af;">Core Integrity reached 0%. The garden has been corrupted.</p>
+            <p style="color: #9ca3af; text-align: center;">Core Integrity reached 0%. The garden has been corrupted.</p>
             <p id="survivalText" style="color: var(--neon-green); margin-top: 20px; font-size: 24px;">Survived to Level: 1</p>
             <button class="start-btn" id="restartBtn" style="background: var(--neon-red); margin-top: 30px;">Reboot System</button>
         </div>
 
         <div id="victoryScreen" class="overlay-screen" style="display: none;">
             <h1 style="color: var(--neon-purple); text-shadow: 0 0 20px var(--neon-purple);">THREAT PURGED</h1>
-            <p style="color: #9ca3af;">You have successfully maintained the ecosystem through all 6 threat levels.</p>
+            <p style="color: #9ca3af; text-align: center; padding: 0 20px;">You have successfully maintained the ecosystem through all 6 threat levels.</p>
             <button class="start-btn" id="playAgainBtn" style="background: var(--neon-purple); margin-top: 30px;">Play Again</button>
         </div>
     </div>
@@ -431,12 +467,12 @@
             nutrients: 400,
             health: 100,
             frames: 0,
-            levelFrames: 0, // Frame counter specifically for the 4-minute timer
+            levelFrames: 0, 
             activeTab: 'rootsView',
             
             // Upgrades
             hasAutoExtractor: false,
-            fireRateDelay: 60, // Frames between shots
+            fireRateDelay: 60, 
             
             // Roots Data
             nodes: [],
@@ -451,7 +487,6 @@
         const COSTS = { turret: 50, extractor: 150, overclock: 200, heal: 100 };
         const FRAMES_PER_LEVEL = 14400; // 4 minutes * 60fps = 14400 frames
 
-        // Strict Enforcement of Starting Nutrients per Level
         function getStartingNutrients(lvl) {
             switch(lvl) {
                 case 1: return 400;
@@ -459,7 +494,6 @@
                 case 3: return 300;
                 case 4: return 250;
                 case 5: return 150;
-                case 200: return 150; // Added in case Level 200 was not a typo
                 case 6: return 100;
                 default: return 100;
             }
@@ -501,8 +535,9 @@
                 node.className = 'node';
                 node.dataset.index = i;
                 
-                node.addEventListener('mousedown', () => {
-                    if (state.isTransitioning || state.isPaused || !state.isRunning) return; // Prevent interaction if paused/transitioning
+                // Changed from mousedown to pointerdown to capture both mouse and touch efficiently
+                node.addEventListener('pointerdown', (e) => {
+                    if (state.isTransitioning || state.isPaused || !state.isRunning) return; 
                     
                     if (node.classList.contains('active-packet')) {
                         node.classList.remove('active-packet');
@@ -537,11 +572,11 @@
             setTimeout(() => {
                 transitionScreen.style.display = 'none';
                 state.isTransitioning = false;
-            }, 3000); // Transition displays for 3 seconds
+            }, 3000); 
         }
 
         function togglePause() {
-            if (!state.isRunning || state.isTransitioning) return; // Can't pause if game isn't actively running
+            if (!state.isRunning || state.isTransitioning) return; 
             
             state.isPaused = !state.isPaused;
             if (state.isPaused) {
@@ -560,7 +595,7 @@
             state.isRunning = true;
             state.isPaused = false;
             state.level = 1;
-            state.nutrients = getStartingNutrients(state.level); // Initialize with exact starting nutrients
+            state.nutrients = getStartingNutrients(state.level); 
             state.health = 100;
             state.frames = 0;
             state.levelFrames = 0;
@@ -577,12 +612,11 @@
             
             initRoots();
             updateUI();
-            checkUpgradeButtons(); // Refresh buttons based on initial high nutrients
+            checkUpgradeButtons(); 
             
-            // Show initial transition
             showTransition(state.level);
             
-            gameLoop();
+            requestAnimationFrame(gameLoop);
         }
 
         function addNutrients(amount) {
@@ -608,7 +642,6 @@
             uiNutrients.innerText = state.nutrients;
             uiHealth.innerText = Math.floor(state.health);
             
-            // Calculate and format time remaining
             const remainingSeconds = Math.max(0, Math.floor((FRAMES_PER_LEVEL - state.levelFrames) / 60));
             const mins = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
             const secs = (remainingSeconds % 60).toString().padStart(2, '0');
@@ -675,26 +708,23 @@
 
         // --- ROOT SUBSYSTEM ---
         function updateRoots() {
-            // Spawn logic
             if (state.frames % (Math.max(20, 80 - (state.level * 5))) === 0) {
                 const emptyNodes = state.nodes.filter(n => !n.active && !n.tainted);
                 if (emptyNodes.length > 0) {
                     const target = emptyNodes[Math.floor(Math.random() * emptyNodes.length)];
                     
-                    // 15% chance for tainted packet
                     if (Math.random() < 0.15 + (state.level * 0.02)) {
                         target.tainted = true;
                         target.el.classList.add('tainted-packet');
-                        target.timer = 120; // 2 seconds at 60fps
+                        target.timer = 120; 
                     } else {
                         target.active = true;
                         target.el.classList.add('active-packet');
-                        target.timer = 180; // 3 seconds
+                        target.timer = 180; 
                     }
                 }
             }
 
-            // Timeout logic
             state.nodes.forEach(node => {
                 if (node.active || node.tainted) {
                     node.timer--;
@@ -706,7 +736,6 @@
                 }
             });
 
-            // Auto Extractor logic
             if (state.hasAutoExtractor && state.frames % 90 === 0) {
                 const activeNodes = state.nodes.filter(n => n.active);
                 if (activeNodes.length > 0) {
@@ -720,12 +749,19 @@
         }
 
         // --- CANOPY SUBSYSTEM (CANVAS) ---
-        canvas.addEventListener('mousedown', (e) => {
+        // Upgraded from mousedown to pointerdown to fix mobile logic + coordinate mapping fix
+        canvas.addEventListener('pointerdown', (e) => {
             if (state.activeTab !== 'canopyView' || !state.isRunning || state.isTransitioning || state.isPaused) return;
             
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            
+            // Calculate ratio between visual size (CSS) and actual logical resolution
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            // Map event coordinates to exact internal canvas coordinates
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
 
             // Prevent placing turrets too high (enemy spawn zone)
             if (y < 150) return;
@@ -745,7 +781,6 @@
         });
 
         function spawnEnemy() {
-            // Computer AI: Spawns get harder
             const isTank = Math.random() < (state.level * 0.05);
             const isFast = !isTank && Math.random() < (state.level * 0.08);
             
@@ -773,16 +808,13 @@
         }
 
         function updateCanopy() {
-            // Spawn Enemies
             const spawnInterval = Math.max(30, 150 - (state.level * 10));
             if (state.frames % spawnInterval === 0) {
                 spawnEnemy();
             }
 
-            // Alert logic (Context switching challenge)
             let dangerClose = false;
 
-            // Move Enemies
             for (let i = state.enemies.length - 1; i >= 0; i--) {
                 let e = state.enemies[i];
                 e.y += e.speed;
@@ -790,37 +822,33 @@
                 if (e.y > canvas.height * 0.6) dangerClose = true;
 
                 if (e.y > canvas.height) {
-                    takeDamage(e.maxHp * 0.5); // Damage core based on enemy strength
+                    takeDamage(e.maxHp * 0.5); 
                     state.enemies.splice(i, 1);
                 }
             }
 
-            // Handle Tab Alert
             if (dangerClose && state.activeTab !== 'canopyView') {
                 canopyTabBtn.classList.add('tab-alert');
             } else if (!dangerClose) {
                 canopyTabBtn.classList.remove('tab-alert');
             }
 
-            // Turret Logic
             state.turrets.forEach(t => {
                 if (t.cooldown > 0) t.cooldown--;
 
                 if (t.cooldown <= 0 && state.enemies.length > 0) {
-                    // Find closest enemy
                     let closest = null;
                     let minDist = Infinity;
                     
                     state.enemies.forEach(e => {
                         const dist = Math.hypot(e.x - t.x, e.y - t.y);
-                        if (dist < minDist && dist < 300) { // Range limit
+                        if (dist < minDist && dist < 300) { 
                             minDist = dist;
                             closest = e;
                         }
                     });
 
                     if (closest) {
-                        // Shoot
                         const angle = Math.atan2(closest.y - t.y, closest.x - t.x);
                         state.projectiles.push({
                             x: t.x, y: t.y,
@@ -833,19 +861,16 @@
                 }
             });
 
-            // Move Projectiles & Collisions
             for (let i = state.projectiles.length - 1; i >= 0; i--) {
                 let p = state.projectiles[i];
                 p.x += p.vx;
                 p.y += p.vy;
 
-                // Off screen
                 if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
                     state.projectiles.splice(i, 1);
                     continue;
                 }
 
-                // Check collision with enemies
                 let hit = false;
                 for (let j = state.enemies.length - 1; j >= 0; j--) {
                     let e = state.enemies[j];
@@ -865,7 +890,6 @@
                 if (hit) state.projectiles.splice(i, 1);
             }
 
-            // Update Particles
             for (let i = state.particles.length - 1; i >= 0; i--) {
                 let p = state.particles[i];
                 p.x += p.vx;
@@ -878,7 +902,6 @@
         function drawCanopy() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Core Base line
             ctx.beginPath();
             ctx.moveTo(0, canvas.height - 5);
             ctx.lineTo(canvas.width, canvas.height - 5);
@@ -886,7 +909,6 @@
             ctx.lineWidth = 10;
             ctx.stroke();
 
-            // Draw Turrets
             state.turrets.forEach(t => {
                 ctx.beginPath();
                 ctx.arc(t.x, t.y, t.radius, 0, Math.PI*2);
@@ -896,14 +918,12 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Inner core
                 ctx.beginPath();
                 ctx.arc(t.x, t.y, 4, 0, Math.PI*2);
                 ctx.fillStyle = '#10b981';
                 ctx.fill();
             });
 
-            // Draw Enemies
             state.enemies.forEach(e => {
                 ctx.beginPath();
                 ctx.moveTo(e.x, e.y - e.radius);
@@ -913,14 +933,12 @@
                 ctx.fillStyle = e.color;
                 ctx.fill();
 
-                // Health bar
                 ctx.fillStyle = '#374151';
                 ctx.fillRect(e.x - 10, e.y - e.radius - 8, 20, 4);
                 ctx.fillStyle = '#10b981';
                 ctx.fillRect(e.x - 10, e.y - e.radius - 8, 20 * (e.hp / e.maxHp), 4);
             });
 
-            // Draw Projectiles
             ctx.fillStyle = '#8b5cf6';
             state.projectiles.forEach(p => {
                 ctx.beginPath();
@@ -928,7 +946,6 @@
                 ctx.fill();
             });
 
-            // Draw Particles
             state.particles.forEach(p => {
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
@@ -941,31 +958,26 @@
 
         // --- MASTER LOOP ---
         function checkLevelProgress() {
-            // Check if 4 minutes have passed
             if (state.levelFrames >= FRAMES_PER_LEVEL) {
                 state.level++;
-                state.levelFrames = 0; // Reset timer for the next level
+                state.levelFrames = 0; 
                 
-                // End game after surviving 6 levels
                 if (state.level > 6) {
                     endGame(true);
                 } else {
-                    // RESET CANOPY STATE
                     state.turrets = [];
                     state.enemies = [];
                     state.projectiles = [];
                     state.particles = [];
                     
-                    // RESET UPGRADES
                     state.hasAutoExtractor = false;
                     state.fireRateDelay = 60;
                     document.getElementById('buyExtractor').innerText = `Install (${COSTS.extractor}N)`;
                     
-                    // RESET NUTRIENTS BASED ON NEW LEVEL (Ensuring strict values are loaded)
                     state.nutrients = getStartingNutrients(state.level);
                     
                     updateUI();
-                    checkUpgradeButtons(); // Ensure buttons update to match new nutrient count
+                    checkUpgradeButtons(); 
                     showTransition(state.level);
                 }
             }
@@ -974,7 +986,6 @@
         function gameLoop() {
             if (!state.isRunning) return;
 
-            // Only update game mechanics if we aren't paused and aren't in a level transition
             if (!state.isTransitioning && !state.isPaused) {
                 state.frames++;
                 state.levelFrames++;
@@ -983,11 +994,9 @@
                 updateCanopy();
                 checkLevelProgress();
                 
-                // Update UI every 60 frames (1 second) to keep timer accurate without over-rendering text
                 if (state.frames % 60 === 0) updateUI(); 
             }
 
-            // Always draw canvas if tab is active (so game renders behind the transition overlay)
             if (state.activeTab === 'canopyView') {
                 drawCanopy();
             }
@@ -1013,7 +1022,6 @@
         document.getElementById('pauseBtn').addEventListener('click', togglePause);
         document.getElementById('continueBtn').addEventListener('click', togglePause);
 
-        // Keyboard Shortcut for Pause
         window.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'p') {
                 togglePause();
