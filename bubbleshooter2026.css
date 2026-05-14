@@ -1,48 +1,148 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+/* Lock the body completely to prevent scrolling */
 body, html { 
-    width: 100%; height: 100%; font-family: 'Nunito', sans-serif; 
+    width: 100%; height: 100%; 
+    font-family: 'Nunito', sans-serif; 
     background-color: #0f172a; color: #ecf0f1; 
-    overflow-y: auto; overflow-x: hidden; touch-action: pan-y; 
+    overflow: hidden; 
+    touch-action: none; 
 }
-#game-wrapper { display: flex; flex-direction: column; min-height: 100vh; width: 100vw; position: relative;}
-#orientation-warning { display: none; background-color: rgba(239, 68, 68, 0.9); color: white; text-align: center; padding: 5px; font-size: 0.8rem; font-weight: bold; z-index: 1000; }
-#csg-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #0f172a; border-bottom: 2px solid #8b5cf6; min-height: 60px; z-index: 200; position: relative; flex-wrap: wrap; gap: 10px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2); }
+
+#game-wrapper { 
+    display: flex; flex-direction: column; 
+    height: 100vh; /* Lock to viewport height */
+    width: 100vw; position: relative;
+}
+
+/* Orientation Warning */
+#orientation-warning {
+    display: none;
+    background-color: rgba(239, 68, 68, 0.9);
+    color: white;
+    text-align: center;
+    padding: 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 1000;
+}
+
+/* Header */
+#csg-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 10px 20px; background: #0f172a; border-bottom: 2px solid #8b5cf6;
+    height: 60px; /* Fixed height for exact calculation */
+    flex-shrink: 0; /* Prevent header from shrinking */
+    z-index: 200; position: relative; flex-wrap: wrap; gap: 10px;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+}
 #csg-branding { display: flex; align-items: center; gap: 10px; }
 .logo-shield { background: linear-gradient(135deg, #8b5cf6, #c084fc); color: white; font-weight: 900; padding: 4px 8px; border-radius: 6px; font-size: 0.9rem; border: 2px solid #fff; }
 #game-title { font-size: 1.3rem; font-weight: bold; color: #fff; text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);}
 #csg-navigation { display: flex; gap: 10px; flex-wrap: wrap; }
-.btn { padding: 11px 18px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+
+/* Buttons */
+.btn { 
+    padding: 11px 18px; 
+    border-radius: 6px; 
+    border: none; 
+    font-weight: bold; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    font-size: 0.95rem; 
+}
 .btn:active { transform: scale(0.95); }
 .btn.primary { background-color: #8b5cf6; color: white; }
 .btn.primary:hover { background-color: #7c3aed; }
 .btn.secondary { background-color: #334155; color: #fff; border: 1px solid #475569; }
 .btn.secondary:hover { background-color: #475569; }
 .action { width: 100%; padding: 15px; font-size: 1.2rem; }
-#main-content { display: flex; flex: 1; position: relative; background: #020617; justify-content: center; }
-#canvas-container { flex: 1; width: 100%; max-width: 800px; min-height: 800px; background: radial-gradient(circle at bottom center, #1e1b4b, #020617); position: relative; border-left: 2px solid #1e293b; border-right: 2px solid #1e293b; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
-canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+/* Strict Responsive Canvas Area */
+#main-content { 
+    display: flex; flex: 1; position: relative; background: #020617; 
+    justify-content: center; align-items: center;
+    /* Lock height to remainder of screen */
+    height: calc(100vh - 60px); 
+    overflow: hidden;
+}
+
+#canvas-container { 
+    position: relative; 
+    background: radial-gradient(circle at bottom center, #1e1b4b, #020617); 
+    border-left: 2px solid #1e293b; border-right: 2px solid #1e293b;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    /* Set an aspect ratio that matches the internal 800x1000 resolution */
+    aspect-ratio: 4 / 5;
+    /* Strict limits */
+    max-height: 100%; 
+    max-width: 100%;
+}
+
+canvas { 
+    width: 100%; height: 100%; display: block; 
+    /* Force canvas to fit entirely inside container without stretching */
+    object-fit: contain; 
+    touch-action: none; 
+    cursor: crosshair;
+}
+
+/* HUD */
 #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; padding: 15px;}
 .hud-top { display: flex; justify-content: space-between; pointer-events: auto; }
-.hud-score-info, .hud-level-info { background: rgba(15, 23, 42, 0.85); padding: 8px 15px; border-radius: 8px; border: 1px solid #8b5cf6; font-size: 1.2rem; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+.hud-score-info, .hud-level-info { 
+    background: rgba(15, 23, 42, 0.85); padding: 8px 15px; border-radius: 8px; 
+    border: 1px solid #8b5cf6; font-size: 1.2rem; font-weight: bold; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+}
 .hud-label { color: #94a3b8; margin-right: 5px; font-size: 1rem;}
 #hud-score { color: #facc15; }
 #hud-level { color: #38bdf8; }
-.overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(8px); padding: 20px;}
+
+/* Menus & Overlays */
+.overlay { 
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(2, 6, 23, 0.9); display: flex; flex-direction: column; 
+    justify-content: center; align-items: center; z-index: 100; 
+    backdrop-filter: blur(8px); padding: 20px;
+}
 .overlay.hidden { display: none !important; }
-.menu-box { background: #0f172a; padding: 40px 30px; border-radius: 16px; border: 2px solid #8b5cf6; text-align: center; width: 100%; max-width: 450px; box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); max-height: 90vh; overflow-y: auto;}
+.menu-box { 
+    background: #0f172a; padding: 40px 30px; border-radius: 16px; 
+    border: 2px solid #8b5cf6; text-align: center; width: 100%; max-width: 450px; 
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.4);
+    max-height: 90vh; overflow-y: auto;
+}
 .neon-text { color: #fff; font-size: 2.2rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #c084fc, 0 0 20px #8b5cf6;}
 .subtitle { color: #a78bfa; margin-bottom: 30px; font-weight: bold;}
 .menu-box h2 { color: #fff; font-size: 1.8rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;}
+
 .difficulty-selector { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #334155;}
 .difficulty-selector h3 { color: #cbd5e1; margin-bottom: 15px; font-size: 1rem; }
 .radio-group { display: flex; flex-direction: column; gap: 15px; color: #fff; font-size: 1.1rem; align-items: center;}
 .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px;}
 .radio-group input[type="radio"] { transform: scale(1.5); accent-color: #8b5cf6; cursor: pointer; }
+
 .mode-btn { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; border-radius: 8px; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.5); cursor: pointer;}
 .mode-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.7); }
+
 #final-score-text { color: #38bdf8; margin-bottom: 10px; font-size: 1.5rem; }
 #end-message { color: #94a3b8; margin-bottom: 20px; font-size: 1.1rem;}
-@media (max-width: 600px) { #csg-header { flex-direction: column; padding: 10px; height: auto;} #csg-navigation { width: 100%; justify-content: center;} .hud-score-info, .hud-level-info { font-size: 1rem; padding: 6px 10px;} .neon-text { font-size: 1.8rem;} #canvas-container { height: auto; width: 100%; max-height: calc(100vh - 90px); } }
-@media screen and (orientation: portrait) and (max-width: 768px) { #orientation-warning { display: block; } }
+
+/* Mobile Header Adjustment */
+@media (max-width: 600px) {
+    #csg-header { flex-direction: column; padding: 10px; height: auto;}
+    #csg-navigation { width: 100%; justify-content: center;}
+    .hud-score-info, .hud-level-info { font-size: 1rem; padding: 6px 10px;}
+    .neon-text { font-size: 1.8rem;}
+    
+    /* Dynamically calculate height to account for taller wrapping header */
+    #main-content { height: calc(100vh - 100px); }
+}
+
+/* Portrait Warning Logic */
+@media screen and (orientation: portrait) and (max-width: 768px) {
+    #orientation-warning { display: block; }
+}
