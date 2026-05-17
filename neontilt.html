@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Neon Tilt Collector</title>
+    <link rel="stylesheet" href="neontilt.css">
+    <!-- Using highly stable CDNs for Three.js and Cannon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+</head>
+<body>
+    <!-- Portrait Orientation Warning Banner (Non-Blocking) -->
+    <div id="portrait-warning">
+        For best experience rotate device to landscape orientation
+    </div>
+
+    <!-- UI Overlay -->
+    <div id="ui">
+        <div class="stats-bar">
+            <h2>Round: <span id="round-display">Tut</span></h2>
+            <h2>Time: <span id="time-display">15</span>s</h2>
+            <h2>Target: <span id="score">0</span> / <span id="target-score">5</span></h2>
+        </div>
+        <div class="button-group">
+            <button id="pause-btn">Pause (P)</button>
+            <button id="return-btn" onclick="window.location.href='https://clicksyncgames.com/'">Return to ClickSyncGames</button>
+        </div>
+    </div>
+
+    <!-- Tutorial Overlay Text -->
+    <div id="tutorial-text">
+        <h1 id="tut-msg">Roll to the Yellow Cube!</h1>
+    </div>
+
+    <!-- On-Screen Arrow Keys -->
+    <div id="on-screen-controls">
+        <div class="arrow-row">
+            <button id="btn-up" class="arrow-btn">▲</button>
+        </div>
+        <div class="arrow-row">
+            <button id="btn-left" class="arrow-btn">◀</button>
+            <button id="btn-down" class="arrow-btn">▼</button>
+            <button id="btn-right" class="arrow-btn">▶</button>
+        </div>
+    </div>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen" class="overlay">
+        <h1>Neon Tilt Collector</h1>
+        <p>Use the on-screen arrows or keyboard arrows to tilt the board.</p>
+        <p>Roll the pink marble to collect yellow cubes before time runs out!</p>
+        <p style="color: #ff3366;">Watch out for falling red blocks in later rounds!</p>
+        <button id="start-btn">Start Game</button>
+    </div>
+
+    <!-- Pause / Status Screen Overlay -->
+    <div id="status-screen" class="overlay" style="display: none;">
+        <h1 id="status-title">PAUSED</h1>
+        <p id="status-desc">Press 'P' or click Resume to continue.</p>
+        <button id="resume-btn">Resume</button>
+        <button id="next-round-btn" style="display: none;">Start Next Round</button>
+        <button id="restart-btn" style="display: none;">Restart Game</button>
+    </div>
+    
+    <!-- Load the game logic -->
+    <script src="neontilt.js"></script>
+</body>
+</html>
