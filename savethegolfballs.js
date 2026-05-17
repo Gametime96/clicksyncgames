@@ -14,7 +14,7 @@ let lastTimeUpdate = 0;
 let gameTime = 0;
 let lastQueueTime = 0;
 
-// Inputs & Tilt
+// Inputs 
 let targetTiltX = 0, targetTiltZ = 0;
 let currentTiltX = 0, currentTiltZ = 0;
 const maxTilt = 0.3;
@@ -43,7 +43,6 @@ function init() {
     scene.background = new THREE.Color(0xd3d3d3);
     scene.fog = new THREE.Fog(0xd3d3d3, 20, 60);
 
-    // Initial sizing handling for full screen dynamic height
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -162,7 +161,7 @@ function buildLevel() {
     }
 }
 
-// --- Inputs & Device Tilt ---
+// --- Inputs & Keyboard/Touch Logic ---
 function setupInputs() {
     window.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'p') togglePause();
@@ -192,7 +191,6 @@ function setupInputs() {
     addTouch('btn-left', null, -maxTilt);
     addTouch('btn-right', null, maxTilt);
 
-    // Resizing logic that handles dynamic mobile URL bars
     window.addEventListener('resize', () => {
         const width = window.innerWidth;
         const height = window.innerHeight;
@@ -200,25 +198,6 @@ function setupInputs() {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     });
-}
-
-function handleOrientation(event) {
-    if (gameState !== 'playing') return;
-    let x = event.beta;  let y = event.gamma; 
-    if (x > 30) x = 30; if (x < -30) x = -30;
-    if (y > 30) y = 30; if (y < -30) y = -30;
-    targetTiltX = (x / 30) * maxTilt;
-    targetTiltZ = (y / 30) * maxTilt;
-}
-
-function requestDeviceOrientation() {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().then(state => {
-            if (state === 'granted') window.addEventListener('deviceorientation', handleOrientation);
-        }).catch(console.error);
-    } else {
-        window.addEventListener('deviceorientation', handleOrientation);
-    }
 }
 
 // --- Game Flow Control ---
@@ -291,7 +270,7 @@ function processTutorial() {
         targetTiltX = maxTilt; targetTiltZ = 0;
         document.getElementById('btn-down').classList.add('simulated-active');
     } else if (timeRemaining > 4) {
-        tutMsg.innerText = "Tilt device or use arrows!";
+        tutMsg.innerText = "Use on-screen or keyboard arrows!";
         targetTiltX = 0; targetTiltZ = -maxTilt;
         document.getElementById('btn-down').classList.remove('simulated-active');
         document.getElementById('btn-left').classList.add('simulated-active');
@@ -442,7 +421,6 @@ function animate(time) {
 startBtn.addEventListener('click', () => {
     document.getElementById('start-screen').style.display = 'none';
     uiEl.style.display = 'flex';
-    requestDeviceOrientation(); 
     startRound(0); 
 });
 
