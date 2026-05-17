@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Save the Golfballs</title>
+    <link rel="stylesheet" href="savethegolfballs.css">
+    <!-- Using highly stable CDNs for Three.js and Cannon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+</head>
+<body>
+    <!-- Portrait Orientation Warning -->
+    <div id="portrait-warning">
+        <p>For best experience rotate mobile device to landscape orientation.</p>
+    </div>
+
+    <!-- UI Overlay -->
+    <div id="ui">
+        <div class="stats-bar">
+            <h2>Round: <span id="round-display">Tut</span></h2>
+            <h2>Time: <span id="time-display">12</span>s</h2>
+            <h2>Balls: <span id="score">30</span></h2>
+        </div>
+        <div class="button-group">
+            <button id="pause-btn">Pause (P)</button>
+            <button id="return-btn" onclick="window.location.href='https://clicksyncgames.com/'">Return to ClickSyncGames</button>
+        </div>
+    </div>
+
+    <!-- Tutorial Overlay Text -->
+    <div id="tutorial-text">
+        <h1 id="tut-msg">Watch closely!</h1>
+    </div>
+
+    <!-- On-Screen Arrow Keys -->
+    <div id="on-screen-controls">
+        <div class="arrow-row">
+            <button id="btn-up" class="arrow-btn">▲</button>
+        </div>
+        <div class="arrow-row">
+            <button id="btn-left" class="arrow-btn">◀</button>
+            <button id="btn-down" class="arrow-btn">▼</button>
+            <button id="btn-right" class="arrow-btn">▶</button>
+        </div>
+    </div>
+
+    <!-- Start Screen Overlay -->
+    <div id="start-screen" class="overlay">
+        <h1>Save the Golfballs</h1>
+        <p>Tilt your phone, use on-screen arrows, or keyboard arrows to balance the box.</p>
+        <p>Survive 10 rounds as the walls fall apart!</p>
+        <button id="start-btn">Start Game & Enable Tilt</button>
+    </div>
+
+    <!-- Pause / Status Screen Overlay -->
+    <div id="status-screen" class="overlay" style="display: none;">
+        <h1 id="status-title">PAUSED</h1>
+        <p id="status-desc">Press 'P' or click Resume to continue.</p>
+        <button id="resume-btn">Resume</button>
+        <button id="next-round-btn" style="display: none;">Start Next Round</button>
+        <button id="restart-btn" style="display: none;">Restart Game</button>
+    </div>
+    
+    <!-- Load the game logic -->
+    <script src="savethegolfballs.js"></script>
+</body>
+</html>
