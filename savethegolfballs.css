@@ -37,12 +37,8 @@ canvas {
 }
 
 @media (orientation: portrait) and (max-width: 768px) {
-    #portrait-warning { 
-        display: block; 
-    }
-    #ui {
-        top: 45px !important; /* Push UI down slightly so banner doesn't cover stats */
-    }
+    #portrait-warning { display: block; }
+    #ui { top: 45px !important; }
 }
 
 /* HUD Overlay */
@@ -109,7 +105,7 @@ h2 {
     text-align: center;
     color: #fff;
     font-size: 2rem;
-    text-shadow: 2px 2px 4px #000;
+    text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
     z-index: 5;
     pointer-events: none;
     display: none;
@@ -119,7 +115,6 @@ h2 {
 #on-screen-controls {
     display: none;
     position: absolute;
-    /* Uses safe-area so it doesn't get cut off by iOS/Android bottom swipe bars */
     bottom: max(20px, env(safe-area-inset-bottom)); 
     right: max(20px, env(safe-area-inset-right));
     z-index: 15;
@@ -173,17 +168,36 @@ h2 {
     box-sizing: border-box;
 }
 
+/* Bigger Outline for Main Titles */
 .overlay h1 {
     font-size: 3rem;
     color: #a4cc00;
-    text-shadow: 2px 2px 0px #333;
     margin-bottom: 10px;
+    text-shadow: 
+        -3px -3px 0 #222,  
+         3px -3px 0 #222,
+        -3px  3px 0 #222,
+         3px  3px 0 #222,
+         5px  5px 8px rgba(0,0,0,0.6);
 }
 
 .overlay p {
     font-size: 1.1rem;
     color: #333;
     margin: 5px 0;
+}
+
+/* Specifically bolded, black text with light grey outline for status description */
+#status-desc {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: #000;
+    text-shadow: 
+        -1.5px -1.5px 0 #e0e0e0,  
+         1.5px -1.5px 0 #e0e0e0,
+        -1.5px  1.5px 0 #e0e0e0,
+         1.5px  1.5px 0 #e0e0e0;
+    margin: 15px 0;
 }
 
 .overlay button {
