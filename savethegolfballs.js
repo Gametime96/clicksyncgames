@@ -5,9 +5,9 @@ let floorPart;
 let exclamationTexture; // Reusable warning sprite texture
 
 // Game State
-let gameState = 'start'; // start, tutorial, playing, paused, transition, gameover
-let currentRound = 0; // 0 = Tutorial
-const roundTimes = [12, 10, 12, 14, 16, 18, 20, 22, 24, 26, 30]; // Index 0 is tutorial
+let gameState = 'start'; 
+let currentRound = 0; 
+const roundTimes = [12, 10, 12, 14, 16, 18, 20, 22, 24, 26, 30]; 
 let timeRemaining = 0;
 let lastTimeUpdate = 0;
 
@@ -43,12 +43,16 @@ function init() {
     scene.background = new THREE.Color(0xd3d3d3);
     scene.fog = new THREE.Fog(0xd3d3d3, 20, 60);
 
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    // Initial sizing handling for full screen dynamic height
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 20, 24);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
@@ -78,17 +82,16 @@ function initPhysics() {
     world.addContactMaterial(contactMaterial);
 }
 
-// Generate the "!" Texture once
 function createWarningTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
     const ctx = canvas.getContext('2d');
     ctx.font = 'bold 200px Arial';
-    ctx.fillStyle = '#ffff00'; // Yellow
+    ctx.fillStyle = '#ffff00'; 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 15;
-    ctx.strokeStyle = '#000000'; // Black outline
+    ctx.strokeStyle = '#000000'; 
     ctx.strokeText('!', 128, 128);
     ctx.fillText('!', 128, 128);
     exclamationTexture = new THREE.CanvasTexture(canvas);
@@ -96,7 +99,6 @@ function createWarningTexture() {
 
 function createBoxPart(w, h, d, x, y, z, isWall) {
     const geo = new THREE.BoxGeometry(w, h, d);
-    // MUST clone material so we can blink walls independently. Bright Red color.
     const mat = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.8 });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
@@ -114,10 +116,10 @@ function createBoxPart(w, h, d, x, y, z, isWall) {
         const spriteMat = new THREE.SpriteMaterial({ map: exclamationTexture, depthTest: false });
         sprite = new THREE.Sprite(spriteMat);
         sprite.scale.set(4, 4, 1);
-        sprite.position.set(0, 1.5, 0); // Hover above the wall
+        sprite.position.set(0, 1.5, 0); 
         sprite.visible = false;
         sprite.renderOrder = 999;
-        mesh.add(sprite); // Attach sprite to the mesh so it moves/tilts with it
+        mesh.add(sprite); 
     }
 
     const part = { 
@@ -140,10 +142,10 @@ function buildLevel() {
     currentTiltX = 0; currentTiltZ = 0; targetTiltX = 0; targetTiltZ = 0;
 
     floorPart = createBoxPart(12, 0.5, 12, 0, -0.25, 0, false);
-    createBoxPart(12, 2, 0.5, 0, 1, -5.75, true); // North
-    createBoxPart(12, 2, 0.5, 0, 1, 5.75, true);  // South
-    createBoxPart(0.5, 2, 11, -5.75, 1, 0, true); // West
-    createBoxPart(0.5, 2, 11, 5.75, 1, 0, true);  // East
+    createBoxPart(12, 2, 0.5, 0, 1, -5.75, true); 
+    createBoxPart(12, 2, 0.5, 0, 1, 5.75, true);  
+    createBoxPart(0.5, 2, 11, -5.75, 1, 0, true); 
+    createBoxPart(0.5, 2, 11, 5.75, 1, 0, true);  
 
     const ballGeo = new THREE.SphereGeometry(0.4, 32, 32);
     const ballMat = new THREE.MeshStandardMaterial({ color: 0xccff00, roughness: 0.7 });
@@ -165,7 +167,6 @@ function setupInputs() {
     window.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'p') togglePause();
         if (gameState !== 'playing') return;
-
         if (e.key === 'ArrowUp') targetTiltX = -maxTilt;
         if (e.key === 'ArrowDown') targetTiltX = maxTilt;
         if (e.key === 'ArrowLeft') targetTiltZ = -maxTilt;
@@ -191,10 +192,13 @@ function setupInputs() {
     addTouch('btn-left', null, -maxTilt);
     addTouch('btn-right', null, maxTilt);
 
+    // Resizing logic that handles dynamic mobile URL bars
     window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        camera.aspect = width / height;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(width, height);
     });
 }
 
@@ -240,12 +244,12 @@ function startRound(roundNum) {
 function queueWallDrop() {
     const availableWalls = walls.filter(w => !w.warningQueued);
     if (availableWalls.length === 0 || gameState !== 'playing') return;
-    if (currentRound === 1) return; // No drops round 1
+    if (currentRound === 1) return; 
     
     const wall = availableWalls[Math.floor(Math.random() * availableWalls.length)];
     wall.warningQueued = true;
     wall.warningStartTime = gameTime;
-    wall.sprite.visible = true; // Show exclamation mark
+    wall.sprite.visible = true; 
 }
 
 function executePhysicalDrop(wall) {
@@ -261,15 +265,13 @@ function executePhysicalDrop(wall) {
     newBody.position.copy(pos);
     newBody.quaternion.copy(quat);
 
-    // Calculate outward direction locally based on where wall was originally spawned
     let localOutward = new CANNON.Vec3(0,0,0);
-    if (w > d) { // North or South wall
+    if (w > d) { 
         localOutward.set(0, 0, wall.basePos.z > 0 ? 1 : -1);
-    } else { // East or West wall
+    } else { 
         localOutward.set(wall.basePos.x > 0 ? 1 : -1, 0, 0);
     }
 
-    // Apply an impulse at the top edge of the wall to tip it outwards like a door
     const forceMagn = 20;
     const localForce = localOutward.scale(forceMagn);
     const topCenterLocal = new CANNON.Vec3(0, h/2, 0); 
@@ -279,7 +281,7 @@ function executePhysicalDrop(wall) {
 
     wall.body = newBody;
     wall.sprite.visible = false;
-    wall.mesh.material.color.setHex(0xff0000); // Ensure it resets to solid red
+    wall.mesh.material.color.setHex(0xff0000); 
     fallenWalls.push(wall);
 }
 
@@ -364,16 +366,14 @@ function animate(time) {
         if (gameState === 'tutorial') {
             processTutorial();
         } else {
-            // Queue walls dropping
             let dropInterval = Math.max(7 - (currentRound * 0.5), 2.5); 
-            if (currentRound === 2) dropInterval = 9; // Late drop
+            if (currentRound === 2) dropInterval = 9; 
             
             if (currentRound > 1 && gameTime - lastQueueTime >= dropInterval) {
                 queueWallDrop();
                 lastQueueTime = gameTime;
             }
 
-            // Process Queued Warning Walls
             for (let i = walls.length - 1; i >= 0; i--) {
                 const w = walls[i];
                 if (w.warningQueued) {
@@ -381,12 +381,11 @@ function animate(time) {
                     if (elapsed >= 2.0) {
                         executePhysicalDrop(w);
                     } else {
-                        // Blink logic: 3 full blinks in 2 seconds (6 phases)
                         const phase = Math.floor(elapsed / (2.0 / 6));
                         if (phase % 2 === 0) {
-                            w.mesh.material.color.setHex(0xffffff); // White
+                            w.mesh.material.color.setHex(0xffffff); 
                         } else {
-                            w.mesh.material.color.setHex(0xff0000); // Red
+                            w.mesh.material.color.setHex(0xff0000); 
                         }
                     }
                 }
@@ -400,7 +399,6 @@ function animate(time) {
         const euler = new THREE.Euler(currentTiltX + swayX, 0, currentTiltZ + swayZ);
         const quat = new THREE.Quaternion().setFromEuler(euler);
 
-        // Update Geometries
         [floorPart, ...walls].forEach(part => {
             if (!part) return;
             const pos = part.basePos.clone();
