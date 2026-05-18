@@ -1,0 +1,238 @@
+:root {
+    --bg-color: #2b2b2b; /* Dark grey */
+    --menu-bg: #333333;
+    --text-outline: #000080; /* Dark blue outline */
+    --btn-color: #ff8c00; /* Vibrant Orange */
+    --btn-hover: #e07b00;
+    --cell-bg: #444444;
+}
+
+/* Ensure no scrolling on mobile */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Stops screen from moving around */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Base Text Styling */
+h1, h2, h3, .btn, .mode-btn, .start-btn, .back-btn, .top-btn, .cell {
+    color: white;
+    -webkit-text-stroke: 1px var(--text-outline);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+}
+
+/* Portrait Warning Banner */
+#portrait-warning {
+    display: none; /* Hidden by default */
+    width: 100%;
+    background-color: #d32f2f;
+    color: white;
+    text-align: center;
+    padding: 10px 5px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    z-index: 1000;
+    -webkit-text-stroke: 0;
+    text-shadow: none;
+}
+
+@media screen and (orientation: portrait) {
+    #portrait-warning {
+        display: block;
+    }
+}
+
+/* Top Navigation Bar */
+#top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.top-btn {
+    background-color: var(--btn-color);
+    border: 2px solid var(--text-outline);
+    padding: 8px 15px;
+    font-size: 1rem;
+    font-weight: 800;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Main Container */
+.container {
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+    padding: 10px;
+    box-sizing: border-box;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#main-title {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    margin: 5px 0 15px 0;
+}
+
+/* Menu Styles */
+.menu-card {
+    background: var(--menu-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    border: 2px solid var(--text-outline);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.setup-details {
+    margin-top: 15px;
+}
+
+input[type="text"] {
+    width: 90%;
+    padding: 12px;
+    margin: 10px 0;
+    font-size: 1.2rem;
+    border-radius: 6px;
+    border: 2px solid var(--text-outline);
+    background: #555;
+    color: white;
+    text-align: center;
+}
+
+input::placeholder {
+    color: #ccc;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* Updated Button Styling */
+.btn, .mode-btn, .start-btn, .back-btn {
+    background-color: var(--btn-color);
+    border: 2px solid var(--text-outline);
+    padding: 15px 20px;
+    font-size: 1.4rem; /* Bigger */
+    font-weight: 900;  /* Bolder */
+    letter-spacing: 2px; /* Spaced out */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn:active, .mode-btn:active, .start-btn:active, .top-btn:active {
+    transform: scale(0.95);
+    filter: brightness(0.9);
+}
+
+.btn-secondary {
+    background-color: #666;
+    margin-top: 10px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Board Styles */
+#board-container {
+    position: relative;
+    /* Uses dynamic viewport units so it never forces a scroll */
+    width: min(85vw, 50vh); 
+    height: min(85vw, 50vh);
+    margin: 10px auto 20px auto;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    grid-gap: 5px;
+    background-color: var(--text-outline);
+    border: 5px solid var(--text-outline);
+    border-radius: 8px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+}
+
+.cell {
+    background: var(--cell-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Fluid font size based on board size */
+    font-size: min(20vw, 12vh); 
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.cell:active {
+    background: #666666;
+}
+
+.piece {
+    pointer-events: none;
+}
+
+/* Pause Overlay */
+#pause-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    border-radius: 8px;
+}
+
+/* Win Line Overlay */
+#win-line-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    animation: revealLine 0.6s ease-in-out forwards;
+}
+
+@keyframes revealLine {
+    to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+
+#win-line-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0px 0px 6px rgba(0,0,0,0.9));
+}
+
+#win-line {
+    stroke: #ffeb3b; 
+}
