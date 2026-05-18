@@ -1,8 +1,5 @@
-// =======================================================
-// GAME STATE & CONSTANTS
-// =======================================================
 const GAME = {
-    state: 'MENU', // MENU, PLAYING, DEATH, WIN
+    state: 'MENU', // MENU, PLAYING, PAUSED, DEATH, WIN
     level: 1, maxLevels: 8, lives: 3,
     t: 0, speed: 0, maxSpeed: 0.0008,
     latTheta: 0, latVel: 0, 
@@ -13,13 +10,9 @@ const GAME = {
 };
 
 const INPUT = { up: false, down: false, left: false, right: false };
-
 const TUBE_RADIUS = 20; 
 const BALL_RADIUS = 3.5;
 
-// =======================================================
-// THREE.JS SETUP
-// =======================================================
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x020510);
 scene.fog = new THREE.FogExp2(0x020510, 0.0015);
@@ -27,7 +20,6 @@ scene.fog = new THREE.FogExp2(0x020510, 0.0015);
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 5000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-// Essential for sharp rendering on mobile devices with high DPI screens
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
 document.getElementById('game-canvas').appendChild(renderer.domElement);
 
@@ -55,11 +47,7 @@ scene.add(ball);
 let curve = null;
 let trackMeshes = [];
 
-// =======================================================
-// RESIZE LOGIC (CRITICAL FOR MOBILE ROTATION)
-// =======================================================
 window.addEventListener('resize', () => { 
-    // Wait slightly to ensure browser has updated innerWidth/Height
     setTimeout(() => {
         camera.aspect = window.innerWidth / window.innerHeight; 
         camera.updateProjectionMatrix(); 
@@ -67,20 +55,16 @@ window.addEventListener('resize', () => {
     }, 100);
 });
 
-// =======================================================
-// TRACK GENERATOR & LOGIC
-// =======================================================
 function buildTrackMesh(startT, endT) {
     if (endT <= startT) return; 
 
     const geo = new THREE.BufferGeometry();
     const positions = []; const indices = [];
-    // Lower segment count slightly for better mobile performance
     const segments = Math.max(10, Math.floor((endT - startT) * 1500)); 
 
     const profileX = [];
     const profileY = [];
-    const radialSegments = 20; // Reduced from 24 for mobile performance
+    const radialSegments = 20; 
     
     for(let j=0; j<=radialSegments; j++) {
         const angle = -Math.PI/2 + (j/radialSegments) * Math.PI;
@@ -175,10 +159,27 @@ function loadLevel(levelNum) {
 }
 
 // =======================================================
-// INPUT CONTROL
+// INPUT CONTROL & PAUSE LOGIC
 // =======================================================
+function togglePause() {
+    if (GAME.state === 'PLAYING') {
+        GAME.state = 'PAUSED';
+        document.getElementById('screen-pause').classList.remove('hidden');
+        document.getElementById('screen-pause').classList.add('active');
+        document.getElementById('btn-pause').innerText = 'RESUME (P)';
+    } else if (GAME.state === 'PAUSED') {
+        GAME.state = 'PLAYING';
+        document.getElementById('screen-pause').classList.add('hidden');
+        document.getElementById('screen-pause').classList.remove('active');
+        document.getElementById('btn-pause').innerText = 'PAUSE (P)';
+    }
+}
+
 function bindKey(keyStr, isDown) {
     const k = keyStr.toLowerCase();
+    // Pause mapping
+    if (k === 'p' && isDown) { togglePause(); return; }
+
     if(['arrowup','w'].includes(k)) { INPUT.up = isDown; document.getElementById('key-up').classList.toggle('active', isDown); }
     if(['arrowdown','s'].includes(k)) { INPUT.down = isDown; document.getElementById('key-down').classList.toggle('active', isDown); }
     if(['arrowleft','a'].includes(k)) { INPUT.left = isDown; document.getElementById('key-left').classList.toggle('active', isDown); }
@@ -194,10 +195,13 @@ window.addEventListener('keyup', e => bindKey(e.key, false));
     btn.addEventListener('mouseup', () => bindKey(`arrow${d}`, false));
     btn.addEventListener('mouseleave', () => bindKey(`arrow${d}`, false));
     
-    // Prevent default on touch to stop mobile screen zooming/scrolling
     btn.addEventListener('touchstart', e => { e.preventDefault(); bindKey(`arrow${d}`, true); }, {passive: false});
     btn.addEventListener('touchend', e => { e.preventDefault(); bindKey(`arrow${d}`, false); }, {passive: false});
 });
+
+document.getElementById('btn-pause').addEventListener('click', togglePause);
+document.getElementById('btn-resume').addEventListener('click', togglePause);
+document.getElementById('btn-return').addEventListener('click', () => { window.location.href = 'index.html'; });
 
 // =======================================================
 // UI FLOW & TUTORIAL LOGIC
@@ -210,13 +214,18 @@ function hideAllPanels() {
 
 function showMsg(title, txt, btnTxt, callback) {
     hideAllPanels();
+    document.getElementById('top-controls').classList.add('hidden');
     const p = document.getElementById('screen-msg');
     p.classList.remove('hidden'); p.classList.add('active');
     document.getElementById('msg-title').innerText = title;
     document.getElementById('msg-text').innerText = txt;
     const btn = document.getElementById('btn-continue');
     btn.innerText = btnTxt;
-    btn.onclick = () => { hideAllPanels(); callback(); };
+    btn.onclick = () => { 
+        hideAllPanels(); 
+        document.getElementById('top-controls').classList.remove('hidden');
+        callback(); 
+    };
 }
 
 function updateLives() {
@@ -237,6 +246,7 @@ function startGame(withTutorial) {
     hideAllPanels();
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('touch-pad').classList.remove('hidden');
+    document.getElementById('top-controls').classList.remove('hidden');
     GAME.lives = 3; updateLives();
     loadLevel(1);
     GAME.state = 'PLAYING';
@@ -260,6 +270,7 @@ function runTutorialRoutine() {
     ];
 
     const tutInterval = setInterval(() => {
+        if (GAME.state === 'PAUSED') return; // Pause tutorial timer if game paused
         timeLeft--;
         timerUI.innerText = `TUTORIAL: ${timeLeft}s`;
         
@@ -268,7 +279,7 @@ function runTutorialRoutine() {
         if(timeLeft === 5) instUI.innerText = instructions[3];
         if(timeLeft === 2) instUI.innerText = instructions[4];
 
-        if(timeLeft <= 0 || GAME.state !== 'PLAYING') {
+        if(timeLeft <= 0 || GAME.state === 'DEATH' || GAME.state === 'WIN') {
             clearInterval(tutInterval);
             tutUI.classList.add('hidden');
         }
@@ -296,7 +307,12 @@ function die(reason) {
 // =======================================================
 function animate() {
     requestAnimationFrame(animate);
-    if(GAME.state !== 'PLAYING' || !curve) { renderer.render(scene, camera); return; }
+
+    // If we are in the menu, dead, or paused, just render the scene statically
+    if(GAME.state !== 'PLAYING' || !curve) { 
+        if(curve) renderer.render(scene, camera); 
+        return; 
+    }
 
     if(GAME.jumpState === 0) {
         // PROPULSION
