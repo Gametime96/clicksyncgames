@@ -2,34 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Prevents pinch-zoom and forces proper scale on mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ClickSync Roller</title>
-    <!-- Updated CSS Reference -->
-    <link rel="stylesheet" href="clicksyncroller.css">
+    <link rel="stylesheet" href="./clicksyncroller.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
-    <!-- Orientation Warning (Only visible on mobile portrait) -->
     <div id="orientation-warning">For best user experience rotate mobile device to landscape orientation</div>
 
-    <!-- 3D Environment -->
     <div id="game-canvas"></div>
 
-    <!-- UI Overlay Layer -->
     <div id="ui-layer">
         
-        <!-- Main Menu -->
+        <div id="top-controls" class="hidden">
+            <button id="btn-pause" class="control-btn">PAUSE (P)</button>
+            <button id="btn-return" class="control-btn">Return to ClickSyncGames</button>
+        </div>
+
         <div id="screen-main" class="panel active">
             <h1>CLICKSYNC ROLLER</h1>
             <p class="subtitle">Anti-Gravity Sector Racing</p>
             <button id="btn-start" class="btn-primary">INITIALIZE ENGINE</button>
         </div>
 
-        <!-- Tutorial Prompt Screen -->
         <div id="screen-tutorial-prompt" class="panel hidden">
             <h2>FLIGHT TRAINING</h2>
             <p>Would you like to run the 14-second calibration tutorial before beginning Sector 1?</p>
@@ -39,13 +36,18 @@
             </div>
         </div>
 
-        <!-- Live Tutorial Overlay -->
         <div id="tutorial-hud" class="hidden">
             <h3 id="tut-timer">TUTORIAL: 14s</h3>
             <p id="tut-instruction">Hold UP to accelerate.</p>
         </div>
 
-        <!-- In-Game HUD -->
+        <div id="screen-pause" class="panel hidden">
+            <h2 style="color: #00ffcc; text-shadow: 0 0 10px #00ffcc;">SYSTEM PAUSED</h2>
+            <div class="btn-group mt-2">
+                <button id="btn-resume" class="btn-primary">RESUME</button>
+            </div>
+        </div>
+
         <div id="hud" class="hidden">
             <div class="hud-box top-left">
                 <span class="label">SECTOR</span>
@@ -61,20 +63,18 @@
                 <div class="bar-bg"><div class="bar-fill" id="ui-speed-bar"></div></div>
             </div>
 
-            <div class="hud-box bottom-center">
+            <div class="hud-box bottom-left">
                 <span class="label">TRACK PROGRESS</span>
                 <div class="bar-bg w-full"><div class="bar-fill blue" id="ui-prog-bar"></div></div>
             </div>
         </div>
 
-        <!-- System Alerts -->
         <div id="screen-msg" class="panel hidden">
             <h2 id="msg-title">ALERT</h2>
             <p id="msg-text">Details</p>
             <button id="btn-continue" class="btn-primary mt-2">CONTINUE</button>
         </div>
 
-        <!-- Touch Controls (Mobile) -->
         <div id="touch-pad" class="hidden">
             <div class="dpad-grid">
                 <div class="dpad-btn" id="key-up">▲</div>
@@ -86,7 +86,6 @@
 
     </div>
 
-    <!-- Updated Core Game Logic Reference -->
-    <script src="clicksyncroller.js"></script>
+    <script src="./clicksyncroller.js"></script>
 </body>
 </html>
