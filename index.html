@@ -3,485 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClickSync Games | Premium Browser Games</title>
+    <title>ClickSyncGames - Play Free Online Games</title>
     <style>
         :root {
-            --bg-color: #e5e7eb;
-            --text-color: #0f172a;
-            --panel-bg: #ffffff;
-            --accent-blue: #2563eb;
-            --search-bg: #f1f5f9;
+            --bg-color: #1e1e1e;
+            --header-bg: #111111;
+            --text-color: #ffffff;
+            --accent-color: #ff8c00; /* Vibrant Orange */
+            --accent-hover: #e07b00;
+            --card-bg: #2b2b2b;
+            --card-outline: #000080; /* Dark blue outline */
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         header {
-            background-color: var(--panel-bg);
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            background-color: var(--header-bg);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid var(--accent-color);
         }
 
-        .logo-container a {
-            text-decoration: none;
-        }
-
-        .logo-container h1 {
+        header h1 {
             margin: 0;
-            font-size: 32px;
-            color: var(--text-color);
-            letter-spacing: 1px;
-            font-weight: 900;
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .logo-container span { color: var(--accent-blue); }
-        
-        .tm-symbol {
-            font-size: 14px;
-            color: var(--text-color);
-            margin-left: 2px;
-            font-weight: bold;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 500px;
-            margin-left: 40px;
-            position: relative;
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 12px 20px;
-            border: 2px solid #cbd5e1;
-            border-radius: 25px;
-            font-size: 16px;
-            color: var(--text-color);
-            background-color: var(--search-bg);
-            outline: none;
+            font-size: 2.5rem;
+            color: white;
+            -webkit-text-stroke: 1px var(--card-outline);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 2px;
         }
 
         main {
-            max-width: 1600px;
-            width: 95%;
-            margin: 40px auto;
-            padding: 0 20px;
-            flex: 1; 
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
-        h2.section-title {
-            font-size: 24px;
-            border-bottom: 3px solid var(--accent-blue);
+        .category-section {
+            margin-bottom: 40px;
+        }
+
+        .category-title {
+            font-size: 2rem;
+            border-bottom: 2px solid var(--card-outline);
             padding-bottom: 10px;
-            margin-bottom: 25px;
-            display: inline-block;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
-            margin-bottom: 60px;
-        }
-
-        .category-btn {
-            color: white;
-            padding: 20px 10px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: 900;
-            font-size: 17px;
-            letter-spacing: 0.5px;
-            text-decoration: none;
-            -webkit-text-stroke: 1px black;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
-            filter: saturate(40%) opacity(0.85);
-            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .category-btn:nth-child(5n+1) { background: linear-gradient(135deg, #166534, #14532d); } 
-        .category-btn:nth-child(5n+2) { background: linear-gradient(135deg, #fb923c, #ea580c); } 
-        .category-btn:nth-child(5n+3) { background: linear-gradient(135deg, #374151, #0f172a); } 
-        .category-btn:nth-child(5n+4) { background: linear-gradient(135deg, #ef4444, #b91c1c); } 
-        .category-btn:nth-child(5n+5) { background: linear-gradient(135deg, #9ca3af, #4b5563); } 
-
-        .category-btn:hover {
-            transform: scale(1.05);
-            filter: saturate(100%) opacity(1);
-        }
-
-        .category-btn.active-filter {
-            transform: scale(1.05);
-            filter: saturate(100%) opacity(1);
-            box-shadow: 0 0 0 4px var(--bg-color), 0 0 0 6px var(--text-color);
+            margin-bottom: 20px;
+            color: var(--accent-color);
         }
 
         .game-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
         }
 
+        /* Game Card Styling */
         .game-card {
-            background-color: var(--panel-bg);
-            border: 1px solid #e2e8f0;
+            background-color: var(--card-bg);
+            border: 2px solid var(--card-outline);
             border-radius: 12px;
-            padding: 20px;
-            text-decoration: none;
-            color: var(--text-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease;
+            overflow: hidden;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
         }
 
         .game-card:hover {
             transform: translateY(-5px);
-            border-color: var(--accent-blue);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.6);
         }
 
-        .thumbnail-container {
+        .game-card img {
             width: 100%;
-            height: 150px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            overflow: hidden; 
-            position: relative;
-            background-color: #000;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 2px solid var(--card-outline);
         }
 
-        .game-thumbnail {
-            width: 100%;
-            height: 100%;
-            display: block;
+        .game-info {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
         }
 
-        .css-thumb::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image: radial-gradient(circle at 20% 30%, rgba(37, 99, 235, 0.4) 0%, transparent 50%);
-            opacity: 0.8;
-        }
-        
-        .thumb-battery::after { background-image: radial-gradient(circle at 50% 50%, rgba(234, 179, 8, 0.4) 0%, transparent 60%); }
-        .thumb-cards::after { background-image: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.4) 0%, transparent 60%); }
-        .thumb-pool::after { background-image: radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.4) 0%, transparent 60%); }
-        .thumb-flora::after { background-image: radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.5) 0%, transparent 60%); }
-        .thumb-sync::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.4) 0%, transparent 60%); }
-        .thumb-pulse::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.5) 0%, transparent 60%); }
-        .thumb-train::after { background-image: radial-gradient(circle at 50% 50%, rgba(26, 188, 156, 0.5) 0%, transparent 60%); }
-
-        .game-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
-        .game-desc { font-size: 14px; line-height: 1.5; color: #475569; }
-        .hidden { display: none !important; }
-
-        /* --- FOOTER STYLES --- */
-        footer {
-            background-color: #cbd5e1;
-            padding: 40px 20px;
-            margin-top: 60px;
-            text-align: center;
-            border-top: 2px solid #94a3b8;
-        }
-
-        .footer-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .legal-text {
-            font-size: 11px;
-            color: #475569;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .contact-btn {
-            background-color: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
+        .game-title {
+            margin: 0 0 15px 0;
+            font-size: 1.2rem;
             font-weight: bold;
-            font-size: 16px;
-            transition: 0.2s;
         }
 
-        .contact-btn:hover { background-color: #1d4ed8; }
-
-        /* --- MOBILE RESPONSIVE FIXES --- */
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                padding: 15px 20px;
-                gap: 15px;
-            }
-            
-            .search-container {
-                margin-left: 0;
-                width: 100%;
-                max-width: 100%;
-            }
-
-            .search-bar {
-                box-sizing: border-box;
-            }
-            
-            .logo-container h1 {
-                font-size: 28px;
-            }
+        .play-btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 800;
+            border: 1px solid var(--card-outline);
+            transition: background 0.2s;
         }
 
+        .play-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--header-bg);
+            margin-top: 40px;
+            border-top: 1px solid #333;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo-container">
-            <a href="index.html">
-                <h1>ClickSync<span>Games</span><sup class="tm-symbol">™</sup></h1>
-            </a>
-        </div>
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-bar" placeholder="Search">
-        </div>
+        <h1>ClickSyncGames</h1>
     </header>
 
     <main>
-        <h2 class="section-title">Categories</h2>
-        <div class="category-grid">
-            <div class="category-btn" data-search="action">Action</div>
-            <div class="category-btn" data-search="adventure rpg">Adventure</div>
-            <div class="category-btn" data-search="arcade retro">Arcade</div>
-            <div class="category-btn" data-search="billiards pool">Billiards</div>
-            <div class="category-btn" data-search="casino cards blackjack poker">Casino</div>
-            <div class="category-btn" data-search="idle clicker">Idle</div>
-            <div class="category-btn" data-search="multiplayer online pvp">Multiplayer</div>
-            <div class="category-btn" data-search="puzzle logic">Puzzle</div>
-            <div class="category-btn" data-search="racing cars driving">Racing</div>
-            <div class="category-btn" data-search="simulation management">Simulation</div>
-            <div class="category-btn" data-search="sports soccer basketball">Sports</div>
-            <div class="category-btn" data-search="strategy tactics">Strategy</div>
-        </div>
+        <section class="category-section" id="arcade">
+            <h2 class="category-title">Arcade</h2>
+            <div class="game-grid">
+                
+                <div class="game-card">
+                    <img src="tictactoe.jpg" alt="Impossible Tic Tac Toe Thumbnail">
+                    <div class="game-info">
+                        <h3 class="game-title">Impossible Tic Tac Toe</h3>
+                        <a href="impossibletictactoe.html" class="play-btn">Play Now</a>
+                    </div>
+                </div>
+                </div>
+        </section>
 
-        <h2 class="section-title">Game Library</h2>
-        <div class="game-grid">
-            
-            <a href="airtrafficcontroller.html" class="game-card" data-category="airport simulation strategy">
-                <div class="thumbnail-container">
-                    <img src="AIRTRAFFICCONTROL.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Air Traffic Control">
+        <section class="category-section" id="multiplayer">
+            <h2 class="category-title">Multiplayer</h2>
+            <div class="game-grid">
+                
+                <div class="game-card">
+                    <img src="tictactoe.jpg" alt="Impossible Tic Tac Toe Thumbnail">
+                    <div class="game-info">
+                        <h3 class="game-title">Impossible Tic Tac Toe</h3>
+                        <a href="impossibletictactoe.html" class="play-btn">Play Now</a>
+                    </div>
                 </div>
-                <div class="game-title">Air Traffic Control</div>
-                <div class="game-desc">Manage the skies and safely guide aircraft to their runways without collisions.</div>
-            </a>
+                </div>
+        </section>
 
-            <a href="badguyladder.html" class="game-card" data-category="strategy">
-                <div class="thumbnail-container">
-                    <img src="badguyladder.png" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Bad Guy Ladder">
+        <section class="category-section" id="puzzle">
+            <h2 class="category-title">Puzzle</h2>
+            <div class="game-grid">
+                
+                <div class="game-card">
+                    <img src="tictactoe.jpg" alt="Impossible Tic Tac Toe Thumbnail">
+                    <div class="game-info">
+                        <h3 class="game-title">Impossible Tic Tac Toe</h3>
+                        <a href="impossibletictactoe.html" class="play-btn">Play Now</a>
+                    </div>
                 </div>
-                <div class="game-title">Bad Guy Ladder</div>
-                <div class="game-desc">Build ladders to escape the levels, but watch out for the bad guys trying to break your path!</div>
-            </a>
+                </div>
+        </section>
 
-            <a href="batterybash.html" class="game-card" data-category="arcade strategy">
-                <div class="thumbnail-container">
-                    <img src="batterybash.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Battery Bash">
+        <section class="category-section" id="strategy">
+            <h2 class="category-title">Strategy</h2>
+            <div class="game-grid">
+                
+                <div class="game-card">
+                    <img src="tictactoe.jpg" alt="Impossible Tic Tac Toe Thumbnail">
+                    <div class="game-info">
+                        <h3 class="game-title">Impossible Tic Tac Toe</h3>
+                        <a href="impossibletictactoe.html" class="play-btn">Play Now</a>
+                    </div>
                 </div>
-                <div class="game-title">Battery Bash</div>
-                <div class="game-desc">High-voltage action! Protect the power grid and bash through charging obstacles.</div>
-            </a>
-            
-            <a href="bubbleshooter2026.html" class="game-card" data-category="arcade puzzle logic">
-                <div class="thumbnail-container">
-                    <img src="bubbleshooter2026.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Bubble Shooter 2026">
                 </div>
-                <div class="game-title">Bubble Shooter 2026</div>
-                <div class="game-desc">Match 3 or more bubbles to clear the board before they reach the bottom in this neon puzzle classic.</div>
-            </a>
-            
-            <a href="cardcountingblackjack.html" class="game-card" data-category="casino">
-                <div class="thumbnail-container">
-                    <img src="cardcountingblackjack.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Card Counting Blackjack">
-                </div>
-                <div class="game-title">Card Counting Blackjack</div>
-                <div class="game-desc">Master the odds and practice your card counting skills in this classic casino game.</div>
-            </a>
-            
-            <a href="billiardsgame.html" class="game-card" data-category="billiards multiplayer">
-                <div class="thumbnail-container">
-                    <img src="billiardsgame.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Classic Billiards">
-                </div>
-                <div class="game-title">Classic Billiards</div>
-                <div class="game-desc">Line up your shots and clear the table in this physics-based pool simulator.</div>
-            </a>
-
-            <a href="classicbowlingpro.html" class="game-card" data-category="sports multiplayer arcade">
-                <div class="thumbnail-container">
-                    <img src="classicbowlinggame.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Classic Bowling Pro">
-                </div>
-                <div class="game-title">Classic Bowling Pro</div>
-                <div class="game-desc">Hit the lanes in this classic 10-pin bowling simulator featuring up to 4 players and CPU opponents!</div>
-            </a>
-
-            <a href="clicksyncroller.html" class="game-card" data-category="arcade racing strategy">
-                <div class="thumbnail-container">
-                    <img src="clicksyncroller.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="ClickSync Roller">
-                </div>
-                <div class="game-title">ClickSync Roller</div>
-                <div class="game-desc">Race down an anti-gravity half-pipe, ride the high walls, and reach maximum velocity to clear structural gaps!</div>
-            </a>
-
-            <a href="cyberpath.html" class="game-card" data-category="puzzle strategy arcade">
-                <div class="thumbnail-container">
-                    <img src="cyberpath.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Cyber Path: Data Router">
-                </div>
-                <div class="game-title">Cyber Path</div>
-                <div class="game-desc">Rotate neon data pipes to route a secure signal from the Mainframe to the Terminal while avoiding firewalls!</div>
-            </a>
-
-            <a href="defendthevehicle.html" class="game-card" data-category="strategy action simulation">
-                <div class="thumbnail-container">
-                    <img src="defendthevehicle.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Defend the Vehicle">
-                </div>
-                <div class="game-title">Defend the Vehicle</div>
-                <div class="game-desc">Survive 10 levels of escalating chaos, tornadoes, zombies, and alien attacks in the desert.</div>
-            </a>
-
-            <a href="florasys.html" class="game-card" data-category="arcade strategy">
-                <div class="thumbnail-container">
-                    <img src="flora.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Flora">
-                </div>
-                <div class="game-title">Flora</div>
-                <div class="game-desc">Extract nutrients from infected roots to build a canopy defense system.</div>
-            </a>
-
-            <a href="neontilt.html" class="game-card" data-category="arcade action strategy">
-                <div class="thumbnail-container">
-                    <img src="neontilt.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Neon Tilt Collector">
-                </div>
-                <div class="game-title">Neon Tilt Collector</div>
-                <div class="game-desc">Roll the neon marble to collect yellow cubes while avoiding deadly red glitch blocks!</div>
-            </a>
-
-            <a href="pulsecapture.html" class="game-card" data-category="arcade puzzle">
-                <div class="thumbnail-container">
-                    <img src="pulsecapture.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Pulse Capture">
-                </div>
-                <div class="game-title">Pulse Capture</div>
-                <div class="game-desc">Test your reflexes and perception across 15 advanced levels of timing and synchronization.</div>
-            </a>
-
-            <a href="savethegolfballs.html" class="game-card" data-category="strategy simulation">
-                <div class="thumbnail-container">
-                    <img src="savethegolfballsthumbnail.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Save the Golf Balls">
-                </div>
-                <div class="game-title">Save the Golf Balls</div>
-                <div class="game-desc">Tilt the 3D box to save as many balls as you can before the walls fall away! Survive 10 rounds to win.</div>
-            </a>
-
-            <a href="synctime.html" class="game-card" data-category="arcade strategy">
-                <div class="thumbnail-container">
-                    <img src="synctime.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Synctime">
-                </div>
-                <div class="game-title">Synctime</div>
-                <div class="game-desc">Defend your vulnerable cores while swinging a lethal laser tether in this 12-level survival game.</div>
-            </a>
-
-            <a href="train-track-madness-pro.html" class="game-card" data-category="strategy puzzle">
-                <div class="thumbnail-container">
-                    <img src="traintrackmadnesspro.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Train Track Madness Pro">
-                </div>
-                <div class="game-title">Train Track Madness Pro</div>
-                <div class="game-desc">Manage finite track resources to guide your train to pick up passengers in this 12-level puzzle game.</div>
-            </a>
-
-        </div>
+        </section>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <p class="legal-text">
-                clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
-            </p>
-            <div class="contact-section">
-                <a href="contact.html" class="contact-btn" style="display: inline-block; text-decoration: none;">Contact Us</a>
-            </div>
-        </div>
+        <p>&copy; 2026 ClickSyncGames. All rights reserved.</p>
     </footer>
 
-    <script>
-        const searchInput = document.getElementById('searchInput');
-        const gameCards = document.querySelectorAll('.game-card');
-        const categoryBtns = document.querySelectorAll('.category-btn');
-        let activeCategory = '';
-
-        searchInput.addEventListener('input', runFilters);
-
-        categoryBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const clickedCategory = this.textContent.toLowerCase().trim();
-                
-                if (activeCategory === clickedCategory) {
-                    activeCategory = '';
-                    this.classList.remove('active-filter');
-                } else {
-                    categoryBtns.forEach(b => b.classList.remove('active-filter'));
-                    activeCategory = clickedCategory;
-                    this.classList.add('active-filter');
-                }
-                
-                runFilters();
-            });
-        });
-
-        function runFilters() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-
-            categoryBtns.forEach(btn => {
-                const catName = btn.textContent.toLowerCase();
-                const searchKeywords = btn.getAttribute('data-search');
-                if (catName.includes(searchTerm) || searchKeywords.includes(searchTerm)) {
-                    btn.classList.remove('hidden');
-                } else {
-                    btn.classList.add('hidden');
-                }
-            });
-
-            gameCards.forEach(card => {
-                const title = card.querySelector('.game-title').textContent.toLowerCase();
-                const desc = card.querySelector('.game-desc').textContent.toLowerCase();
-                const gameCategories = card.getAttribute('data-category').toLowerCase();
-
-                const matchesSearch = title.includes(searchTerm) || desc.includes(searchTerm);
-                const matchesCategory = activeCategory === '' || gameCategories.includes(activeCategory);
-
-                if (matchesSearch && matchesCategory) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
-        }
-    </script>
 </body>
 </html>
