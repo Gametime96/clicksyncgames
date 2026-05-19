@@ -63,7 +63,7 @@ body, html {
 #main-content { 
     display: flex; flex: 1; position: relative; background: #020617; 
     justify-content: center; align-items: center;
-    padding: 10px; /* Provides breathing room from edges */
+    padding: 10px; 
     box-sizing: border-box;
 }
 
@@ -74,35 +74,39 @@ body, html {
     border: 2px solid #1e293b;
     border-radius: 8px; 
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
-    
-    /* Lock the shape to 800x1000 */
     aspect-ratio: 4 / 5;
-    
-    /* Scale width automatically based on height restrictions */
     width: auto;
     height: 100%;
-    
-    /* Maximum limits so it NEVER exceeds the screen */
     max-width: 800px;
     max-height: calc(100vh - 90px); 
-    max-height: calc(100svh - 90px); /* Subtracts header height + padding */
+    max-height: calc(100svh - 90px); 
 }
 
 canvas { 
     width: 100%; height: 100%; display: block; 
-    object-fit: contain; /* Guarantees pure internal scaling without stretching */
-    touch-action: none; /* Disables page scroll while aiming */
+    object-fit: contain; 
+    touch-action: none; 
     cursor: crosshair;
     border-radius: 8px;
 }
 
-/* HUD */
-#hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; padding: 15px;}
-.hud-top { display: flex; justify-content: space-between; pointer-events: auto; }
+/* HUD Re-positioned to Bottom Right */
+#hud { 
+    position: absolute; 
+    bottom: 20px; 
+    right: 20px; 
+    pointer-events: none; /* Allows shooting through the HUD */
+    z-index: 50; 
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
 .hud-score-info, .hud-level-info { 
     background: rgba(15, 23, 42, 0.85); padding: 8px 15px; border-radius: 8px; 
     border: 1px solid #8b5cf6; font-size: 1.2rem; font-weight: bold; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    pointer-events: none;
 }
 .hud-label { color: #94a3b8; margin-right: 5px; font-size: 1rem;}
 #hud-score { color: #facc15; }
@@ -142,7 +146,6 @@ canvas {
 @media (max-width: 600px) {
     #csg-header { flex-direction: column; padding: 10px; height: auto;}
     #csg-navigation { width: 100%; justify-content: center;}
-    .hud-score-info, .hud-level-info { font-size: 1rem; padding: 6px 10px;}
     .neon-text { font-size: 1.8rem;}
     
     #canvas-container {
