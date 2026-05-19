@@ -90,25 +90,36 @@ canvas {
     border-radius: 8px;
 }
 
-/* HUD Re-positioned to Bottom Right */
+/* HUD Guaranteed Bottom Right - Fixed to Viewport */
 #hud { 
-    position: absolute; 
+    position: fixed; 
     bottom: 20px; 
     right: 20px; 
     pointer-events: none; /* Allows shooting through the HUD */
-    z-index: 50; 
+    z-index: 500; 
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
 }
+
+/* Increased font sizes by ~20% */
 .hud-score-info, .hud-level-info { 
-    background: rgba(15, 23, 42, 0.85); padding: 8px 15px; border-radius: 8px; 
-    border: 1px solid #8b5cf6; font-size: 1.2rem; font-weight: bold; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+    background: rgba(15, 23, 42, 0.85); 
+    padding: 10px 18px; 
+    border-radius: 8px; 
+    border: 1px solid #8b5cf6; 
+    font-size: 1.45rem; /* Up from 1.2rem */
+    font-weight: bold; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
+    backdrop-filter: blur(4px);
     pointer-events: none;
 }
-.hud-label { color: #94a3b8; margin-right: 5px; font-size: 1rem;}
+.hud-label { 
+    color: #94a3b8; 
+    margin-right: 5px; 
+    font-size: 1.2rem; /* Up from 1rem */
+}
 #hud-score { color: #facc15; }
 #hud-level { color: #38bdf8; }
 
@@ -153,6 +164,19 @@ canvas {
         height: auto; 
         max-height: calc(100vh - 120px); 
         max-height: calc(100svh - 120px); 
+    }
+    
+    /* Ensure mobile HUD scales up slightly too */
+    .hud-score-info, .hud-level-info {
+        font-size: 1.2rem; /* Up 20% from 1rem */
+        padding: 8px 14px;
+    }
+    .hud-label {
+        font-size: 1rem;
+    }
+    #hud {
+        bottom: 10px;
+        right: 10px;
     }
 }
 
