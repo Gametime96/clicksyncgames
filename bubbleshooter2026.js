@@ -557,7 +557,6 @@ window.addEventListener("load", function() {
         ctx.setLineDash([15, 10]); ctx.stroke(); ctx.setLineDash([]);
         
         ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
-        // Font size increased by ~20% (From 16px to 20px)
         ctx.font = 'bold 20px Nunito';
         ctx.textAlign = 'right';
         ctx.fillText("DANGER ZONE", canvas.width - 10, DANGER_Y - 10);
