@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Tennis Craze</title>
+    <link rel="stylesheet" href="tabletenniscraze.css">
+</head>
+<body>
+    <div id="ui-layer">
+        <div id="top-bar">
+            <a href="https://clicksyncgames.com/" class="nav-btn" id="return-btn">Return to ClickSyncGames</a>
+            <div id="scoreboard">
+                <span id="player-score">0</span>
+                <span id="score-divider">-</span>
+                <span id="ai-score">0</span>
+            </div>
+            <button class="nav-btn" id="pause-btn" style="display: none;">Pause</button>
+        </div>
+        
+        <div id="menu">
+            <h1>Table Tennis Craze</h1>
+            <p>Select Difficulty:</p>
+            <button class="diff-btn" data-diff="easy">Easy</button>
+            <button class="diff-btn" data-diff="medium">Medium</button>
+            <button class="diff-btn" data-diff="impossible">Impossible</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="tabletenniscraze.js"></script>
+</body>
+</html>
