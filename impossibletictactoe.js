@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPlayer = "X"; 
     let gameActive = false;
     let isPaused = false;
-    let isProcessingTurn = false; // Bug fix flag to prevent X turning into O
+    let isProcessingTurn = false; 
     
     // Settings
     let isVsComputer = true;
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Pause Logic
     pauseBtn.addEventListener('click', () => {
-        if (!gameActive && !isPaused) return; // Only pause if playing
+        if (!gameActive && !isPaused) return; 
         isPaused = true;
         pauseOverlay.classList.remove('hidden');
     });
@@ -166,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function handleCellClick(cell) {
-        // Bug fix: strict checking of processing flag and pause state
         if (isProcessingTurn || isPaused || !gameActive) return;
         
         const index = cell.getAttribute('data-index');
@@ -175,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         makeMove(index, currentPlayer);
 
         if (gameActive && isVsComputer && currentPlayer === aiPiece) {
-            isProcessingTurn = true; // Lock the board so user can't click
+            isProcessingTurn = true; 
             statusText.innerText = "Computer is thinking...";
             setTimeout(computerMove, 600); 
         }
@@ -265,12 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 moveIndex = minimax(board, aiPiece).index;
             }
         } else {
-            // Difficult
             moveIndex = minimax(board, aiPiece).index;
         }
 
         makeMove(moveIndex, aiPiece);
-        isProcessingTurn = false; // Unlock board after move completes
+        isProcessingTurn = false; 
     }
 
     // Minimax Algorithm
