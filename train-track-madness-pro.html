@@ -304,7 +304,6 @@
         <div id="track-count-display">TRACKS: <span id="track-count">0</span> / 18</div>
     </div>
 
-    <!-- Wrapping container ensures layout works perfectly with overflow auto -->
     <div id="game-container">
         <div id="game-board">
             <div id="grid"></div>
@@ -519,43 +518,51 @@
             
             if (lvl === 1) {
                 initGrid();
+                
+                // Build a shorter, continuous 4x4 holding pattern loop
                 const level1Tracks = [
-                    [3,2], [4,2], [5,2], [6,2], [7,2], 
-                    [7,3], [7,4], [7,5], [7,6], [7,7], 
-                    [6,7], [5,7], [4,7], [3,7], [2,7], 
-                    [2,6], [2,5]                       
+                    [2,2], [3,2], /* GAP is at [4,2] */ [5,2],
+                    [5,3], [5,4], [5,5],
+                    [4,5], [3,5], [2,5],
+                    [2,4], [2,3]
                 ];
                 level1Tracks.forEach(coord => { grid[coord[1]][coord[0]].hasTrack = true; });
-                grid[4][5].hasTrack = true; // Decoy
+
+                // The single movable track for the tutorial
+                grid[6][4].hasTrack = true; // Placed at x=4, y=6
+                
+                // Scatter 6 spare tracks cleanly around the edges
+                const scattered = [[0,0], [9,0], [0,9], [9,9], [4,9], [9,4]];
+                scattered.forEach(coord => { grid[coord[1]][coord[0]].hasTrack = true; });
                 
                 train = { x: 3, y: 2, dx: 1, dy: 0, rot: 90 };
-                passengers = [{x: 2, y: 4}]; 
+                passengers = [{x: 5, y: 4}]; // Placed safely on the loop's path
                 
                 updateGridConnections();
                 drawPassengers();
                 updateUI();
                 updateTrainVisuals(true);
-                saveLevelState(); // Save state with gap OPEN
 
                 if (!hasSeenTutorial) {
                     await levelIntroScene(lvl, lives);
                     await cinematicScene("Welcome to Train Track Madness Pro.<br>You have exactly 18 tracks to secure the route.");
-                    await cinematicScene("Notice the gap in the perimeter?", {x: 2, y: 4});
+                    await cinematicScene("Notice the gap in the continuous loop?", {x: 4, y: 2});
                     
                     const arrow = document.getElementById('tutorial-arrow');
                     arrow.style.display = 'block';
                     arrow.style.transition = "none";
-                    arrow.style.left = '55%'; arrow.style.top = '45%';
+                    arrow.style.left = '45%'; arrow.style.top = '65%'; // Points at [6][4]
                     
                     await new Promise(r => setTimeout(r, 500));
                     
                     arrow.style.transition = "all 1.5s ease-in-out";
-                    arrow.style.left = '28%'; arrow.style.top = '45%';
+                    arrow.style.left = '45%'; arrow.style.top = '25%'; // Points at [2][4]
                     
                     await new Promise(r => setTimeout(r, 2000));
                     
-                    grid[4][5].hasTrack = false;
-                    grid[4][2].hasTrack = true; // Auto-solve
+                    // Auto-solve the gap
+                    grid[6][4].hasTrack = false;
+                    grid[2][4].hasTrack = true; 
                     
                     updateGridConnections();
                     updateUI();
@@ -563,8 +570,16 @@
                     
                     await cinematicScene("Route connected. Commencing transit.");
                     hasSeenTutorial = true;
+                    saveLevelState(); // Save safe state
                     startGame();
                 } else {
+                    // Auto-solve immediately if reloading Level 1 to prevent instant derail
+                    grid[6][4].hasTrack = false;
+                    grid[2][4].hasTrack = true; 
+                    updateGridConnections();
+                    updateUI();
+                    saveLevelState(); // Save safe state
+
                     await levelIntroScene(lvl, lives);
                     startGame();
                 }
