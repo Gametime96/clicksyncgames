@@ -14,8 +14,13 @@ window.addEventListener("load", function() {
     const COL_COUNT = 14; 
     const BUBBLE_RADIUS = 28; 
     const GRID_OFFSET_X = (canvas.width - (COL_COUNT * BUBBLE_RADIUS * 2)) / 2 + BUBBLE_RADIUS;
-    const GRID_OFFSET_Y = BUBBLE_RADIUS + 10;
+    const BASE_GRID_OFFSET_Y = BUBBLE_RADIUS + 10;
     const ROW_HEIGHT = BUBBLE_RADIUS * Math.sqrt(3); 
+
+    // Dynamic Variables for smooth continuous drop bugfix
+    let currentGridOffsetY = BASE_GRID_OFFSET_Y;
+    let globalRowParity = 0; // Tracks structural parity so shifting rows doesn't break hexagonal connection visually
+    let lastTime = 0;
 
     // Danger Line explicitly mapped
     const DANGER_Y = canvas.height - 150; 
@@ -33,9 +38,6 @@ window.addEventListener("load", function() {
     let nextBubbleColor = null;
     let score = 0;
     let level = 1;
-
-    let lastDropTime = 0;
-    const DROP_INTERVAL_MS = 6000; 
 
     let particles = [];
     
@@ -98,7 +100,7 @@ window.addEventListener("load", function() {
                 if(!grid[r]) continue;
                 for (let c = 0; c < grid[r].length; c++) {
                     let b = grid[r][c];
-                    if (b && !b.isDropping) {
+                    if (b && !b.isDropping && !b.isMoving) {
                         let dist = Math.sqrt(Math.pow(this.x - b.x, 2) + Math.pow(this.y - b.y, 2));
                         if (dist < this.radius * 2 - 4) return true;
                     }
@@ -110,11 +112,11 @@ window.addEventListener("load", function() {
         snapToGrid() {
             this.isMoving = false;
             
-            let gridY = this.y - GRID_OFFSET_Y;
+            let gridY = this.y - currentGridOffsetY;
             let row = Math.round(gridY / ROW_HEIGHT);
             if (row < 0) row = 0;
 
-            let isOffsetRow = row % 2 !== 0;
+            let isOffsetRow = (row + globalRowParity) % 2 !== 0;
             let rowStartX = isOffsetRow ? GRID_OFFSET_X + BUBBLE_RADIUS : GRID_OFFSET_X;
             let gridX = this.x - rowStartX;
             let col = Math.round(gridX / (BUBBLE_RADIUS * 2));
@@ -193,9 +195,17 @@ window.addEventListener("load", function() {
         }
     }
 
-    function getGridX(row, col) { return (row % 2 !== 0 ? GRID_OFFSET_X + BUBBLE_RADIUS : GRID_OFFSET_X) + (col * BUBBLE_RADIUS * 2); }
-    function getGridY(row) { return GRID_OFFSET_Y + (row * ROW_HEIGHT); }
+    function getGridX(row, col) { 
+        let isOffset = (row + globalRowParity) % 2 !== 0;
+        return (isOffset ? GRID_OFFSET_X + BUBBLE_RADIUS : GRID_OFFSET_X) + (col * BUBBLE_RADIUS * 2); 
+    }
+    
+    function getGridY(row) { 
+        return currentGridOffsetY + (row * ROW_HEIGHT); 
+    }
+    
     function getRandomColor() { return COLORS[Math.floor(Math.random() * activeColors)]; }
+    
     function getExistingColor() {
         let existingColors = new Set();
         for (let r = 0; r < grid.length; r++) {
@@ -217,19 +227,24 @@ window.addEventListener("load", function() {
 
     function startLevel() {
         grid = []; particles = [];
+        globalRowParity = 0;
+        currentGridOffsetY = BASE_GRID_OFFSET_Y;
+
         let rowsToFill = 5 + Math.floor(level / 2);
         if(rowsToFill > 10) rowsToFill = 10;
 
         for (let r = 0; r < rowsToFill; r++) {
             grid[r] = [];
-            let cols = (r % 2 !== 0) ? COL_COUNT - 1 : COL_COUNT;
-            for (let c = 0; c < cols; c++) grid[r][c] = new Bubble(getGridX(r, c), getGridY(r), r, c, getRandomColor());
+            let cols = ((r + globalRowParity) % 2 !== 0) ? COL_COUNT - 1 : COL_COUNT;
+            for (let c = 0; c < cols; c++) {
+                grid[r][c] = new Bubble(getGridX(r, c), getGridY(r), r, c, getRandomColor());
+            }
         }
 
         nextBubbleColor = getExistingColor();
         prepareNextBubble();
         
-        lastDropTime = performance.now(); 
+        lastTime = performance.now(); 
         
         updateHUD();
         menuOverlay.classList.add('hidden'); gameOverOverlay.classList.add('hidden'); pauseOverlay.classList.add('hidden');
@@ -242,14 +257,19 @@ window.addEventListener("load", function() {
     }
 
     function getNeighbors(row, col, includeBelow = false) {
-        let isOffset = row % 2 !== 0;
+        let isOffset = (row + globalRowParity) % 2 !== 0;
         let neighbors = [{r: row, c: col - 1}, {r: row, c: col + 1}, {r: row - 1, c: col}];
         if (isOffset) neighbors.push({r: row - 1, c: col + 1}); else neighbors.push({r: row - 1, c: col - 1}); 
         if (includeBelow) {
             neighbors.push({r: row + 1, c: col});
             if (isOffset) neighbors.push({r: row + 1, c: col + 1}); else neighbors.push({r: row + 1, c: col - 1});
         }
-        return neighbors.filter(n => n.r >= 0 && n.c >= 0 && n.c < ((n.r % 2 !== 0) ? COL_COUNT - 1 : COL_COUNT));
+        return neighbors.filter(n => {
+            if (n.r < 0 || n.c < 0) return false;
+            let nIsOffset = (n.r + globalRowParity) % 2 !== 0;
+            let maxCols = nIsOffset ? COL_COUNT - 1 : COL_COUNT;
+            return n.c < maxCols;
+        });
     }
 
     function findMatchCluster(startRow, startCol, targetColor) {
@@ -291,25 +311,30 @@ window.addEventListener("load", function() {
         if(droppedCount > 0) updateHUD();
     }
 
-    function addNewRow() {
+    function addNewRowToTop() {
         let newGrid = [];
+        let cols = (globalRowParity % 2 !== 0) ? COL_COUNT - 1 : COL_COUNT;
         let newRow = [];
-        for(let c=0; c < COL_COUNT; c++) newRow.push(new Bubble(getGridX(0, c), getGridY(0), 0, c, getRandomColor()));
+        
+        for(let c=0; c < cols; c++) {
+            newRow.push(new Bubble(getGridX(0, c), getGridY(0), 0, c, getRandomColor()));
+        }
         newGrid.push(newRow);
 
         for(let r=0; r<grid.length; r++) {
+            if(!grid[r]) { newGrid.push([]); continue; }
             let shiftedRow = [];
-            if(!grid[r]) { newGrid.push(shiftedRow); continue; }
-            let maxC = ((r+1) % 2 !== 0) ? COL_COUNT - 1 : COL_COUNT;
-
-            for(let c=0; c<maxC; c++) {
-                if(c >= grid[r].length) continue; 
+            
+            for(let c=0; c<grid[r].length; c++) {
                 let b = grid[r][c];
                 if(b) {
-                    b.row = r + 1; b.col = c;
-                    b.y = getGridY(r+1); b.x = getGridX(r+1, c);
+                    b.row = r + 1;
+                    b.y = getGridY(b.row); 
+                    b.x = getGridX(b.row, b.col); // This accurately positions without horizontal scrambling
                     shiftedRow.push(b);
-                } else { shiftedRow.push(null); }
+                } else { 
+                    shiftedRow.push(null); 
+                }
             }
             newGrid.push(shiftedRow);
         }
@@ -325,7 +350,7 @@ window.addEventListener("load", function() {
             if(!grid[r]) continue;
             for(let c=0; c<grid[r].length; c++) {
                 let b = grid[r][c];
-                if(b && !b.isDropping && (b.y >= DANGER_Y)) {
+                if(b && !b.isDropping && !b.isMoving && (b.y + BUBBLE_RADIUS >= DANGER_Y)) {
                     return true;
                 }
             }
@@ -357,7 +382,6 @@ window.addEventListener("load", function() {
             clientY = e.touches[0].clientY; 
         }
         
-        // Accurate translation from dynamic screen size back to 800x1000 logic space
         pointerX = (clientX - rect.left) * (canvas.width / rect.width);
         pointerY = (clientY - rect.top) * (canvas.height / rect.height);
     }
@@ -381,7 +405,7 @@ window.addEventListener("load", function() {
         isPaused = !isPaused;
         pauseOverlay.classList.toggle('hidden', !isPaused);
         if(!isPaused) {
-            lastDropTime = performance.now() - (lastDropTime > 0 ? performance.now() - lastDropTime : 0);
+            lastTime = performance.now(); // Prevents massive drop jumps after unpausing
         }
     }
 
@@ -407,9 +431,6 @@ window.addEventListener("load", function() {
     });
     document.getElementById('restart-btn').addEventListener('click', () => {
         gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden');
-    });
-    document.getElementById('return-btn').addEventListener('click', () => {
-        window.location.href = 'https://clicksyncgames.com';
     });
 
     function triggerGameOver(win) {
@@ -470,13 +491,41 @@ window.addEventListener("load", function() {
     }
 
     function update() {
-        if (isPaused) return;
+        if (isPaused) {
+            lastTime = performance.now();
+            return;
+        }
+
+        let now = performance.now();
+        let dt = (now - lastTime) / 1000;
+        lastTime = now;
+        if (dt > 0.1) dt = 0.1; // Caps delta time to prevent physics breaking on lag
 
         if (gameState === 'PLAYING') {
-            let now = performance.now();
-            if (now - lastDropTime > DROP_INTERVAL_MS) {
-                lastDropTime = now;
-                addNewRow();
+            // Drop speed configuration based on difficulty
+            let dropSpeed = 0; // Pixels per second
+            if (activeColors === 3) dropSpeed = 3;      
+            else if (activeColors === 4) dropSpeed = 5; 
+            else dropSpeed = 7;                         
+
+            currentGridOffsetY += dropSpeed * dt;
+
+            // Sync all resting bubbles to new smooth offset
+            for (let r = 0; r < grid.length; r++) {
+                if(!grid[r]) continue;
+                for (let c = 0; c < grid[r].length; c++) {
+                    let b = grid[r][c];
+                    if (b && !b.isDropping && !b.isMoving) {
+                        b.y = getGridY(b.row);
+                    }
+                }
+            }
+
+            // Once the offset shifts a full row's height, inject a new row at the top
+            if (currentGridOffsetY - BASE_GRID_OFFSET_Y >= ROW_HEIGHT) {
+                currentGridOffsetY -= ROW_HEIGHT;
+                globalRowParity = (globalRowParity + 1) % 2; // Flip parity to maintain exact visual horizontal location
+                addNewRowToTop();
             }
         }
 
