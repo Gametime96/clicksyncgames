@@ -330,7 +330,7 @@ window.addEventListener("load", function() {
                 if(b) {
                     b.row = r + 1;
                     b.y = getGridY(b.row); 
-                    b.x = getGridX(b.row, b.col); // This accurately positions without horizontal scrambling
+                    b.x = getGridX(b.row, b.col); 
                     shiftedRow.push(b);
                 } else { 
                     shiftedRow.push(null); 
@@ -405,7 +405,7 @@ window.addEventListener("load", function() {
         isPaused = !isPaused;
         pauseOverlay.classList.toggle('hidden', !isPaused);
         if(!isPaused) {
-            lastTime = performance.now(); // Prevents massive drop jumps after unpausing
+            lastTime = performance.now(); 
         }
     }
 
@@ -557,7 +557,8 @@ window.addEventListener("load", function() {
         ctx.setLineDash([15, 10]); ctx.stroke(); ctx.setLineDash([]);
         
         ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
-        ctx.font = 'bold 16px Nunito';
+        // Font size increased by ~20% (From 16px to 20px)
+        ctx.font = 'bold 20px Nunito';
         ctx.textAlign = 'right';
         ctx.fillText("DANGER ZONE", canvas.width - 10, DANGER_Y - 10);
 
