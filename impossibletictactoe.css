@@ -11,7 +11,7 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    min-height: 100vh; /* Changed from height: 100% to allow expansion */
+    min-height: 100vh; /* Allows expansion */
     overflow-y: auto; /* Allows scrolling on the Y axis if content doesn't fit */
     overflow-x: hidden; /* Prevents horizontal scrolling */
 }
@@ -25,10 +25,10 @@ body {
     align-items: center;
 }
 
-/* Base Text Styling */
+/* Base Text Styling - Explicitly zeroing out webkit-stroke to prevent smudges globally */
 h1, h2, h3, .btn, .mode-btn, .start-btn, .back-btn, .top-btn, .cell {
     color: white;
-    /* Replaced -webkit-text-stroke with multi-directional text-shadow to remove the smudge effect */
+    -webkit-text-stroke: 0px transparent !important; 
     text-shadow: 
         -1px -1px 0 var(--text-outline),  
          1px -1px 0 var(--text-outline),
@@ -62,19 +62,23 @@ h1, h2, h3, .btn, .mode-btn, .start-btn, .back-btn, .top-btn, .cell {
     width: 100%;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 10px;
     box-sizing: border-box;
     background: rgba(0, 0, 0, 0.3);
+    gap: 10px;
 }
 
 .top-btn {
     background-color: var(--btn-color);
     border: 2px solid var(--text-outline);
-    padding: 16px 30px; /* Doubled padding */
-    font-size: 1.8rem; /* Almost doubled font size */
+    /* Responsive sizing: dynamically shrinks on small screens to prevent overlapping */
+    padding: clamp(8px, 2vw, 12px) clamp(10px, 3vw, 20px);
+    font-size: clamp(0.9rem, 3.5vw, 1.4rem); 
     font-weight: 800;
     border-radius: 6px;
     cursor: pointer;
+    text-align: center;
 }
 
 /* Main Container */
@@ -134,14 +138,13 @@ input::placeholder {
     margin-top: 15px;
 }
 
-/* Updated Button Styling */
 .btn, .mode-btn, .start-btn, .back-btn {
     background-color: var(--btn-color);
     border: 2px solid var(--text-outline);
     padding: 15px 20px;
-    font-size: 1.4rem; /* Bigger */
-    font-weight: 900;  /* Bolder */
-    letter-spacing: 2px; /* Spaced out */
+    font-size: 1.4rem; 
+    font-weight: 900;  
+    letter-spacing: 2px; 
     border-radius: 8px;
     cursor: pointer;
     transition: transform 0.1s, filter 0.2s;
@@ -166,7 +169,6 @@ input::placeholder {
 /* Responsive Board Styles */
 #board-container {
     position: relative;
-    /* Uses dynamic viewport units so it never forces a scroll */
     width: min(85vw, 50vh); 
     height: min(85vw, 50vh);
     margin: 10px auto 20px auto;
@@ -190,7 +192,6 @@ input::placeholder {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Fluid font size based on board size */
     font-size: min(20vw, 12vh); 
     font-weight: bold;
     cursor: pointer;
