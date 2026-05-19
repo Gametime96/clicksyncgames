@@ -1,0 +1,120 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #2c3e50;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: none; /* Hide standard cursor for the paddle */
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through to canvas by default */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#top-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    pointer-events: auto; /* Enable clicks for top bar elements */
+}
+
+.nav-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #2c3e50;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    border: 2px solid #bdc3c7;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+}
+
+.nav-btn:hover {
+    background: #ecf0f1;
+    transform: scale(1.05);
+}
+
+#scoreboard {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 40px;
+    font-size: 48px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: 2px solid #ecf0f1;
+    display: flex;
+    gap: 20px;
+    pointer-events: none;
+}
+
+#menu {
+    margin-top: 100px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    pointer-events: auto; /* Enable clicks for menu */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+#menu h1 {
+    color: #e74c3c;
+    margin-bottom: 20px;
+    font-size: 36px;
+}
+
+#menu p {
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.diff-btn {
+    display: inline-block;
+    margin: 0 10px;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+}
+
+.diff-btn:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
+
+.diff-btn[data-diff="impossible"] {
+    background-color: #e74c3c;
+}
+
+.diff-btn[data-diff="impossible"]:hover {
+    background-color: #c0392b;
+}
