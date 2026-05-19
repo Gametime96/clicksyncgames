@@ -10,7 +10,7 @@ body, html {
     /* Desktop Default: Perfectly clean, no scrollbars */
     overflow-y: hidden; 
     overflow-x: hidden;
-    touch-action: none; 
+    touch-action: pan-y; 
 }
 
 #game-wrapper { 
@@ -68,7 +68,7 @@ body, html {
     box-sizing: border-box;
 }
 
-/* Strict Auto-Scaling Canvas Container */
+/* Strict Auto-Scaling Canvas Container for Desktop/Portrait */
 #canvas-container { 
     position: relative; 
     background: radial-gradient(circle at bottom center, #1e1b4b, #020617); 
@@ -166,51 +166,54 @@ canvas {
     }
 }
 
-/* EXTREME FIX FOR LANDSCAPE: Brutal Shrink to Fit Without Scrolling */
+/* MOBILE LANDSCAPE: Forced Native Scrollbar & Playable Size */
 @media screen and (orientation: landscape) and (max-height: 600px) {
-    #orientation-warning { display: block; font-size: 1rem; } /* Shows portrait warning */
+    #orientation-warning { display: block; font-size: 1rem; }
     
     body, html {
-        overflow: hidden !important; /* Absolute lock on scrolling */
+        overflow-y: scroll !important; /* Mandates the rightmost scrollbar */
+        overflow-x: hidden;
     }
     
     #csg-header { 
         padding: 5px 15px;
     }
     
-    /* Make top buttons larger to compensate for tiny screen */
-    .btn { padding: 12px 20px; font-size: 1.1rem; } 
-    #game-title { font-size: 1.4rem; } 
+    .btn { padding: 8px 12px; font-size: 1rem; } 
+    #game-title { font-size: 1.2rem; } 
 
     #main-content { 
-        padding: 5px; 
-        align-items: center; 
+        padding: 10px; 
     }
 
     #canvas-container {
-        /* Force the game to become TINY (50%-75% reduction) to guarantee no cut-offs */
-        height: 60svh; /* Locks the game height to only 60% of the visible viewport height */
-        min-height: 0; 
-        max-height: none; 
-        width: auto;
+        /* Set width horizontally, let height expand naturally to force the scroll */
+        width: 90vw; 
+        max-width: 600px;
+        height: auto;
+        min-height: 600px; /* Forces page to be taller than landscape screen, engaging scrollbar */
+        max-height: none;  /* Removes squish effect */
         aspect-ratio: 4 / 5;
-        margin: 0 auto;
+        margin: 0 auto 50px auto; /* Provides padding at the bottom of the scroll */
     }
     
-    /* Enlarge the HUD drastically to compensate for the tiny screen */
+    /* Pull HUD inward so it doesn't overlap the new forced scrollbar */
+    #hud { 
+        bottom: 15px; 
+        right: 35px; /* Safely avoids the native scrollbar track */
+        gap: 8px; 
+    }
+    
     .hud-score-info, .hud-level-info {
-        font-size: 1.6rem; 
-        padding: 8px 16px;
+        font-size: 1.2rem; 
+        padding: 6px 12px;
     }
-    .hud-label { font-size: 1.3rem; }
-    #hud { bottom: 10px; right: 10px; gap: 8px; }
+    .hud-label { font-size: 1rem; }
     
-    /* Enlarge overlays and their text so menus stay readable while squished */
-    .menu-box { padding: 25px 20px; max-width: 500px; width: 95%;}
-    .neon-text { font-size: 1.8rem; }
-    .menu-box h2 { font-size: 1.5rem; margin-bottom: 10px;}
-    .subtitle { margin-bottom: 10px; font-size: 1.1rem;}
-    .action { padding: 15px; font-size: 1.3rem; }
+    /* Adjust overlays to flow smoothly while scrolling */
+    .menu-box { padding: 20px 15px; max-width: 500px; width: 95%;}
+    .neon-text { font-size: 1.6rem; }
+    .menu-box h2 { font-size: 1.3rem; margin-bottom: 10px;}
+    .action { padding: 12px; font-size: 1.2rem; }
     .difficulty-selector { padding: 10px; margin-bottom: 15px; }
-    .radio-group { font-size: 1.2rem; gap: 10px;}
 }
