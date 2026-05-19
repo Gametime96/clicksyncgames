@@ -7,7 +7,6 @@ body, html {
     width: 100%; height: 100%; 
     font-family: 'Nunito', sans-serif; 
     background-color: #0f172a; color: #ecf0f1; 
-    /* Desktop Default: Perfectly clean, no scrollbars */
     overflow-y: hidden; 
     overflow-x: hidden;
     touch-action: pan-y; 
@@ -153,12 +152,9 @@ canvas {
 #final-score-text { color: #38bdf8; margin-bottom: 10px; font-size: 1.5rem; }
 #end-message { color: #94a3b8; margin-bottom: 20px; font-size: 1.1rem;}
 
-/* Extreme Mobile Adjustments */
-@media (max-width: 600px) {
-    body, html {
-        overflow-y: scroll; /* Mandated scrollbar activates only on mobile */
-    }
 
+/* Mobile Portrait Logic */
+@media screen and (orientation: portrait) and (max-width: 768px) {
     #csg-header { flex-direction: column; padding: 10px; height: auto;}
     #csg-navigation { width: 100%; justify-content: center;}
     .neon-text { font-size: 1.8rem;}
@@ -166,37 +162,56 @@ canvas {
     #canvas-container {
         width: 100%;
         height: auto; 
-        min-height: 500px;
-        max-height: none; 
+        max-height: calc(100vh - 120px); 
     }
     
     .hud-score-info, .hud-level-info {
         font-size: 1.2rem; 
         padding: 8px 14px;
     }
-    .hud-label {
-        font-size: 1rem;
-    }
-    #hud {
-        bottom: 10px;
-        right: 10px;
-    }
+    .hud-label { font-size: 1rem; }
+    #hud { bottom: 10px; right: 10px; }
 }
 
-/* Specific Fix for Very Short Landscape Mobile Screens */
+/* Extreme Fix for Short Landscape Mobile Screens (Squishes the game down to fit perfectly) */
 @media screen and (orientation: landscape) and (max-height: 600px) {
+    /* Trigger the warning when rotated horizontally */
+    #orientation-warning { display: block; }
+    
     body, html {
-        overflow-y: scroll; /* Mandated scrollbar activates only on short landscape */
+        overflow-y: hidden; /* Lock the screen to prevent jumping */
     }
+    
+    #csg-header { 
+        min-height: 40px; 
+        padding: 5px 10px;
+    }
+    #game-title { font-size: 1rem; }
+    .btn { padding: 8px 12px; font-size: 0.8rem; }
+
+    #main-content { padding: 5px; }
 
     #canvas-container {
         height: auto;
-        min-height: 500px; /* Forces page scrolling instead of squishing game */
-        max-height: none;
+        min-height: auto; /* Drops the floor completely */
+        max-height: calc(100vh - 75px); /* Forces aggressive scaling down */
+        margin: 0 auto;
     }
-}
-
-/* Portrait Warning Logic */
-@media screen and (orientation: portrait) and (max-width: 768px) {
-    #orientation-warning { display: block; }
+    
+    /* Shrink the HUD drastically so it doesn't cover the tiny game */
+    .hud-score-info, .hud-level-info {
+        font-size: 0.9rem; 
+        padding: 4px 8px;
+    }
+    .hud-label { font-size: 0.8rem; }
+    #hud { bottom: 5px; right: 5px; gap: 5px; }
+    
+    /* Shrink overlays */
+    .menu-box { padding: 20px 15px; }
+    .neon-text { font-size: 1.2rem; }
+    .menu-box h2 { font-size: 1rem; margin-bottom: 10px;}
+    .subtitle { margin-bottom: 15px; font-size: 0.8rem;}
+    .action { padding: 8px; font-size: 1rem; }
+    .difficulty-selector { padding: 10px; margin-bottom: 15px; }
+    .radio-group { font-size: 0.9rem; gap: 8px;}
 }
