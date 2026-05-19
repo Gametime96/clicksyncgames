@@ -2,16 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Prevents mobile zooming and scrolling -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Impossible Tic Tac Toe</title>
     <link rel="stylesheet" href="impossibletictactoe.css">
 </head>
 <body>
-    <!-- Portrait Warning -->
     <div id="portrait-warning">For best user experience rotate mobile device to landscape orientation</div>
 
-    <!-- Top Action Bar -->
     <div id="top-bar">
         <button id="pause-btn" class="top-btn">Pause</button>
         <button id="return-btn" class="top-btn" onclick="window.location.href='index.html'">Return to ClickSyncGames</button>
@@ -20,11 +17,9 @@
     <div class="container">
         <h1 id="main-title">Impossible Tic Tac Toe</h1>
         
-        <!-- Setup Menu -->
         <div id="setup-menu" class="menu-card">
             <h2>Select Game Mode</h2>
             
-            <!-- Primary Mode Selection -->
             <div id="mode-selection" class="button-group">
                 <button class="mode-btn" data-mode="pvc-easy">Player vs Computer - Easy</button>
                 <button class="mode-btn" data-mode="pvc-medium">Player vs Computer - Medium</button>
@@ -32,7 +27,6 @@
                 <button class="mode-btn" data-mode="pvp">Player vs Player</button>
             </div>
 
-            <!-- Contextual Setup for PvC -->
             <div id="pvc-setup" class="hidden setup-details">
                 <h3>Choose your piece:</h3>
                 <div class="button-group">
@@ -42,7 +36,6 @@
                 <button class="back-btn btn-secondary">Back</button>
             </div>
 
-            <!-- Contextual Setup for PvP -->
             <div id="pvp-setup" class="hidden setup-details">
                 <h3>Enter Player Names:</h3>
                 <input type="text" id="p1-name" placeholder="Player 1 (Plays X)" maxlength="15">
@@ -54,7 +47,6 @@
             </div>
         </div>
 
-        <!-- Game Interface -->
         <div id="game-interface" class="hidden">
             <h2 id="status-text">Player X's Turn</h2>
             
@@ -71,12 +63,10 @@
                     <div class="cell" data-index="8"></div>
                 </div>
                 <div id="win-line-container" class="hidden">
-                    <!-- Responsive viewBox allows percentage-based coordinates -->
                     <svg id="win-line-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <line id="win-line" x1="0" y1="0" x2="0" y2="0" stroke="white" stroke-width="3" stroke-dasharray="5,4" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <!-- Pause Overlay -->
                 <div id="pause-overlay" class="hidden">
                     <h2>Game Paused</h2>
                     <button id="resume-btn" class="btn">Resume</button>
