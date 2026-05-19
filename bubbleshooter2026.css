@@ -2,20 +2,21 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
-/* Enable scrolling on the body for a fallback, but lock horizontal */
+/* Base styling */
 body, html { 
     width: 100%; height: 100%; 
     font-family: 'Nunito', sans-serif; 
     background-color: #0f172a; color: #ecf0f1; 
-    overflow-y: auto; 
+    /* Desktop Default: Perfectly clean, no scrollbars */
+    overflow-y: hidden; 
     overflow-x: hidden;
-    touch-action: pan-y; /* Allow scrolling but prevent swipe-to-refresh */
+    touch-action: pan-y; 
 }
 
 #game-wrapper { 
     display: flex; flex-direction: column; 
     min-height: 100vh;
-    min-height: 100svh; /* Uses exact visible viewport on modern mobile */
+    min-height: 100svh;
     width: 100vw; position: relative;
 }
 
@@ -75,11 +76,11 @@ body, html {
     border-radius: 8px; 
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
     aspect-ratio: 4 / 5;
+    
     width: auto;
     height: 100%;
     max-width: 800px;
     max-height: calc(100vh - 90px); 
-    max-height: calc(100svh - 90px); 
 }
 
 canvas { 
@@ -95,7 +96,7 @@ canvas {
     position: fixed; 
     bottom: 20px; 
     right: 20px; 
-    pointer-events: none; /* Allows shooting through the HUD */
+    pointer-events: none; 
     z-index: 500; 
     display: flex;
     flex-direction: column;
@@ -103,13 +104,12 @@ canvas {
     gap: 10px;
 }
 
-/* Increased font sizes by ~20% */
 .hud-score-info, .hud-level-info { 
     background: rgba(15, 23, 42, 0.85); 
     padding: 10px 18px; 
     border-radius: 8px; 
     border: 1px solid #8b5cf6; 
-    font-size: 1.45rem; /* Up from 1.2rem */
+    font-size: 1.45rem; 
     font-weight: bold; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.5); 
     backdrop-filter: blur(4px);
@@ -118,7 +118,7 @@ canvas {
 .hud-label { 
     color: #94a3b8; 
     margin-right: 5px; 
-    font-size: 1.2rem; /* Up from 1rem */
+    font-size: 1.2rem; 
 }
 #hud-score { color: #facc15; }
 #hud-level { color: #38bdf8; }
@@ -155,6 +155,10 @@ canvas {
 
 /* Extreme Mobile Adjustments */
 @media (max-width: 600px) {
+    body, html {
+        overflow-y: scroll; /* Mandated scrollbar activates only on mobile */
+    }
+
     #csg-header { flex-direction: column; padding: 10px; height: auto;}
     #csg-navigation { width: 100%; justify-content: center;}
     .neon-text { font-size: 1.8rem;}
@@ -162,13 +166,12 @@ canvas {
     #canvas-container {
         width: 100%;
         height: auto; 
-        max-height: calc(100vh - 120px); 
-        max-height: calc(100svh - 120px); 
+        min-height: 500px;
+        max-height: none; 
     }
     
-    /* Ensure mobile HUD scales up slightly too */
     .hud-score-info, .hud-level-info {
-        font-size: 1.2rem; /* Up 20% from 1rem */
+        font-size: 1.2rem; 
         padding: 8px 14px;
     }
     .hud-label {
@@ -177,6 +180,19 @@ canvas {
     #hud {
         bottom: 10px;
         right: 10px;
+    }
+}
+
+/* Specific Fix for Very Short Landscape Mobile Screens */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    body, html {
+        overflow-y: scroll; /* Mandated scrollbar activates only on short landscape */
+    }
+
+    #canvas-container {
+        height: auto;
+        min-height: 500px; /* Forces page scrolling instead of squishing game */
+        max-height: none;
     }
 }
 
