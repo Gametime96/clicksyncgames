@@ -14,28 +14,30 @@ function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
-    // New math ensures table always fits and anchors to the bottom
     if (canvas.width < canvas.height) {
-        // Portrait Mode
-        cameraZ = -1400;
-        cameraY = -400; 
-        focalLength = canvas.width * 1.2;
+        cameraZ = -1500;
+        cameraY = -450; 
+        focalLength = canvas.width * 1.3;
     } else {
-        // Landscape Mode
-        cameraZ = -1400;
-        cameraY = -300;
-        focalLength = Math.min(canvas.width, canvas.height) * 1.4;
+        cameraZ = -1500;
+        cameraY = -350;
+        focalLength = Math.min(canvas.width, canvas.height) * 1.5;
     }
 }
 window.addEventListener('resize', resize);
 resize(); 
 
-// Game State
+// Game State Management
 let gameState = 'menu';
+let ballState = 'serving'; // 'serving' or 'playing'
+let server = 'player';
+let lastHitter = null;
+let hasBouncedOnOpponentSide = false;
 let isPaused = false;
 let difficulty = 'medium';
 let playerScore = 0;
 let aiScore = 0;
+let selectedPaddleColor = '#e74c3c'; 
 
 function project(x, y, z) {
     const relZ = z - cameraZ;
@@ -43,8 +45,7 @@ function project(x, y, z) {
     if (relZ <= 0) return { x: 0, y: 0, scale: 0 }; 
     const scale = focalLength / relZ;
     
-    // Shift the vanishing point up to look down on the table naturally
-    const baseCenterY = canvas.width < canvas.height ? canvas.height * 0.45 : canvas.height * 0.25;
+    const baseCenterY = canvas.width < canvas.height ? canvas.height * 0.40 : canvas.height * 0.25;
 
     return {
         x: canvas.width / 2 + x * scale,
@@ -56,14 +57,7 @@ function project(x, y, z) {
 // Entities
 const table = { width: 600, length: 1200, y: 100 };
 const net = { height: 60, z: 0 };
-
-const ball = {
-    x: 0, y: 0, z: -500,
-    vx: 0, vy: 0, vz: 0,
-    radius: 15,
-    speedBase: 18
-};
-
+const ball = { x: 0, y: 0, z: -500, vx: 0, vy: 0, vz: 0, radius: 15, speedBase: 18 };
 const player = { x: 0, y: 0, z: -600, width: 80, height: 80 };
 const ai = { x: 0, y: -50, z: 600, width: 80, height: 80, speed: 5 };
 
@@ -77,12 +71,10 @@ function updateInputInfo(clientX, clientY) {
 }
 
 window.addEventListener('mousemove', (e) => updateInputInfo(e.clientX, e.clientY));
-
 window.addEventListener('touchstart', (e) => {
     if (e.target === canvas) e.preventDefault(); 
     updateInputInfo(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
-
 window.addEventListener('touchmove', (e) => {
     if (e.target === canvas) e.preventDefault(); 
     updateInputInfo(e.touches[0].clientX, e.touches[0].clientY);
@@ -99,6 +91,15 @@ function togglePause() {
 pauseBtn.addEventListener('click', togglePause);
 window.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'p') togglePause();
+});
+
+// Color Selection Logic
+document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        selectedPaddleColor = e.target.getAttribute('data-color');
+    });
 });
 
 const difficultySettings = {
@@ -128,14 +129,13 @@ function startGame() {
 }
 
 function resetBall(direction) {
-    ball.x = 0;
-    ball.y = -200;
-    ball.z = direction === 1 ? -500 : 500;
-    
-    const settings = difficultySettings[difficulty];
-    ball.vx = (Math.random() - 0.5) * 10;
-    ball.vy = -10;
-    ball.vz = direction * ball.speedBase * settings.ballSpeedMod;
+    server = direction === 1 ? 'player' : 'ai';
+    ballState = 'serving';
+    lastHitter = null;
+    hasBouncedOnOpponentSide = false;
+    ball.vx = 0; 
+    ball.vy = 0; 
+    ball.vz = 0;
 }
 
 function updateScoreboard() {
@@ -147,6 +147,7 @@ function scorePoint(winner) {
     gameState = 'scored';
     if (winner === 'player') {
         playerScore++;
+        // Loser serves next
         setTimeout(() => { if(gameState !== 'menu') { resetBall(-1); gameState = 'playing'; }}, 1000);
     } else {
         aiScore++;
@@ -157,41 +158,100 @@ function scorePoint(winner) {
 
 function update() {
     if (gameState !== 'playing' || isPaused) return;
-
     const settings = difficultySettings[difficulty];
 
     const sensitivityX = canvas.width < canvas.height ? 2.5 : 1.5;
-    const sensitivityY = canvas.width < canvas.height ? 2.0 : 1.2;
+    const sensitivityY = canvas.width < canvas.height ? 3.0 : 1.8;
 
-    // Map paddle position to mouse/touch tightly
+    // Player Paddle Movement (Full vertical reach enabled)
     player.x = (inputX - canvas.width / 2) * sensitivityX;
     player.y = (inputY - canvas.height / 1.5) * sensitivityY + table.y - 50;
+    player.x = Math.max(-table.width/2 - 150, Math.min(table.width/2 + 150, player.x));
+    player.y = Math.max(table.y - 500, Math.min(table.y + 100, player.y));
 
-    // Clamp paddle rigidly so it cannot float into the air or go way beneath the table
-    player.x = Math.max(-table.width/2 - 100, Math.min(table.width/2 + 100, player.x));
-    player.y = Math.max(table.y - 150, Math.min(table.y + 50, player.y));
+    // SERVING LOGIC
+    if (ballState === 'serving') {
+        if (server === 'player') {
+            // Hold ball perfectly still in front of player
+            ball.x = 0;
+            ball.y = table.y - 150;
+            ball.z = -table.length / 2 + 50;
 
-    // AI Logic
+            // Wait for player paddle to strike the ball
+            if (Math.abs(player.x - ball.x) < (player.width / 2 + ball.radius) && 
+                Math.abs(player.y - ball.y) < (player.height / 2 + ball.radius) && 
+                Math.abs(player.z - ball.z) < 60) {
+                
+                ballState = 'playing';
+                lastHitter = 'player';
+                hasBouncedOnOpponentSide = false;
+                ball.vz = ball.speedBase * settings.ballSpeedMod;
+                ball.vy = -12;
+                ball.vx = (ball.x - player.x) * 0.2;
+            }
+        } else {
+            // AI Serve
+            ball.x = 0;
+            ball.y = table.y - 150;
+            ball.z = table.length / 2 - 50;
+            
+            // Move AI paddle toward the floating ball to serve
+            ai.x += (ball.x - ai.x) * 0.1;
+            ai.y += (ball.y - ai.y) * 0.1;
+            
+            if (Math.abs(ai.x - ball.x) < (ai.width / 2 + ball.radius) && 
+                Math.abs(ai.y - ball.y) < (ai.height / 2 + ball.radius)) {
+                
+                ballState = 'playing';
+                lastHitter = 'ai';
+                hasBouncedOnOpponentSide = false;
+                ball.vz = -ball.speedBase * settings.ballSpeedMod;
+                ball.vy = -12;
+                ball.vx = (Math.random() - 0.5) * 6;
+            }
+        }
+        return; // Skip standard physics while serving
+    }
+
+    // AI Playing Logic
     let targetX = ball.x + (Math.random() - 0.5) * settings.aiError;
     if (ball.vz > 0) {
+        // Track horizontally
         if (ai.x < targetX) ai.x += settings.aiSpeed;
         if (ai.x > targetX) ai.x -= settings.aiSpeed;
+        // Track vertically for high balls
+        let targetY = ball.y - 20; 
+        if (ai.y < targetY) ai.y += settings.aiSpeed;
+        if (ai.y > targetY) ai.y -= settings.aiSpeed;
     } else {
+        // Return to center
         if (ai.x < 0) ai.x += settings.aiSpeed / 2;
         if (ai.x > 0) ai.x -= settings.aiSpeed / 2;
+        let targetY = table.y - 50;
+        if (ai.y < targetY) ai.y += settings.aiSpeed / 2;
+        if (ai.y > targetY) ai.y -= settings.aiSpeed / 2;
     }
+    ai.x = Math.max(-table.width/2 - 100, Math.min(table.width/2 + 100, ai.x));
+    ai.y = Math.max(table.y - 500, Math.min(table.y + 50, ai.y));
 
     // Ball Physics
     ball.x += ball.vx;
     ball.y += ball.vy;
     ball.z += ball.vz;
-    ball.vy += 0.8; 
+    ball.vy += 0.8; // Gravity
 
-    // Table Bounce
+    // Table Bounce Logic
     if (ball.y >= table.y - ball.radius && Math.abs(ball.z) <= table.length / 2) {
         if (Math.abs(ball.x) <= table.width / 2) {
             ball.y = table.y - ball.radius;
             ball.vy *= -0.85; 
+
+            // Track if it bounced on the opponent's side based on who hit it last
+            if (ball.z > 0 && lastHitter === 'player') {
+                hasBouncedOnOpponentSide = true;
+            } else if (ball.z < 0 && lastHitter === 'ai') {
+                hasBouncedOnOpponentSide = true;
+            }
         }
     }
 
@@ -201,32 +261,46 @@ function update() {
         ball.vx *= 0.5;
     }
 
-    // Player Hit
+    // Player Hit Logic
     if (ball.z <= player.z && ball.z >= player.z - 60 && ball.vz < 0) {
-        if (Math.abs(ball.x - player.x) < player.width + 20 && Math.abs(ball.y - player.y) < player.height + 20) {
+        if (Math.abs(ball.x - player.x) < player.width/2 + 20 && Math.abs(ball.y - player.y) < player.height/2 + 20) {
             ball.vz *= -1.05; 
-            ball.vx = (ball.x - player.x) * 0.2;
-            ball.vy = -12; 
+            ball.vx = (ball.x - player.x) * 0.25;
+            ball.vy = -12 + (player.y - ball.y) * 0.05; 
+            lastHitter = 'player';
+            hasBouncedOnOpponentSide = false;
         }
     }
 
-    // AI Hit
+    // AI Hit Logic
     if (ball.z >= ai.z && ball.z <= ai.z + 60 && ball.vz > 0) {
-        if (Math.abs(ball.x - ai.x) < ai.width + 20) {
+        if (Math.abs(ball.x - ai.x) < ai.width/2 + 20 && Math.abs(ball.y - ai.y) < ai.height/2 + 20) {
             ball.vz *= -1.05;
-            ball.vx = (ball.x - ai.x) * 0.2;
+            ball.vx = (ball.x - ai.x) * 0.25;
             ball.vy = -12;
+            lastHitter = 'ai';
+            hasBouncedOnOpponentSide = false;
         }
     }
 
-    // Scoring
-    if (ball.z > table.length / 2 + 200) {
-        scorePoint('player');
-    } else if (ball.z < -table.length / 2 - 200) {
-        scorePoint('ai');
-    } else if (ball.y > 600) { 
-        if (ball.vz > 0) scorePoint('player'); 
-        else scorePoint('ai'); 
+    // SCORING AND OUT-OF-BOUNDS LOGIC
+    if (ball.y > table.y + 250 || Math.abs(ball.z) > table.length / 2 + 1000 || Math.abs(ball.x) > table.width / 2 + 1000) {
+        if (lastHitter === 'player') {
+            if (hasBouncedOnOpponentSide) {
+                scorePoint('player'); // Player hit it, it bounced right, AI missed
+            } else {
+                scorePoint('ai'); // Player hit it out of bounds
+            }
+        } else if (lastHitter === 'ai') {
+            if (hasBouncedOnOpponentSide) {
+                scorePoint('ai'); // AI hit it, it bounced right, Player missed
+            } else {
+                scorePoint('player'); // AI hit it out of bounds
+            }
+        } else {
+            // Failsafe for errors
+            scorePoint('ai');
+        }
     }
 }
 
@@ -253,12 +327,12 @@ function drawBall() {
     if (ballProj.scale > 0) {
         const shadowProj = project(ball.x, Math.min(table.y, ball.y + 200), ball.z);
         if (shadowProj.scale > 0) {
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
             ctx.beginPath();
             ctx.ellipse(shadowProj.x, shadowProj.y, ball.radius * shadowProj.scale, (ball.radius/2) * shadowProj.scale, 0, 0, Math.PI * 2);
             ctx.fill();
         }
-        ctx.fillStyle = '#f1c40f';
+        ctx.fillStyle = '#f1c40f'; 
         ctx.beginPath();
         ctx.arc(ballProj.x, ballProj.y, ball.radius * ballProj.scale, 0, Math.PI * 2);
         ctx.fill();
@@ -272,83 +346,118 @@ function drawNet() {
         {x: tW + 20, y: table.y, z: net.z},
         {x: tW + 20, y: table.y - net.height, z: net.z},
         {x: -tW - 20, y: table.y - net.height, z: net.z}
-    ], 'rgba(255, 255, 255, 0.4)');
+    ], 'rgba(255, 255, 255, 0.25)'); 
+    
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = Math.max(1, 3 * (focalLength / 2000));
+    const np1 = project(-tW - 20, table.y - net.height, net.z);
+    const np2 = project(tW + 20, table.y - net.height, net.z);
+    if (np1.scale > 0 && np2.scale > 0) {
+        ctx.beginPath(); ctx.moveTo(np1.x, np1.y); ctx.lineTo(np2.x, np2.y); ctx.stroke();
+    }
 }
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Dynamic Horizon
-    const horizonProj = project(0, 0, 5000);
-    const horizon = horizonProj.y || canvas.height / 2;
+    const horizonProj = project(0, 0, 8000);
+    const horizon = horizonProj.y || canvas.height / 2.5;
 
-    // Draw Background Wall (Dark Red/Brown)
-    ctx.fillStyle = '#4A1C1C';
+    // Arena Background
+    ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, canvas.width, horizon);
 
-    // Draw Floor (Wood)
-    ctx.fillStyle = '#A36B3B';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    for(let z = 0; z <= 6000; z += 600) {
+        const roof1 = project(-2500, -1500, z);
+        const roof2 = project(2500, -1500, z);
+        if(roof1.scale > 0 && roof2.scale > 0) {
+            ctx.lineWidth = 15 * roof1.scale;
+            ctx.beginPath(); ctx.moveTo(roof1.x, roof1.y); ctx.lineTo(roof2.x, roof2.y); ctx.stroke();
+        }
+    }
+
+    ctx.fillStyle = '#1e3a5f'; 
     ctx.fillRect(0, horizon, canvas.width, canvas.height - horizon);
+
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    const floorY = table.y + 400; 
+    for(let x of [-1200, -600, 0, 600, 1200]) {
+        const f1 = project(x, floorY, -1000);
+        const f2 = project(x, floorY, 6000);
+        if(f1.scale > 0 && f2.scale > 0) {
+            ctx.lineWidth = 4 * f1.scale;
+            ctx.beginPath(); ctx.moveTo(f1.x, f1.y); ctx.lineTo(f2.x, f2.y); ctx.stroke();
+        }
+    }
+    for(let z = -1000; z <= 6000; z += 1000) {
+        const f1 = project(-1500, floorY, z);
+        const f2 = project(1500, floorY, z);
+        if(f1.scale > 0 && f2.scale > 0) {
+            ctx.lineWidth = 4 * f1.scale;
+            ctx.beginPath(); ctx.moveTo(f1.x, f1.y); ctx.lineTo(f2.x, f2.y); ctx.stroke();
+        }
+    }
 
     const tW = table.width / 2;
     const tL = table.length / 2;
 
-    // 1. Draw Table Legs
-    ctx.lineWidth = Math.max(4, 15 * (focalLength / 2000)); 
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#111';
+    // Table Legs
+    ctx.lineWidth = Math.max(5, 20 * (focalLength / 2000)); 
+    ctx.lineCap = 'square';
+    ctx.strokeStyle = '#95a5a6';
 
     const drawLeg = (x, z) => {
         const p1 = project(x, table.y, z);
-        const p2 = project(x, table.y + 250, z); // Leg height
+        const p2 = project(x, table.y + 350, z); 
         if(p1.scale > 0 && p2.scale > 0) {
             ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
         }
     };
     
-    const legInset = 30;
-    drawLeg(-tW + legInset, tL - legInset);  // Back Left
-    drawLeg(tW - legInset, tL - legInset);   // Back Right
-    drawLeg(-tW + legInset, -tL + legInset); // Front Left
-    drawLeg(tW - legInset, -tL + legInset);  // Front Right
+    const legInset = 40;
+    drawLeg(-tW + legInset, tL - legInset); 
+    drawLeg(tW - legInset, tL - legInset);   
+    drawLeg(-tW + legInset, -tL + legInset); 
+    drawLeg(tW - legInset, -tL + legInset);  
 
-    // 2. Draw Table Base/Thickness
+    // Table Base
     drawPolygon([
         {x: -tW, y: table.y, z: -tL},
         {x: tW, y: table.y, z: -tL},
-        {x: tW, y: table.y + 15, z: -tL},
-        {x: -tW, y: table.y + 15, z: -tL}
-    ], '#145A32');
+        {x: tW, y: table.y + 20, z: -tL},
+        {x: -tW, y: table.y + 20, z: -tL}
+    ], '#154360');
 
-    // 3. Draw Table Top
+    // Table Top
     drawPolygon([
         {x: -tW, y: table.y, z: -tL},
         {x: tW, y: table.y, z: -tL},
         {x: tW, y: table.y, z: tL},
         {x: -tW, y: table.y, z: tL}
-    ], '#27AE60');
+    ], '#2980b9');
 
-    // 4. Draw Table Lines
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = Math.max(1, 3 * (focalLength / 1500));
-    const p1 = project(0, table.y, -tL);
-    const p2 = project(0, table.y, tL);
-    if (p1.scale > 0 && p2.scale > 0) {
-        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    // Table Lines
+    ctx.strokeStyle = '#ecf0f1';
+    ctx.lineWidth = Math.max(1.5, 4 * (focalLength / 1500));
+    const l1 = project(0, table.y, -tL);
+    const l2 = project(0, table.y, tL);
+    if (l1.scale > 0 && l2.scale > 0) {
+        ctx.beginPath(); ctx.moveTo(l1.x, l1.y); ctx.lineTo(l2.x, l2.y); ctx.stroke();
     }
 
-    // 5. Draw AI Paddle
+    // AI Paddle
     const aiProj = project(ai.x, ai.y, ai.z);
     if (aiProj.scale > 0) {
-        ctx.fillStyle = '#8B0000'; // Darker Handle
+        ctx.fillStyle = '#8B4513'; 
         ctx.fillRect(aiProj.x - (8 * aiProj.scale), aiProj.y, 16 * aiProj.scale, 65 * aiProj.scale);
-        ctx.fillStyle = '#2980b9'; // Blue Face
+        ctx.fillStyle = '#c0392b'; 
         ctx.beginPath();
         ctx.arc(aiProj.x, aiProj.y, (ai.width / 2) * aiProj.scale, 0, Math.PI * 2);
         ctx.fill();
     }
 
-    // 6. Draw Net and Ball with Z-Sorting
+    // Z-Sorting
     if (ball.z > 0) {
         drawBall();
         drawNet();
@@ -357,20 +466,20 @@ function draw() {
         drawBall();
     }
 
-    // 7. Draw Player Paddle
+    // Player Paddle
     const playerProj = project(player.x, player.y, player.z);
     if (playerProj.scale > 0) {
-        ctx.fillStyle = '#8B0000'; // Darker Handle
+        ctx.fillStyle = '#8B4513'; 
         ctx.fillRect(playerProj.x - (10 * playerProj.scale), playerProj.y, 20 * playerProj.scale, 90 * playerProj.scale);
-        ctx.fillStyle = '#E74C3C'; // Red Face
+        ctx.fillStyle = selectedPaddleColor; 
         ctx.beginPath();
         ctx.arc(playerProj.x, playerProj.y, (player.width / 2) * playerProj.scale, 0, Math.PI * 2);
         ctx.fill();
     }
 
-    // Draw Pause Screen Overlay
+    // Pause Screen
     if (isPaused) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillStyle = 'rgba(13, 27, 42, 0.7)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = 'white';
