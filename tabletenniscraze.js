@@ -5,33 +5,50 @@ const playerScoreEl = document.getElementById('player-score');
 const aiScoreEl = document.getElementById('ai-score');
 const pauseBtn = document.getElementById('pause-btn');
 
-// Set canvas to full window size
+// Dynamic Camera Config
+let focalLength = 1000;
+let cameraY = -300;
+let cameraZ = -1400;
+
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    
+    // New math ensures table always fits and anchors to the bottom
+    if (canvas.width < canvas.height) {
+        // Portrait Mode
+        cameraZ = -1400;
+        cameraY = -400; 
+        focalLength = canvas.width * 1.2;
+    } else {
+        // Landscape Mode
+        cameraZ = -1400;
+        cameraY = -300;
+        focalLength = Math.min(canvas.width, canvas.height) * 1.4;
+    }
 }
 window.addEventListener('resize', resize);
-resize();
+resize(); 
 
 // Game State
-let gameState = 'menu'; // 'menu', 'playing', 'scored'
+let gameState = 'menu';
 let isPaused = false;
 let difficulty = 'medium';
 let playerScore = 0;
 let aiScore = 0;
 
-// Camera and 3D Projection configuration (Zoomed out and angled up)
-const focalLength = 900;
-const cameraY = -450;  // Moved camera up
-const cameraZ = -1200; // Pulled camera back to prevent bottom cutoff
-
 function project(x, y, z) {
     const relZ = z - cameraZ;
     const relY = y - cameraY;
+    if (relZ <= 0) return { x: 0, y: 0, scale: 0 }; 
     const scale = focalLength / relZ;
+    
+    // Shift the vanishing point up to look down on the table naturally
+    const baseCenterY = canvas.width < canvas.height ? canvas.height * 0.45 : canvas.height * 0.25;
+
     return {
         x: canvas.width / 2 + x * scale,
-        y: canvas.height / 2 + relY * scale,
+        y: baseCenterY + relY * scale,
         scale: scale
     };
 }
@@ -50,36 +67,40 @@ const ball = {
 const player = { x: 0, y: 0, z: -600, width: 80, height: 80 };
 const ai = { x: 0, y: -50, z: 600, width: 80, height: 80, speed: 5 };
 
-// Mouse controls
-let mouseX = canvas.width / 2;
-let mouseY = canvas.height / 2;
-window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-});
+// Input controls
+let inputX = canvas.width / 2;
+let inputY = canvas.height / 2;
 
-// Pause Logic
+function updateInputInfo(clientX, clientY) {
+    inputX = clientX;
+    inputY = clientY;
+}
+
+window.addEventListener('mousemove', (e) => updateInputInfo(e.clientX, e.clientY));
+
+window.addEventListener('touchstart', (e) => {
+    if (e.target === canvas) e.preventDefault(); 
+    updateInputInfo(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
+window.addEventListener('touchmove', (e) => {
+    if (e.target === canvas) e.preventDefault(); 
+    updateInputInfo(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+
 function togglePause() {
     if (gameState === 'playing' || gameState === 'scored') {
         isPaused = !isPaused;
         pauseBtn.innerText = isPaused ? 'Resume' : 'Pause';
-        if (isPaused) {
-            canvas.style.cursor = 'default';
-        } else {
-            canvas.style.cursor = 'none';
-        }
+        canvas.style.cursor = isPaused ? 'default' : 'none';
     }
 }
 
 pauseBtn.addEventListener('click', togglePause);
-
 window.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 'p') {
-        togglePause();
-    }
+    if (e.key.toLowerCase() === 'p') togglePause();
 });
 
-// Difficulty Settings
 const difficultySettings = {
     easy: { aiSpeed: 4, aiError: 150, ballSpeedMod: 0.8 },
     medium: { aiSpeed: 8, aiError: 50, ballSpeedMod: 1.0 },
@@ -139,14 +160,16 @@ function update() {
 
     const settings = difficultySettings[difficulty];
 
-    // Player Paddle Position (Mapped to mouse)
-    player.x = (mouseX - canvas.width / 2) * 1.8;
-    // Adjusted Y mapping to stay cleanly visible within the new camera bounds
-    player.y = (mouseY - canvas.height / 2) * 1.8 + cameraY + 200;
+    const sensitivityX = canvas.width < canvas.height ? 2.5 : 1.5;
+    const sensitivityY = canvas.width < canvas.height ? 2.0 : 1.2;
 
-    // Constrain player paddle bounds visually
-    player.x = Math.max(-table.width - 100, Math.min(table.width + 100, player.x));
-    player.y = Math.min(table.y + 100, player.y);
+    // Map paddle position to mouse/touch tightly
+    player.x = (inputX - canvas.width / 2) * sensitivityX;
+    player.y = (inputY - canvas.height / 1.5) * sensitivityY + table.y - 50;
+
+    // Clamp paddle rigidly so it cannot float into the air or go way beneath the table
+    player.x = Math.max(-table.width/2 - 100, Math.min(table.width/2 + 100, player.x));
+    player.y = Math.max(table.y - 150, Math.min(table.y + 50, player.y));
 
     // AI Logic
     let targetX = ball.x + (Math.random() - 0.5) * settings.aiError;
@@ -162,13 +185,13 @@ function update() {
     ball.x += ball.vx;
     ball.y += ball.vy;
     ball.z += ball.vz;
-    ball.vy += 0.8; // Gravity
+    ball.vy += 0.8; 
 
     // Table Bounce
     if (ball.y >= table.y - ball.radius && Math.abs(ball.z) <= table.length / 2) {
         if (Math.abs(ball.x) <= table.width / 2) {
             ball.y = table.y - ball.radius;
-            ball.vy *= -0.85; // Dampening
+            ball.vy *= -0.85; 
         }
     }
 
@@ -180,7 +203,7 @@ function update() {
 
     // Player Hit
     if (ball.z <= player.z && ball.z >= player.z - 60 && ball.vz < 0) {
-        if (Math.abs(ball.x - player.x) < player.width && Math.abs(ball.y - player.y) < player.height) {
+        if (Math.abs(ball.x - player.x) < player.width + 20 && Math.abs(ball.y - player.y) < player.height + 20) {
             ball.vz *= -1.05; 
             ball.vx = (ball.x - player.x) * 0.2;
             ball.vy = -12; 
@@ -189,19 +212,19 @@ function update() {
 
     // AI Hit
     if (ball.z >= ai.z && ball.z <= ai.z + 60 && ball.vz > 0) {
-        if (Math.abs(ball.x - ai.x) < ai.width) {
+        if (Math.abs(ball.x - ai.x) < ai.width + 20) {
             ball.vz *= -1.05;
             ball.vx = (ball.x - ai.x) * 0.2;
             ball.vy = -12;
         }
     }
 
-    // Out of bounds checking (Scoring)
+    // Scoring
     if (ball.z > table.length / 2 + 200) {
         scorePoint('player');
     } else if (ball.z < -table.length / 2 - 200) {
         scorePoint('ai');
-    } else if (ball.y > 600) {
+    } else if (ball.y > 600) { 
         if (ball.vz > 0) scorePoint('player'); 
         else scorePoint('ai'); 
     }
@@ -210,90 +233,142 @@ function update() {
 function drawPolygon(points, color) {
     ctx.fillStyle = color;
     ctx.beginPath();
+    let hasValidPoints = false;
     points.forEach((p, i) => {
         const proj = project(p.x, p.y, p.z);
-        if (i === 0) ctx.moveTo(proj.x, proj.y);
-        else ctx.lineTo(proj.x, proj.y);
+        if (proj.scale > 0) {
+            hasValidPoints = true;
+            if (i === 0) ctx.moveTo(proj.x, proj.y);
+            else ctx.lineTo(proj.x, proj.y);
+        }
     });
-    ctx.closePath();
-    ctx.fill();
+    if (hasValidPoints) {
+        ctx.closePath();
+        ctx.fill();
+    }
 }
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawBall() {
+    const ballProj = project(ball.x, ball.y, ball.z);
+    if (ballProj.scale > 0) {
+        const shadowProj = project(ball.x, Math.min(table.y, ball.y + 200), ball.z);
+        if (shadowProj.scale > 0) {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.beginPath();
+            ctx.ellipse(shadowProj.x, shadowProj.y, ball.radius * shadowProj.scale, (ball.radius/2) * shadowProj.scale, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(ballProj.x, ballProj.y, ball.radius * ballProj.scale, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
 
-    // Draw Floor
-    ctx.fillStyle = '#34495e';
-    const floorY = project(0, 400, 0).y;
-    ctx.fillRect(0, floorY, canvas.width, canvas.height - floorY);
-
-    // Draw Table
+function drawNet() {
     const tW = table.width / 2;
-    const tL = table.length / 2;
-    drawPolygon([
-        {x: -tW, y: table.y, z: -tL},
-        {x: tW, y: table.y, z: -tL},
-        {x: tW, y: table.y, z: tL},
-        {x: -tW, y: table.y, z: tL}
-    ], '#27ae60');
-
-    // Table Lines
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
-    const p1 = project(0, table.y, -tL);
-    const p2 = project(0, table.y, tL);
-    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-
-    // Draw Net
     drawPolygon([
         {x: -tW - 20, y: table.y, z: net.z},
         {x: tW + 20, y: table.y, z: net.z},
         {x: tW + 20, y: table.y - net.height, z: net.z},
         {x: -tW - 20, y: table.y - net.height, z: net.z}
     ], 'rgba(255, 255, 255, 0.4)');
+}
 
-    // Draw AI Paddle (Now with a handle)
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dynamic Horizon
+    const horizonProj = project(0, 0, 5000);
+    const horizon = horizonProj.y || canvas.height / 2;
+
+    // Draw Background Wall (Dark Red/Brown)
+    ctx.fillStyle = '#4A1C1C';
+    ctx.fillRect(0, 0, canvas.width, horizon);
+
+    // Draw Floor (Wood)
+    ctx.fillStyle = '#A36B3B';
+    ctx.fillRect(0, horizon, canvas.width, canvas.height - horizon);
+
+    const tW = table.width / 2;
+    const tL = table.length / 2;
+
+    // 1. Draw Table Legs
+    ctx.lineWidth = Math.max(4, 15 * (focalLength / 2000)); 
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#111';
+
+    const drawLeg = (x, z) => {
+        const p1 = project(x, table.y, z);
+        const p2 = project(x, table.y + 250, z); // Leg height
+        if(p1.scale > 0 && p2.scale > 0) {
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+    };
+    
+    const legInset = 30;
+    drawLeg(-tW + legInset, tL - legInset);  // Back Left
+    drawLeg(tW - legInset, tL - legInset);   // Back Right
+    drawLeg(-tW + legInset, -tL + legInset); // Front Left
+    drawLeg(tW - legInset, -tL + legInset);  // Front Right
+
+    // 2. Draw Table Base/Thickness
+    drawPolygon([
+        {x: -tW, y: table.y, z: -tL},
+        {x: tW, y: table.y, z: -tL},
+        {x: tW, y: table.y + 15, z: -tL},
+        {x: -tW, y: table.y + 15, z: -tL}
+    ], '#145A32');
+
+    // 3. Draw Table Top
+    drawPolygon([
+        {x: -tW, y: table.y, z: -tL},
+        {x: tW, y: table.y, z: -tL},
+        {x: tW, y: table.y, z: tL},
+        {x: -tW, y: table.y, z: tL}
+    ], '#27AE60');
+
+    // 4. Draw Table Lines
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = Math.max(1, 3 * (focalLength / 1500));
+    const p1 = project(0, table.y, -tL);
+    const p2 = project(0, table.y, tL);
+    if (p1.scale > 0 && p2.scale > 0) {
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    }
+
+    // 5. Draw AI Paddle
     const aiProj = project(ai.x, ai.y, ai.z);
-    
-    // AI Paddle Handle
-    ctx.fillStyle = '#d35400';
-    ctx.fillRect(aiProj.x - (8 * aiProj.scale), aiProj.y, 16 * aiProj.scale, 65 * aiProj.scale);
-    
-    // AI Paddle Blade
-    ctx.fillStyle = '#2980b9';
-    ctx.beginPath();
-    ctx.arc(aiProj.x, aiProj.y, (ai.width / 2) * aiProj.scale, 0, Math.PI * 2);
-    ctx.fill();
+    if (aiProj.scale > 0) {
+        ctx.fillStyle = '#8B0000'; // Darker Handle
+        ctx.fillRect(aiProj.x - (8 * aiProj.scale), aiProj.y, 16 * aiProj.scale, 65 * aiProj.scale);
+        ctx.fillStyle = '#2980b9'; // Blue Face
+        ctx.beginPath();
+        ctx.arc(aiProj.x, aiProj.y, (ai.width / 2) * aiProj.scale, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
-    // Draw Ball
-    const ballProj = project(ball.x, ball.y, ball.z);
-    // Add fake shadow
-    const shadowProj = project(ball.x, table.y, ball.z);
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath();
-    ctx.ellipse(shadowProj.x, shadowProj.y, ball.radius * shadowProj.scale, (ball.radius/2) * shadowProj.scale, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // 6. Draw Net and Ball with Z-Sorting
+    if (ball.z > 0) {
+        drawBall();
+        drawNet();
+    } else {
+        drawNet();
+        drawBall();
+    }
 
-    // The Ball itself
-    ctx.fillStyle = '#f1c40f';
-    ctx.beginPath();
-    ctx.arc(ballProj.x, ballProj.y, ball.radius * ballProj.scale, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw Player Paddle
+    // 7. Draw Player Paddle
     const playerProj = project(player.x, player.y, player.z);
-    
-    // Player Paddle Handle
-    ctx.fillStyle = '#d35400';
-    ctx.fillRect(playerProj.x - (10 * playerProj.scale), playerProj.y, 20 * playerProj.scale, 90 * playerProj.scale);
-    
-    // Player Paddle Blade
-    ctx.fillStyle = '#c0392b';
-    ctx.beginPath();
-    ctx.arc(playerProj.x, playerProj.y, (player.width / 2) * playerProj.scale, 0, Math.PI * 2);
-    ctx.fill();
+    if (playerProj.scale > 0) {
+        ctx.fillStyle = '#8B0000'; // Darker Handle
+        ctx.fillRect(playerProj.x - (10 * playerProj.scale), playerProj.y, 20 * playerProj.scale, 90 * playerProj.scale);
+        ctx.fillStyle = '#E74C3C'; // Red Face
+        ctx.beginPath();
+        ctx.arc(playerProj.x, playerProj.y, (player.width / 2) * playerProj.scale, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
-    // Draw Pause Screen
+    // Draw Pause Screen Overlay
     if (isPaused) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -312,5 +387,4 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Start visual rendering immediately for background
 gameLoop();
