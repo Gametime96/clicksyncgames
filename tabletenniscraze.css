@@ -9,8 +9,7 @@ body, html {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    /* Base background behind canvas in case of resizing flashes */
-    background-color: #111; 
+    background-color: #0d1b2a; 
     touch-action: none; 
 }
 
@@ -44,32 +43,35 @@ body, html {
 
 .nav-btn {
     background: rgba(255, 255, 255, 0.9);
-    color: #2c3e50;
+    color: #1b263b;
     padding: 10px 15px;
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
     font-size: 14px;
-    border: 2px solid #bdc3c7;
+    border: 2px solid #778da9;
     cursor: pointer;
     transition: background 0.3s, transform 0.1s;
+    text-align: center;
+    max-width: 30%; 
 }
 
 .nav-btn:hover {
-    background: #ecf0f1;
+    background: #e0e1dd;
     transform: scale(1.05);
 }
 
 #scoreboard {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(13, 27, 42, 0.85);
     color: white;
     padding: 10px 30px;
     border-radius: 10px;
-    border: 2px solid #ecf0f1;
+    border: 2px solid #415a77;
     display: flex;
     align-items: center;
     gap: 20px;
     pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
 .score-block {
@@ -81,7 +83,7 @@ body, html {
 .score-label {
     font-size: 12px;
     text-transform: uppercase;
-    color: #bdc3c7;
+    color: #778da9;
     letter-spacing: 1px;
     margin-bottom: -5px;
 }
@@ -89,29 +91,64 @@ body, html {
 #player-score, #ai-score, #score-divider {
     font-size: 36px;
     font-weight: bold;
+    color: #e0e1dd;
 }
 
 #menu {
-    margin-top: 15vh;
-    background: rgba(255, 255, 255, 0.95);
+    margin-top: 10vh;
+    background: rgba(27, 38, 59, 0.95);
     padding: 30px;
     border-radius: 15px;
     text-align: center;
     pointer-events: auto; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     max-width: 90%;
+    color: white;
+    border: 1px solid #415a77;
 }
 
 #menu h1 {
-    color: #e74c3c;
-    margin-bottom: 20px;
+    color: #3498db;
+    margin-bottom: 25px;
     font-size: 32px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 #menu p {
-    margin-bottom: 15px;
-    font-size: 18px;
+    margin-bottom: 10px;
+    font-size: 16px;
     font-weight: bold;
+    color: #bdc3c7;
+}
+
+#color-select {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #415a77;
+}
+
+.color-btn {
+    display: inline-block;
+    margin: 5px;
+    width: 60px;
+    height: 40px;
+    border: 2px solid transparent;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: transform 0.2s, border 0.2s;
+}
+
+.color-btn:hover {
+    transform: scale(1.1);
+}
+
+.color-btn.active {
+    border: 3px solid #ecf0f1;
+    transform: scale(1.15);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 
 .diff-btn {
@@ -121,14 +158,14 @@ body, html {
     font-size: 16px;
     border: none;
     border-radius: 5px;
-    background-color: #3498db;
+    background-color: #415a77;
     color: white;
     cursor: pointer;
     transition: background 0.3s, transform 0.1s;
 }
 
 .diff-btn:hover {
-    background-color: #2980b9;
+    background-color: #778da9;
     transform: scale(1.05);
 }
 
@@ -142,9 +179,10 @@ body, html {
 
 @media (max-width: 600px) {
     #top-bar { padding: 10px; }
-    .nav-btn { padding: 8px 10px; font-size: 12px; }
-    #scoreboard { padding: 5px 20px; gap: 15px; }
-    #player-score, #ai-score, #score-divider { font-size: 28px; }
-    .score-label { font-size: 10px; }
-    .diff-btn { display: block; width: 100%; margin: 10px 0; }
+    .nav-btn { padding: 6px 8px; font-size: 11px; max-width: 35%; }
+    #scoreboard { padding: 5px 15px; gap: 10px; }
+    #player-score, #ai-score, #score-divider { font-size: 24px; }
+    .score-label { font-size: 9px; }
+    .diff-btn, .color-btn { margin: 5px 2px; }
+    .color-btn { width: 50px; font-size: 11px; }
 }
