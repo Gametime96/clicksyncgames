@@ -9,7 +9,8 @@
 <body>
     <div id="ui-layer">
         <div id="top-bar">
-            <a href="https://clicksyncgames.com/" class="nav-btn" id="return-btn">Return</a>
+            <a href="https://clicksyncgames.com/" class="nav-btn" id="return-btn">Return to ClickSyncGames</a>
+            
             <div id="scoreboard">
                 <div class="score-block">
                     <span class="score-label">Player</span>
@@ -21,15 +22,28 @@
                     <span id="ai-score">0</span>
                 </div>
             </div>
+            
             <button class="nav-btn" id="pause-btn" style="display: none;">Pause</button>
         </div>
         
         <div id="menu">
             <h1>Table Tennis Craze</h1>
-            <p>Select Difficulty:</p>
-            <button class="diff-btn" data-diff="easy">Easy</button>
-            <button class="diff-btn" data-diff="medium">Medium</button>
-            <button class="diff-btn" data-diff="impossible">Impossible</button>
+            
+            <div id="color-select">
+                <p>Choose Your Paddle:</p>
+                <button class="color-btn active" data-color="#e74c3c" style="background-color: #e74c3c;">Red</button>
+                <button class="color-btn" data-color="#ff66b2" style="background-color: #ff66b2;">Pink</button>
+                <button class="color-btn" data-color="#8e44ad" style="background-color: #8e44ad;">Purple</button>
+                <button class="color-btn" data-color="#2ecc71" style="background-color: #2ecc71;">Green</button>
+                <button class="color-btn" data-color="#3498db" style="background-color: #3498db;">Blue</button>
+            </div>
+
+            <div id="diff-select">
+                <p>Select Difficulty to Start:</p>
+                <button class="diff-btn" data-diff="easy">Easy</button>
+                <button class="diff-btn" data-diff="medium">Medium</button>
+                <button class="diff-btn" data-diff="impossible">Impossible</button>
+            </div>
         </div>
     </div>
 
