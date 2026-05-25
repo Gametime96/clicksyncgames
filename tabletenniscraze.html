@@ -2,18 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Table Tennis Craze</title>
     <link rel="stylesheet" href="tabletenniscraze.css">
 </head>
 <body>
     <div id="ui-layer">
         <div id="top-bar">
-            <a href="https://clicksyncgames.com/" class="nav-btn" id="return-btn">Return to ClickSyncGames</a>
+            <a href="https://clicksyncgames.com/" class="nav-btn" id="return-btn">Return</a>
             <div id="scoreboard">
-                <span id="player-score">0</span>
+                <div class="score-block">
+                    <span class="score-label">Player</span>
+                    <span id="player-score">0</span>
+                </div>
                 <span id="score-divider">-</span>
-                <span id="ai-score">0</span>
+                <div class="score-block">
+                    <span class="score-label">Computer</span>
+                    <span id="ai-score">0</span>
+                </div>
             </div>
             <button class="nav-btn" id="pause-btn" style="display: none;">Pause</button>
         </div>
