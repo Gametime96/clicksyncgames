@@ -57,7 +57,7 @@ function project(x, y, z) {
 // Entities
 const table = { width: 600, length: 1200, y: 100 };
 const net = { height: 60, z: 0 };
-const ball = { x: 0, y: 0, z: -500, vx: 0, vy: 0, vz: 0, radius: 15, speedBase: 18 };
+const ball = { x: 0, y: 0, z: -500, vx: 0, vy: 0, vz: 0, radius: 15, speedBase: 14 }; // Slower ball
 const player = { x: 0, y: 0, z: -600, width: 80, height: 80 };
 const ai = { x: 0, y: -50, z: 600, width: 80, height: 80, speed: 5 };
 
@@ -147,7 +147,6 @@ function scorePoint(winner) {
     gameState = 'scored';
     if (winner === 'player') {
         playerScore++;
-        // Loser serves next
         setTimeout(() => { if(gameState !== 'menu') { resetBall(-1); gameState = 'playing'; }}, 1000);
     } else {
         aiScore++;
@@ -163,7 +162,7 @@ function update() {
     const sensitivityX = canvas.width < canvas.height ? 2.5 : 1.5;
     const sensitivityY = canvas.width < canvas.height ? 3.0 : 1.8;
 
-    // Player Paddle Movement (Full vertical reach enabled)
+    // Player Paddle Movement
     player.x = (inputX - canvas.width / 2) * sensitivityX;
     player.y = (inputY - canvas.height / 1.5) * sensitivityY + table.y - 50;
     player.x = Math.max(-table.width/2 - 150, Math.min(table.width/2 + 150, player.x));
@@ -172,12 +171,10 @@ function update() {
     // SERVING LOGIC
     if (ballState === 'serving') {
         if (server === 'player') {
-            // Hold ball perfectly still in front of player
             ball.x = 0;
             ball.y = table.y - 150;
             ball.z = -table.length / 2 + 50;
 
-            // Wait for player paddle to strike the ball
             if (Math.abs(player.x - ball.x) < (player.width / 2 + ball.radius) && 
                 Math.abs(player.y - ball.y) < (player.height / 2 + ball.radius) && 
                 Math.abs(player.z - ball.z) < 60) {
@@ -185,17 +182,17 @@ function update() {
                 ballState = 'playing';
                 lastHitter = 'player';
                 hasBouncedOnOpponentSide = false;
+                
+                // Guaranteed clearing hit on serve
                 ball.vz = ball.speedBase * settings.ballSpeedMod;
-                ball.vy = -12;
-                ball.vx = (ball.x - player.x) * 0.2;
+                ball.vy = -13; 
+                ball.vx = -ball.x * 0.015; 
             }
         } else {
-            // AI Serve
             ball.x = 0;
             ball.y = table.y - 150;
             ball.z = table.length / 2 - 50;
             
-            // Move AI paddle toward the floating ball to serve
             ai.x += (ball.x - ai.x) * 0.1;
             ai.y += (ball.y - ai.y) * 0.1;
             
@@ -206,25 +203,22 @@ function update() {
                 lastHitter = 'ai';
                 hasBouncedOnOpponentSide = false;
                 ball.vz = -ball.speedBase * settings.ballSpeedMod;
-                ball.vy = -12;
+                ball.vy = -13;
                 ball.vx = (Math.random() - 0.5) * 6;
             }
         }
-        return; // Skip standard physics while serving
+        return; 
     }
 
     // AI Playing Logic
     let targetX = ball.x + (Math.random() - 0.5) * settings.aiError;
     if (ball.vz > 0) {
-        // Track horizontally
         if (ai.x < targetX) ai.x += settings.aiSpeed;
         if (ai.x > targetX) ai.x -= settings.aiSpeed;
-        // Track vertically for high balls
         let targetY = ball.y - 20; 
         if (ai.y < targetY) ai.y += settings.aiSpeed;
         if (ai.y > targetY) ai.y -= settings.aiSpeed;
     } else {
-        // Return to center
         if (ai.x < 0) ai.x += settings.aiSpeed / 2;
         if (ai.x > 0) ai.x -= settings.aiSpeed / 2;
         let targetY = table.y - 50;
@@ -238,7 +232,7 @@ function update() {
     ball.x += ball.vx;
     ball.y += ball.vy;
     ball.z += ball.vz;
-    ball.vy += 0.8; // Gravity
+    ball.vy += 0.5; // REDUCED GRAVITY: Allows ball to correctly arc over the net without falling short
 
     // Table Bounce Logic
     if (ball.y >= table.y - ball.radius && Math.abs(ball.z) <= table.length / 2) {
@@ -246,7 +240,6 @@ function update() {
             ball.y = table.y - ball.radius;
             ball.vy *= -0.85; 
 
-            // Track if it bounced on the opponent's side based on who hit it last
             if (ball.z > 0 && lastHitter === 'player') {
                 hasBouncedOnOpponentSide = true;
             } else if (ball.z < 0 && lastHitter === 'ai') {
@@ -264,9 +257,12 @@ function update() {
     // Player Hit Logic
     if (ball.z <= player.z && ball.z >= player.z - 60 && ball.vz < 0) {
         if (Math.abs(ball.x - player.x) < player.width/2 + 20 && Math.abs(ball.y - player.y) < player.height/2 + 20) {
-            ball.vz *= -1.05; 
-            ball.vx = (ball.x - player.x) * 0.25;
-            ball.vy = -12 + (player.y - ball.y) * 0.05; 
+            ball.vz = ball.speedBase * settings.ballSpeedMod; 
+            
+            let centerBias = -player.x * 0.015; 
+            
+            ball.vx = (ball.x - player.x) * 0.15 + centerBias;
+            ball.vy = -14 + (player.y - ball.y) * 0.04; // Added height so it safely clears the net
             lastHitter = 'player';
             hasBouncedOnOpponentSide = false;
         }
@@ -275,30 +271,32 @@ function update() {
     // AI Hit Logic
     if (ball.z >= ai.z && ball.z <= ai.z + 60 && ball.vz > 0) {
         if (Math.abs(ball.x - ai.x) < ai.width/2 + 20 && Math.abs(ball.y - ai.y) < ai.height/2 + 20) {
-            ball.vz *= -1.05;
-            ball.vx = (ball.x - ai.x) * 0.25;
-            ball.vy = -12;
+            ball.vz = -ball.speedBase * settings.ballSpeedMod;
+            
+            let centerBias = -ai.x * 0.015;
+            
+            ball.vx = (ball.x - ai.x) * 0.15 + centerBias;
+            ball.vy = -14; // Added height
             lastHitter = 'ai';
             hasBouncedOnOpponentSide = false;
         }
     }
 
-    // SCORING AND OUT-OF-BOUNDS LOGIC
+    // Scoring Logic
     if (ball.y > table.y + 250 || Math.abs(ball.z) > table.length / 2 + 1000 || Math.abs(ball.x) > table.width / 2 + 1000) {
         if (lastHitter === 'player') {
             if (hasBouncedOnOpponentSide) {
-                scorePoint('player'); // Player hit it, it bounced right, AI missed
+                scorePoint('player'); 
             } else {
-                scorePoint('ai'); // Player hit it out of bounds
+                scorePoint('ai'); 
             }
         } else if (lastHitter === 'ai') {
             if (hasBouncedOnOpponentSide) {
-                scorePoint('ai'); // AI hit it, it bounced right, Player missed
+                scorePoint('ai'); 
             } else {
-                scorePoint('player'); // AI hit it out of bounds
+                scorePoint('player'); 
             }
         } else {
-            // Failsafe for errors
             scorePoint('ai');
         }
     }
@@ -449,12 +447,21 @@ function draw() {
     // AI Paddle
     const aiProj = project(ai.x, ai.y, ai.z);
     if (aiProj.scale > 0) {
+        ctx.save();
+        ctx.translate(aiProj.x, aiProj.y);
+        
+        // CORRECTED TILT LOGIC: Removed the negative sign
+        let aiTilt = ai.x * 0.002;
+        ctx.rotate(aiTilt);
+        
         ctx.fillStyle = '#8B4513'; 
-        ctx.fillRect(aiProj.x - (8 * aiProj.scale), aiProj.y, 16 * aiProj.scale, 65 * aiProj.scale);
+        ctx.fillRect(-8 * aiProj.scale, 0, 16 * aiProj.scale, 65 * aiProj.scale);
         ctx.fillStyle = '#c0392b'; 
         ctx.beginPath();
-        ctx.arc(aiProj.x, aiProj.y, (ai.width / 2) * aiProj.scale, 0, Math.PI * 2);
+        ctx.arc(0, 0, (ai.width / 2) * aiProj.scale, 0, Math.PI * 2);
         ctx.fill();
+        
+        ctx.restore();
     }
 
     // Z-Sorting
@@ -469,12 +476,22 @@ function draw() {
     // Player Paddle
     const playerProj = project(player.x, player.y, player.z);
     if (playerProj.scale > 0) {
+        ctx.save();
+        ctx.translate(playerProj.x, playerProj.y);
+        
+        // CORRECTED TILT LOGIC: Removed negative sign. Moving left (negative X) correctly tilts left.
+        let playerTilt = player.x * 0.002; 
+        ctx.rotate(playerTilt);
+        
         ctx.fillStyle = '#8B4513'; 
-        ctx.fillRect(playerProj.x - (10 * playerProj.scale), playerProj.y, 20 * playerProj.scale, 90 * playerProj.scale);
+        ctx.fillRect(-10 * playerProj.scale, 0, 20 * playerProj.scale, 90 * playerProj.scale);
+        
         ctx.fillStyle = selectedPaddleColor; 
         ctx.beginPath();
-        ctx.arc(playerProj.x, playerProj.y, (player.width / 2) * playerProj.scale, 0, Math.PI * 2);
+        ctx.arc(0, 0, (player.width / 2) * playerProj.scale, 0, Math.PI * 2);
         ctx.fill();
+        
+        ctx.restore();
     }
 
     // Pause Screen
