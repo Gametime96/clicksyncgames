@@ -4,8 +4,8 @@
 body, html { 
     width: 100%; height: 100%; font-family: 'Nunito', sans-serif; 
     background-color: #0f172a; color: #ecf0f1; 
-    overflow: hidden; /* Lock scroll so dragging canvas works */
-    touch-action: none; /* Prevent mobile swipe-to-refresh */
+    overflow: hidden; 
+    touch-action: none; 
 }
 #game-wrapper { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
@@ -28,9 +28,9 @@ body, html {
 .btn.secondary { background-color: #334155; color: #fff; border: 1px solid #475569; }
 
 /* Canvas Area */
-#main-content { display: flex; flex: 1; position: relative; }
-#canvas-container { flex: 1; width: 100%; height: 100%; background: #050510; position: relative; }
-canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+#main-content { display: flex; flex: 1; position: relative; width: 100%; height: 100%; }
+#canvas-container { flex: 1; width: 100%; height: 100%; background: #050510; position: relative; overflow: hidden; }
+canvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
 
 /* HUD */
 #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; z-index: 50; }
@@ -42,7 +42,7 @@ canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
 .player-color-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; }
 
 /* On-Screen Meter */
-#meter-container { background: rgba(15, 23, 42, 0.95); padding: 15px; border-radius: 12px; border: 2px solid #38bdf8; width: 100%; max-width: 400px; margin: 0 auto; text-align: center; pointer-events: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
+#meter-container { background: rgba(15, 23, 42, 0.95); padding: 15px; border-radius: 12px; border: 2px solid #38bdf8; width: 100%; max-width: 400px; margin: 0 auto; margin-bottom: 20px; text-align: center; pointer-events: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.7); }
 #meter-container.hidden { display: none !important; }
 #meter-instruction { color: #fff; margin-bottom: 10px; font-size: 0.9rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;}
 #meter-track { position: relative; width: 100%; height: 25px; background: #000; border-radius: 15px; border: 2px solid #475569; overflow: hidden; }
@@ -51,11 +51,26 @@ canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
 #meter-cursor { position: absolute; top: -2px; bottom: -2px; width: 6px; background: #fff; left: 50%; transform: translateX(-50%); border-radius: 3px;}
 #meter-center-mark { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,0.2); left: 50%; transform: translateX(-50%); z-index: 0; }
 
-/* Steering Controls (Faded & Transparent) */
+/* Steering Controls */
 #steer-controls { position: absolute; top: 50%; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 0 5%; pointer-events: none; z-index: 60; transform: translateY(-50%);}
 #steer-controls.hidden { display: none !important; }
-.steer-btn { background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; width: 70px; height: 70px; font-size: 24px; pointer-events: auto; cursor: pointer; color: rgba(255,255,255,0.7); backdrop-filter: blur(2px); transition: 0.2s;}
-.steer-btn:active, .steer-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(0.9); border-color: #fff; color: #fff;}
+.steer-btn { 
+    background: transparent; 
+    border: none; 
+    width: 100px; 
+    height: 100px; 
+    font-size: 6rem; 
+    pointer-events: auto; 
+    cursor: pointer; 
+    color: rgba(200, 200, 200, 0.3); 
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.steer-btn.active { 
+    transform: scale(1.2); 
+    color: rgba(200, 200, 200, 0.7); 
+}
 
 /* Menus & Overlays */
 .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); padding: 20px;}
@@ -88,6 +103,7 @@ canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
     #color-options { grid-template-columns: repeat(3, 1fr); }
     .hud-top { flex-direction: column; align-items: center; width: 100%;}
     #show-score-btn { width: 100%; }
-    .steer-btn { width: 60px; height: 60px; font-size: 20px; }
     .score-table th, .score-table td { padding: 2px; font-size: 0.75rem;}
+    .steer-btn { font-size: 4.5rem; width: 80px; height: 80px;} 
+    #meter-container { max-width: 90%; }
 }
