@@ -23,7 +23,6 @@
             <div id="canvas-container">
                 <canvas id="gameCanvas"></canvas>
                 
-                <!-- Heads Up Display (HUD) -->
                 <div id="hud" class="hidden">
                     <div class="hud-top">
                         <div class="hud-player-info">
@@ -37,9 +36,8 @@
                         <button id="show-score-btn" class="btn secondary">View Scoreboard</button>
                     </div>
 
-                    <!-- 4-Step Interactive Meter -->
                     <div id="meter-container" class="hidden">
-                        <h3 id="meter-instruction">1. Move Mouse to Position. Click to Lock.</h3>
+                        <h3 id="meter-instruction">1. Move Position. Tap to Lock.</h3>
                         <div id="meter-track" class="hidden">
                             <div id="meter-fill"></div>
                             <div id="meter-cursor"></div>
@@ -48,13 +46,11 @@
                     </div>
                 </div>
 
-                <!-- On-Screen Steering Controls -->
                 <div id="steer-controls" class="hidden">
-                    <button id="steer-left" class="steer-btn">⬅️</button>
-                    <button id="steer-right" class="steer-btn">➡️</button>
+                    <button id="steer-left" class="steer-btn">&#9668;</button>
+                    <button id="steer-right" class="steer-btn">&#9658;</button>
                 </div>
 
-                <!-- Main Menu Overlay -->
                 <div id="menu-overlay" class="overlay">
                     <div class="menu-box">
                         <h2>Select Game Mode</h2>
@@ -74,7 +70,6 @@
                     </div>
                 </div>
 
-                <!-- Color Selection Overlay -->
                 <div id="color-overlay" class="overlay hidden">
                     <div class="menu-box">
                         <h2 id="color-title">Player 1: Select Color</h2>
@@ -91,7 +86,6 @@
                     </div>
                 </div>
 
-                <!-- Scoreboard Modal -->
                 <div id="scoreboard-modal" class="overlay hidden">
                     <div class="modal-content">
                         <h2>Scoreboard</h2>
@@ -100,7 +94,6 @@
                     </div>
                 </div>
 
-                <!-- Pause Overlay -->
                 <div id="pause-overlay" class="overlay hidden">
                     <div class="menu-box">
                         <h2>GAME PAUSED</h2>
@@ -108,7 +101,6 @@
                     </div>
                 </div>
 
-                <!-- Game Over Overlay -->
                 <div id="game-over-overlay" class="overlay hidden">
                     <div class="menu-box">
                         <h2>GAME OVER</h2>
