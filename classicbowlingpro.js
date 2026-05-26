@@ -143,7 +143,7 @@ window.addEventListener("load", function() {
                 this.vx += lockedSpin * 0.06;
             }
 
-            // Gutter Physics - Magnetize to gutter center, prevent lateral escape
+            // Gutter Physics
             if (inGutter) {
                 this.vx *= 0.8; 
                 let gutterCenter = this.x < 0 ? -(LANE_WIDTH/2) - 10 : (LANE_WIDTH/2) + 10;
@@ -166,10 +166,18 @@ window.addEventListener("load", function() {
     function project(x, y, z) {
         let relZ = z - camera.z;
         if (relZ <= 1) relZ = 1; 
-        let fov = Math.min(canvas.width, canvas.height) * 0.85; 
+        
+        // MOBILE ZOOM FIX: Zooms out slightly on narrow screens to prevent cutoff
+        let fovMultiplier = canvas.width < 600 ? 0.75 : 0.85; 
+        let fov = Math.min(canvas.width, canvas.height) * fovMultiplier; 
         let scale = fov / relZ;
+        
         let screenX = (canvas.width / 2) + (x - camera.x) * scale;
-        let screenY = (canvas.height / 2) + (camera.y - y) * scale;
+        
+        // MOBILE PAN FIX: Shifts the projection center slightly upward on mobile
+        let screenCenterY = canvas.width < 600 ? canvas.height * 0.45 : canvas.height / 2;
+        let screenY = screenCenterY + (camera.y - y) * scale;
+        
         return { x: screenX, y: screenY, scale: scale, relZ: relZ };
     }
 
@@ -177,7 +185,7 @@ window.addEventListener("load", function() {
         if (fullReset) {
             pins = [];
             const pinZStart = LANE_LENGTH - 100;
-            const spacing = 20; // Increased to spread pins out much further
+            const spacing = 20; 
             for (let row = 0; row < 4; row++) {
                 for (let col = 0; col <= row; col++) {
                     let x = (col * spacing) - (row * spacing / 2);
@@ -446,7 +454,7 @@ window.addEventListener("load", function() {
             camera.z += (targetCamZ - camera.z) * 0.1; 
             camera.x += ((ball.x * 0.3) - camera.x) * 0.1; 
 
-            // Strict resolving logic tied to a precise timestamp rather than loose frames
+            // Strict resolving logic
             let rollEnded = false;
             if (ball.z > LANE_LENGTH + 50) rollEnded = true; 
             if (ball.vz < 0.1 && ball.z > 50) rollEnded = true; 
@@ -470,7 +478,6 @@ window.addEventListener("load", function() {
                 let dx = b.x - a.x; let dy = b.y - a.y; let dz = b.z - a.z;
                 let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
                 
-                // Div by zero protection
                 if (dist === 0) { dx = 0.01; dist = 0.01; }
                 
                 let minDist = a.radius + b.radius;
@@ -613,7 +620,6 @@ window.addEventListener("load", function() {
                 } else {
                     let screenRadius = obj.radius * p.scale;
                     
-                    // Shadow Drop
                     if (obj.y > obj.radius) {
                         let shadowP = project(obj.x, 0, obj.z);
                         if (shadowP) {
@@ -622,7 +628,6 @@ window.addEventListener("load", function() {
                         }
                     }
 
-                    // Intense 3D Ball Rendering
                     let gradX = p.x - screenRadius*0.3;
                     let gradY = p.y - screenRadius*0.3;
                     let grad = ctx.createRadialGradient(gradX, gradY, screenRadius*0.05, p.x, p.y, screenRadius);
@@ -636,7 +641,6 @@ window.addEventListener("load", function() {
                     ctx.fillStyle = grad; 
                     ctx.fill();
 
-                    // Render Deep Rotating Bowling Ball Holes
                     let rollAngle = (obj.z / obj.radius) % (Math.PI * 2); 
                     let faceZ = Math.cos(rollAngle); 
                     let faceY = Math.sin(rollAngle); 
