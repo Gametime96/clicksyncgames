@@ -7,6 +7,26 @@ body, html {
     overflow: hidden; 
     touch-action: none; 
 }
+
+/* Orientation Lock Overlay */
+#orientation-lock {
+    display: none;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #0f172a; color: #fff;
+    z-index: 99999;
+    flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 20px;
+}
+#orientation-lock h2 { font-size: 2.2rem; color: #e74c3c; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+#orientation-lock p { font-size: 1.2rem; color: #bdc3c7; }
+
+/* Triggers the lock on touch devices in landscape, or very short screens */
+@media screen and (max-height: 500px) and (orientation: landscape),
+       screen and (hover: none) and (pointer: coarse) and (orientation: landscape) {
+    #orientation-lock { display: flex; }
+    #game-wrapper { display: none !important; }
+}
+
 #game-wrapper { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
 /* Header */
