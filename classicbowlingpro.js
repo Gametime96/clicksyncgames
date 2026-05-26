@@ -1,10 +1,14 @@
 window.addEventListener("load", function() {
+    const canvasContainer = document.getElementById('canvas-container');
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Internal locked resolution
-    canvas.width = 1200;
-    canvas.height = 800;
+    function resizeCanvas() {
+        canvas.width = canvasContainer.clientWidth;
+        canvas.height = canvasContainer.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
     let isPaused = false;
     let gameState = 'MENU'; 
@@ -15,7 +19,7 @@ window.addEventListener("load", function() {
     const PIN_RADIUS = 5;
     const BALL_RADIUS = 10;
     const GRAVITY = 0.8; 
-    const RESTITUTION = 0.4; // Less bounce
+    const RESTITUTION = 0.4; 
 
     let ball = null;
     let pins = []; 
@@ -35,10 +39,10 @@ window.addEventListener("load", function() {
     let lockedPower = 0;
     let lockedSpin = 0;
     
-    // Steering
-    let steerQueue = [];
+    // Steering mechanics
     let isSteeringLeft = false;
     let isSteeringRight = false;
+    let steerHoldDuration = 0;
     let selectedPinStyle = 1;
 
     // Game Logic
@@ -63,6 +67,8 @@ window.addEventListener("load", function() {
     const meterCursor = document.getElementById('meter-cursor');
     const meterInstruction = document.getElementById('meter-instruction');
     const steerControls = document.getElementById('steer-controls');
+    const btnLeft = document.getElementById('steer-left');
+    const btnRight = document.getElementById('steer-right');
 
     class Player {
         constructor(name, isCPU) {
@@ -90,6 +96,15 @@ window.addEventListener("load", function() {
         update() {
             if (!this.isActive) return;
             
+            let currentFloor = this.radius;
+            let inGutter = false;
+
+            // Strict Gutter Logic Check
+            if (!this.isPin && (this.x < -LANE_WIDTH/2 || this.x > LANE_WIDTH/2)) {
+                inGutter = true;
+                currentFloor = -5; // Drop the ball into the gutter trench
+            }
+
             this.x += this.vx;
             this.y += this.vy;
             this.z += this.vz;
@@ -97,20 +112,24 @@ window.addEventListener("load", function() {
             this.vx *= 0.98;
             this.vz *= 0.995; 
 
-            if (this.y > this.radius) {
+            // Floor Collision & Gravity
+            if (this.y > currentFloor) {
                 this.vy -= GRAVITY;
                 if(this.isPin) this.wobble += 0.2;
             } else {
-                this.y = this.radius;
+                this.y = currentFloor;
                 if (this.vy < -2) {
                     this.vy = -this.vy * RESTITUTION; 
-                    this.vx *= 0.7; 
-                    this.vz *= 0.7;
+                    if (!inGutter) {
+                        this.vx *= 0.7; 
+                        this.vz *= 0.7;
+                    }
                 } else {
                     this.vy = 0;
                 }
             }
             
+            // Pin knocking logic
             if (this.isPin && !this.knocked) {
                 if (Math.abs(this.vx) > 1 || Math.abs(this.vz) > 1 || this.y > this.radius * 2) {
                     this.knocked = true;
@@ -120,20 +139,24 @@ window.addEventListener("load", function() {
             if (Math.abs(this.vx) < 0.05) this.vx = 0;
             if (Math.abs(this.vz) < 0.05) this.vz = 0;
 
-            if (!this.isPin && gameState === 'ROLLING' && this.vz > 1) {
+            if (!this.isPin && gameState === 'ROLLING' && this.vz > 1 && !inGutter) {
                 this.vx += lockedSpin * 0.06;
             }
 
-            if (this.x < -LANE_WIDTH/2 || this.x > LANE_WIDTH/2) {
-                if (this.isPin) {
-                     this.y = -10; this.vx = 0; this.vz = 0; this.knocked = true;
-                } else {
-                    this.vx = 0; 
-                    this.x = this.x < 0 ? -LANE_WIDTH/2 + 2 : LANE_WIDTH/2 - 2;
-                }
+            // Gutter Physics - Magnetize to gutter center, prevent lateral escape
+            if (inGutter) {
+                this.vx *= 0.8; 
+                let gutterCenter = this.x < 0 ? -(LANE_WIDTH/2) - 10 : (LANE_WIDTH/2) + 10;
+                this.x += (gutterCenter - this.x) * 0.2; 
+                if (this.vz < 4) this.vz = 4; // Prevent ball from stopping entirely in the gutter
+            }
+
+            // Pin out-of-bounds bounds
+            if (this.isPin && (this.x < -LANE_WIDTH/2 - 20 || this.x > LANE_WIDTH/2 + 20)) {
+                this.y = -10; this.vx = 0; this.vz = 0; this.knocked = true;
             }
             
-            if (this.z > LANE_LENGTH + 80) {
+            if (this.z > LANE_LENGTH + 150) {
                 this.isActive = false;
                 if (this.isPin) this.knocked = true;
             }
@@ -143,7 +166,7 @@ window.addEventListener("load", function() {
     function project(x, y, z) {
         let relZ = z - camera.z;
         if (relZ <= 1) relZ = 1; 
-        let fov = 700; 
+        let fov = Math.min(canvas.width, canvas.height) * 0.85; 
         let scale = fov / relZ;
         let screenX = (canvas.width / 2) + (x - camera.x) * scale;
         let screenY = (canvas.height / 2) + (camera.y - y) * scale;
@@ -154,8 +177,7 @@ window.addEventListener("load", function() {
         if (fullReset) {
             pins = [];
             const pinZStart = LANE_LENGTH - 100;
-            const spacing = 12;
-            let id = 0;
+            const spacing = 20; // Increased to spread pins out much further
             for (let row = 0; row < 4; row++) {
                 for (let col = 0; col <= row; col++) {
                     let x = (col * spacing) - (row * spacing / 2);
@@ -225,10 +247,12 @@ window.addEventListener("load", function() {
         targetCamZ = -150;
         lockedSpin = 0;
         resolvingTimer = 0;
-        steerQueue = [];
+        steerHoldDuration = 0;
         isSteeringLeft = false;
         isSteeringRight = false;
         steerControls.classList.add('hidden');
+        btnLeft.classList.remove('active');
+        btnRight.classList.remove('active');
         
         let pColor = players[currentPlayerIndex].color;
         ball = new Entity(0, BALL_RADIUS, 0, BALL_RADIUS, 20, pColor, false); 
@@ -242,12 +266,12 @@ window.addEventListener("load", function() {
         } else {
             meterContainer.classList.remove('hidden');
             meterTrack.classList.add('hidden');
-            meterInstruction.textContent = "1. Move to Position. Click to Lock.";
+            meterInstruction.textContent = "1. Move to Position. Tap to Lock.";
             gameState = 'POSITION';
         }
     }
 
-    // --- Inputs (Fixed for Mobile & Desktop) ---
+    // --- Inputs ---
     const swatches = document.querySelectorAll('.color-swatch');
     swatches.forEach(swatch => {
         swatch.addEventListener('click', function() {
@@ -265,43 +289,34 @@ window.addEventListener("load", function() {
         });
     });
 
-    document.getElementById('return-btn').addEventListener('click', () => {
-        window.location.href = 'https://clicksyncgames.com';
-    });
-
+    document.getElementById('return-btn').addEventListener('click', () => { window.location.href = 'https://clicksyncgames.com'; });
     document.getElementById('show-score-btn').addEventListener('click', () => { isPaused = true; renderScoreboard('scores-container'); scoreboardModal.classList.remove('hidden'); });
     document.getElementById('close-score-btn').addEventListener('click', () => { scoreboardModal.classList.add('hidden'); isPaused = false; });
     document.getElementById('pause-btn').addEventListener('click', () => { if(gameState==='MENU' || gameState==='COLORS') return; isPaused = !isPaused; pauseOverlay.classList.toggle('hidden', !isPaused); });
     document.getElementById('resume-btn').addEventListener('click', () => { isPaused = false; pauseOverlay.classList.add('hidden'); });
     document.getElementById('restart-btn').addEventListener('click', () => { gameOverOverlay.classList.add('hidden'); menuOverlay.classList.remove('hidden'); });
 
-    // Canvas Aiming
-    canvas.addEventListener('mousemove', (e) => {
+    // Aiming Interaction
+    const handleMove = (clientX) => {
         if (gameState === 'POSITION' && !isPaused) {
             const rect = canvas.getBoundingClientRect();
-            let rawX = (e.clientX - rect.left) / rect.width; 
+            let rawX = (clientX - rect.left) / rect.width; 
             ball.x = (rawX - 0.5) * (LANE_WIDTH - BALL_RADIUS*2);
         }
-    });
+    };
+    canvas.addEventListener('mousemove', (e) => handleMove(e.clientX));
+    canvas.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX));
 
-    // Touch support for positioning
-    canvas.addEventListener('touchmove', (e) => {
-        if (gameState === 'POSITION' && !isPaused) {
-            const rect = canvas.getBoundingClientRect();
-            let rawX = (e.touches[0].clientX - rect.left) / rect.width; 
-            ball.x = (rawX - 0.5) * (LANE_WIDTH - BALL_RADIUS*2);
-        }
-    });
-
-    // Universal Click/Tap on Canvas for the Meter
+    // Universal Click/Tap on Canvas & Meter
     function handleCanvasClick(e) {
+        if (e.type === 'touchstart') e.preventDefault(); 
         if (isPaused || players.length === 0 || players[currentPlayerIndex].isCPU) return;
         
         if (gameState === 'POSITION') {
             lockedPosition = ball.x;
             gameState = 'ANGLE';
             meterValue = 0.5; meterDirection = 1; meterSpeed = 0.03;
-            meterInstruction.textContent = "2. Click to Lock ANGLE";
+            meterInstruction.textContent = "2. Tap to Lock ANGLE";
             meterTrack.classList.remove('hidden');
             meterFill.style.width = '0%'; 
         } 
@@ -309,13 +324,13 @@ window.addEventListener("load", function() {
             lockedAngle = (meterValue - 0.5) * 0.3; 
             gameState = 'POWER';
             meterValue = 0; meterDirection = 1; meterSpeed = 0.04;
-            meterInstruction.textContent = "3. Click to Lock POWER";
+            meterInstruction.textContent = "3. Tap to Lock POWER";
         }
         else if (gameState === 'POWER') {
             lockedPower = meterValue * 80 + 20;
             gameState = 'SPIN';
             meterValue = 0.5; meterDirection = 1; meterSpeed = 0.03;
-            meterInstruction.textContent = "4. Click to Lock SPIN (Hook)";
+            meterInstruction.textContent = "4. Tap to Lock SPIN (Hook)";
             meterFill.style.width = '0%'; 
         }
         else if (gameState === 'SPIN') {
@@ -325,36 +340,35 @@ window.addEventListener("load", function() {
     }
 
     canvas.addEventListener('mousedown', handleCanvasClick);
+    canvas.addEventListener('touchstart', handleCanvasClick, {passive: false});
     meterContainer.addEventListener('mousedown', handleCanvasClick);
+    meterContainer.addEventListener('touchstart', handleCanvasClick, {passive: false});
     
-    // Steering controls
-    const btnLeft = document.getElementById('steer-left');
-    const btnRight = document.getElementById('steer-right');
-
-    const steerLeftOn = (e) => { if(e) e.preventDefault(); isSteeringLeft = true; };
-    const steerLeftOff = (e) => { if(e) e.preventDefault(); isSteeringLeft = false; };
-    const steerRightOn = (e) => { if(e) e.preventDefault(); isSteeringRight = true; };
-    const steerRightOff = (e) => { if(e) e.preventDefault(); isSteeringRight = false; };
+    // Steering Controls Handlers
+    const steerLeftOn = (e) => { if(e) e.preventDefault(); isSteeringLeft = true; btnLeft.classList.add('active'); };
+    const steerLeftOff = (e) => { if(e) e.preventDefault(); isSteeringLeft = false; btnLeft.classList.remove('active'); };
+    const steerRightOn = (e) => { if(e) e.preventDefault(); isSteeringRight = true; btnRight.classList.add('active'); };
+    const steerRightOff = (e) => { if(e) e.preventDefault(); isSteeringRight = false; btnRight.classList.remove('active'); };
 
     btnLeft.addEventListener('mousedown', steerLeftOn);
-    btnLeft.addEventListener('touchstart', steerLeftOn);
+    btnLeft.addEventListener('touchstart', steerLeftOn, {passive: false});
     btnLeft.addEventListener('mouseup', steerLeftOff);
     btnLeft.addEventListener('mouseleave', steerLeftOff);
     btnLeft.addEventListener('touchend', steerLeftOff);
 
     btnRight.addEventListener('mousedown', steerRightOn);
-    btnRight.addEventListener('touchstart', steerRightOn);
+    btnRight.addEventListener('touchstart', steerRightOn, {passive: false});
     btnRight.addEventListener('mouseup', steerRightOff);
     btnRight.addEventListener('mouseleave', steerRightOff);
     btnRight.addEventListener('touchend', steerRightOff);
 
     document.addEventListener('keydown', (e) => {
-        if(e.key === 'ArrowLeft') isSteeringLeft = true;
-        if(e.key === 'ArrowRight') isSteeringRight = true;
+        if(e.key === 'ArrowLeft') steerLeftOn();
+        if(e.key === 'ArrowRight') steerRightOn();
     });
     document.addEventListener('keyup', (e) => {
-        if(e.key === 'ArrowLeft') isSteeringLeft = false;
-        if(e.key === 'ArrowRight') isSteeringRight = false;
+        if(e.key === 'ArrowLeft') steerLeftOff();
+        if(e.key === 'ArrowRight') steerRightOff();
     });
 
     // --- Action Methods ---
@@ -378,8 +392,6 @@ window.addEventListener("load", function() {
         if (!players[currentPlayerIndex].isCPU) {
             steerControls.classList.remove('hidden');
         }
-        
-        // Slower Speed
         let speed = (lockedPower / 100) * 8 + 4; 
         ball.vz = Math.cos(lockedAngle) * speed;
         ball.vx = Math.sin(lockedAngle) * speed;
@@ -401,14 +413,29 @@ window.addEventListener("load", function() {
         }
 
         if (gameState === 'ROLLING') {
-            if (isSteeringLeft) steerQueue.push({ time: Date.now() + 500, dir: -0.06 });
-            if (isSteeringRight) steerQueue.push({ time: Date.now() + 500, dir: 0.06 });
+            
+            let steerDirection = 0;
+            if (isSteeringLeft) {
+                steerDirection = -1;
+                steerHoldDuration += 16;
+            } else if (isSteeringRight) {
+                steerDirection = 1;
+                steerHoldDuration += 16;
+            } else {
+                steerHoldDuration = 0; 
+            }
 
-            let now = Date.now();
-            steerQueue = steerQueue.filter(ev => {
-                if (now >= ev.time) { ball.vx += ev.dir; return false; }
-                return true;
-            });
+            if (steerDirection !== 0) {
+                if (steerHoldDuration > 250) { 
+                    let activeTime = steerHoldDuration - 250;
+                    let steerForce = Math.min(activeTime * 0.0001, 0.08);
+                    ball.vx += steerForce * steerDirection;
+                }
+            } else {
+                let centerPull = -ball.x * 0.0015; 
+                ball.vx += centerPull;
+                ball.vx *= 0.985;
+            }
 
             ball.update();
             pins.forEach(p => p.update());
@@ -419,9 +446,14 @@ window.addEventListener("load", function() {
             camera.z += (targetCamZ - camera.z) * 0.1; 
             camera.x += ((ball.x * 0.3) - camera.x) * 0.1; 
 
-            if (ball.z > LANE_LENGTH - 50) {
-                resolvingTimer += 16; 
-                if (resolvingTimer > 2000) {
+            // Strict resolving logic tied to a precise timestamp rather than loose frames
+            let rollEnded = false;
+            if (ball.z > LANE_LENGTH + 50) rollEnded = true; 
+            if (ball.vz < 0.1 && ball.z > 50) rollEnded = true; 
+
+            if (rollEnded) {
+                if (resolvingTimer === 0) resolvingTimer = Date.now();
+                if (Date.now() - resolvingTimer > 2500) { 
                     gameState = 'RESOLVING';
                     steerControls.classList.add('hidden');
                     resolveRoll();
@@ -437,6 +469,10 @@ window.addEventListener("load", function() {
                 let a = objects[i]; let b = objects[j];
                 let dx = b.x - a.x; let dy = b.y - a.y; let dz = b.z - a.z;
                 let dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                // Div by zero protection
+                if (dist === 0) { dx = 0.01; dist = 0.01; }
+                
                 let minDist = a.radius + b.radius;
                 
                 if (dist < minDist) {
@@ -576,6 +612,8 @@ window.addEventListener("load", function() {
                     drawPin(p.x, p.y, p.scale, obj.knocked, obj.wobble, selectedPinStyle);
                 } else {
                     let screenRadius = obj.radius * p.scale;
+                    
+                    // Shadow Drop
                     if (obj.y > obj.radius) {
                         let shadowP = project(obj.x, 0, obj.z);
                         if (shadowP) {
@@ -583,9 +621,47 @@ window.addEventListener("load", function() {
                             ctx.beginPath(); ctx.ellipse(shadowP.x, shadowP.y, screenRadius, screenRadius*0.4, 0, 0, Math.PI*2); ctx.fill();
                         }
                     }
-                    let grad = ctx.createRadialGradient(p.x - screenRadius*0.3, p.y - screenRadius*0.3, screenRadius*0.1, p.x, p.y, screenRadius);
-                    grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, obj.color); grad.addColorStop(1, '#000000');
-                    ctx.beginPath(); ctx.arc(p.x, p.y, screenRadius, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
+
+                    // Intense 3D Ball Rendering
+                    let gradX = p.x - screenRadius*0.3;
+                    let gradY = p.y - screenRadius*0.3;
+                    let grad = ctx.createRadialGradient(gradX, gradY, screenRadius*0.05, p.x, p.y, screenRadius);
+                    grad.addColorStop(0, '#ffffff'); 
+                    grad.addColorStop(0.15, obj.color); 
+                    grad.addColorStop(0.75, obj.color); 
+                    grad.addColorStop(1, '#000000');
+                    
+                    ctx.beginPath(); 
+                    ctx.arc(p.x, p.y, screenRadius, 0, Math.PI * 2); 
+                    ctx.fillStyle = grad; 
+                    ctx.fill();
+
+                    // Render Deep Rotating Bowling Ball Holes
+                    let rollAngle = (obj.z / obj.radius) % (Math.PI * 2); 
+                    let faceZ = Math.cos(rollAngle); 
+                    let faceY = Math.sin(rollAngle); 
+                    
+                    if (faceZ > 0) {
+                        let cx = p.x;
+                        let cy = p.y - (faceY * screenRadius * 0.7);
+                        let holeRadius = screenRadius * 0.15 * faceZ; 
+                        
+                        let thumbY = cy + (screenRadius * 0.25 * faceZ);
+                        let fingersY = cy - (screenRadius * 0.15 * faceZ);
+                        let f1x = cx - (screenRadius * 0.22 * faceZ);
+                        let f2x = cx + (screenRadius * 0.22 * faceZ);
+                        
+                        const drawHole = (hx, hy, hr) => {
+                            ctx.fillStyle = `rgba(0,0,0,${faceZ})`;
+                            ctx.beginPath(); ctx.arc(hx, hy, hr, 0, Math.PI*2); ctx.fill();
+                            ctx.fillStyle = `rgba(255,255,255,${faceZ * 0.15})`;
+                            ctx.beginPath(); ctx.arc(hx, hy - hr*0.2, hr*0.8, 0, Math.PI*2); ctx.fill();
+                        };
+
+                        drawHole(cx, thumbY, holeRadius * 1.2);
+                        drawHole(f1x, fingersY, holeRadius);
+                        drawHole(f2x, fingersY, holeRadius);
+                    }
                 }
             }
         });
