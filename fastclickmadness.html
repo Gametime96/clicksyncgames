@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Click Madness</title>
+    <link rel="stylesheet" href="fastclickmadness.css">
+</head>
+<body>
+    <div id="game-wrapper">
+        <header>
+            <h1 class="brand-title">Fast Click Madness</h1>
+            
+            <div class="header-controls">
+                <button id="pause-button" class="btn-3d small-btn">Pause (P)</button>
+                <button id="return-button" class="btn-3d small-btn secondary-btn">Return to ClickSyncGames</button>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat">Level: <span id="level-display">1</span>/20</div>
+                <div class="stat">Score: <span id="score-display">0</span></div>
+                <div class="stat">Life: <span id="life-display">3</span></div>
+            </div>
+        </header>
+
+        <main id="board-container">
+            <div id="grid-board"></div>
+            
+            <div id="overlay-menu" class="active">
+                
+                <div id="intro-screen">
+                    <h2 id="intro-title">Fast Click Madness</h2>
+                    
+                    <div id="tutorial-container" style="display: none;">
+                        <p class="tutorial-text">Tap the illuminated nodes before they fade!</p>
+                        <div class="tutorial-grid">
+                            <div class="t-tile" id="t-tile-0"></div>
+                            <div class="t-tile" id="t-tile-1"></div>
+                            <div class="t-tile" id="t-tile-2"></div>
+                            <div class="t-tile" id="t-tile-3"></div>
+                        </div>
+                        <div id="tutorial-cursor">
+                            <svg viewBox="0 0 100 100" width="50" height="50">
+                                <polygon points="0,0 30,85 45,55 80,65" fill="#ffffff" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <button id="start-button" class="btn-3d primary-btn" style="display: none;">Play Now</button>
+                </div>
+
+                <div id="game-over-screen" style="display: none;">
+                    <h2>Game Over</h2>
+                    <div class="final-stats">
+                        <p class="final-score-text">Final Score: <span id="final-score">0</span></p>
+                        <p class="final-score-text">Max Level: <span id="final-level">1</span></p>
+                    </div>
+                    <button id="restart-button" class="btn-3d primary-btn">Play Again</button>
+                </div>
+            </div>
+
+            <div id="paused-screen">
+                <h2>PAUSED</h2>
+                <p class="paused-subtext">Press 'P' or tap Resume</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="fastclickmadness.js"></script>
+</body>
+</html>
