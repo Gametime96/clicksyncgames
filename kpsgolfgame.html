@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KP's Golf Game - Clicksyncgames</title>
+    <link rel="stylesheet" href="kpsgolfgame.css">
+</head>
+<body>
+    <div id="game-wrapper">
+        <header>
+            <h1>KP's Golf Game</h1>
+            <div id="message-board">Loading decks...</div>
+        </header>
+
+        <div id="presentation-area"></div>
+
+        <div id="play-area" class="hidden">
+            
+            <div class="player-zone" id="computer-zone">
+                <h2>Computer's Area</h2>
+                <div class="card-grid" id="computer-grid"></div>
+            </div>
+
+            <div class="center-zone">
+                <div id="draw-pile-container" class="deck-area">
+                    <div id="draw-pile" class="pile drop-zone"></div>
+                </div>
+                <div id="discard-pile-container" class="deck-area">
+                    <div id="discard-pile" class="pile drop-zone"></div>
+                </div>
+            </div>
+
+            <div class="player-zone" id="player-zone">
+                <h2>Your Area</h2>
+                <div class="card-grid" id="player-grid"></div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="score-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Game Over!</h2>
+            <div class="score-display">
+                <p><strong>Your Score:</strong> <span id="player-score-text">0</span></p>
+                <p><strong>Computer's Score:</strong> <span id="computer-score-text">0</span></p>
+            </div>
+            <h3 id="winner-text"></h3>
+            <button onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <script src="kpsgolfgame.js"></script>
+</body>
+</html>
