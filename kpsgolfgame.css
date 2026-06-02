@@ -1,0 +1,214 @@
+:root {
+    --bg-color: #0d3b1f; /* Classic casino green */
+    --accent-color: #d4af37; /* Gold */
+    --card-bg: #ffffff;
+    --card-back: #1a1a1a;
+    --text-light: #f4f4f4;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-light);
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+#game-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    text-align: center;
+}
+
+header h1 {
+    color: var(--accent-color);
+    margin-bottom: 5px;
+}
+
+#message-board {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    border: 1px solid var(--accent-color);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Presentation Area */
+#presentation-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    perspective: 1000px;
+}
+
+/* Play Area */
+#play-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+.player-zone {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.center-zone {
+    display: flex;
+    gap: 50px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+}
+
+.deck-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Grid & Fixed Cells */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 112px);
+    gap: 10px;
+}
+
+.grid-cell {
+    width: 80px;
+    height: 112px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.1); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+/* Drag & Drop Visuals */
+.drop-zone {
+    position: relative;
+    min-width: 80px;
+    min-height: 112px;
+}
+
+.drop-zone.drag-over {
+    background-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 10px 2px var(--accent-color);
+    border-radius: 6px;
+}
+
+.draggable {
+    cursor: grab;
+}
+
+.draggable:active {
+    cursor: grabbing;
+}
+
+/* Card Styling */
+.card {
+    width: 80px;
+    height: 112px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.4s ease-in-out;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    user-select: none;
+}
+
+.card.is-flipped {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: 1px solid #ccc;
+    pointer-events: none; 
+}
+
+.card-front {
+    background-color: var(--card-bg);
+    transform: rotateY(180deg);
+}
+
+.card-back {
+    background-color: var(--card-back);
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);
+}
+
+.card.red .card-front { color: #d93838; }
+.card.black .card-front { color: #222; }
+
+/* Modal Styling */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    border: 3px solid var(--accent-color);
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    width: 300px;
+}
+
+.modal-content h2 { color: var(--accent-color); margin-top: 0; }
+.score-display { margin: 20px 0; font-size: 1.2rem; }
+.modal-content button {
+    background: var(--accent-color);
+    color: #111;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+.modal-content button:hover { background: #e8c655; }
+
+/* Interactive States */
+.shuffling { animation: shuffleMove 0.5s infinite alternate ease-in-out; }
+@keyframes shuffleMove {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(calc(-50px + 100vw * 0.1 * var(--rx)), calc(-50px + 100vh * 0.1 * var(--ry))) rotate(calc(360deg * var(--rr))); }
+}
+.selectable { box-shadow: 0 0 15px 5px var(--accent-color); transform: translateY(-5px); cursor: pointer; }
+.clickable-card { cursor: pointer; }
+.clickable-card:hover { box-shadow: 0 0 10px 3px rgba(255, 255, 255, 0.5); transform: translateY(-3px); }
+.collapsed { visibility: hidden; }
