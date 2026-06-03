@@ -8,6 +8,11 @@
 </head>
 <body>
     <div id="game-wrapper">
+        <div id="top-bar">
+            <button class="control-btn" onclick="window.location.href='/'">Return to ClickSyncGames</button>
+            <button class="control-btn" id="pause-btn">Pause</button>
+        </div>
+
         <header>
             <h1>KP's Golf Game</h1>
             <div id="message-board">Loading decks...</div>
@@ -18,7 +23,10 @@
         <div id="play-area" class="hidden">
             
             <div class="player-zone" id="computer-zone">
-                <h2>Computer's Area</h2>
+                <div class="zone-header">
+                    <h2>Computer's Area</h2>
+                    <div class="running-score">Score: <span id="computer-running-score">0</span></div>
+                </div>
                 <div class="card-grid" id="computer-grid"></div>
             </div>
 
@@ -32,7 +40,10 @@
             </div>
 
             <div class="player-zone" id="player-zone">
-                <h2>Your Area</h2>
+                <div class="zone-header">
+                    <h2>Your Area</h2>
+                    <div class="running-score">Score: <span id="player-running-score">0</span></div>
+                </div>
                 <div class="card-grid" id="player-grid"></div>
             </div>
             
@@ -47,7 +58,15 @@
                 <p><strong>Computer's Score:</strong> <span id="computer-score-text">0</span></p>
             </div>
             <h3 id="winner-text"></h3>
-            <button onclick="location.reload()">Play Again</button>
+            <button class="action-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <div id="pause-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Game Paused</h2>
+            <p>Press 'P' or click Resume to continue playing.</p>
+            <button class="action-btn" id="resume-btn">Resume</button>
         </div>
     </div>
 
