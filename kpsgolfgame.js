@@ -395,12 +395,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const gridIndex = parseInt(sourceId.split('-')[1]);
             const gridCard = gameState.playerGrid[gridIndex];
             
-            gameState.discardPile.pop(); 
+            // Pop the current top card off the discard pile
+            const previousDiscardCard = gameState.discardPile.pop(); 
+            
+            // Put the player's grid card face-up onto the discard pile
+            gridCard.element.classList.add('is-flipped');
             gameState.discardPile.push(gridCard); 
             
-            const newDrawnCard = gameState.drawPile.pop();
-            newDrawnCard.element.classList.remove('is-flipped'); 
-            gameState.playerGrid[gridIndex] = newDrawnCard;
+            // Replace the empty grid slot with the old discard pile card (face up)
+            previousDiscardCard.element.classList.add('is-flipped');
+            gameState.playerGrid[gridIndex] = previousDiscardCard;
             
             endPlayerTurn();
         }
@@ -460,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function executeComputerTurnWhenUnpaused(delay) {
         setTimeout(() => {
             if (isPaused) {
-                executeComputerTurnWhenUnpaused(500); // Check again if still paused
+                executeComputerTurnWhenUnpaused(500); 
                 return;
             }
             computerTurn();
