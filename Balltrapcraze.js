@@ -243,7 +243,7 @@ function tutorialUpdate(dt) {
             fakeCursor = { x: 400, y: 100, dir: 'H' };
             balls = [new Ball(600, 250, -1, 1, playableRects[0])]; 
         }
-        tutText = "Click the board to build walls.";
+        tutText = "Tap/Click the board to build walls.";
         fakeCursor.y += (250 - fakeCursor.y) * 0.08; 
     } else if (tutTime >= 4500 && tutTime < 7000) {
         if (tutPhase === 1) {
@@ -269,7 +269,7 @@ function tutorialUpdate(dt) {
             activeWall = new Wall(400, 250, 'V', playableRects[0]);
         }
     } else if (tutTime >= 10500 && tutTime < 13000) { 
-        tutText = "Right-Click to switch directions. Good luck!";
+        tutText = "Use the button to switch directions. Good luck!";
         fakeCursor.x = -100; 
     } else if (tutTime >= 13000) {
         endTutorial();
@@ -655,6 +655,25 @@ function togglePause() {
     }
 }
 
+// --- Player Input Handling ---
+function handleInput(clientX, clientY) {
+    if (gameState !== 'PLAYING' || activeWall) return;
+
+    let rect = canvas.getBoundingClientRect();
+    let scaleX = canvas.width / rect.width;
+    let scaleY = canvas.height / rect.height;
+    let x = (clientX - rect.left) * scaleX;
+    let y = (clientY - rect.top) * scaleY;
+
+    let targetRect = playableRects.find(r => 
+        x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h
+    );
+
+    if (targetRect) {
+        activeWall = new Wall(x, y, buildDirection, targetRect);
+    }
+}
+
 // --- Event Listeners ---
 document.getElementById('btn-start').addEventListener('click', () => {
     applySettings();
@@ -663,14 +682,12 @@ document.getElementById('btn-start').addEventListener('click', () => {
     lives = 3;
     level = 1;
     
-    // Run Gametime transition only once per full page load, immediately chain to Level 1
     if (!hasSeenGametime) {
         hasSeenGametime = true;
         showGametimeTransition(() => {
             showLevelTransition(level);
         });
     } else {
-        // Skips gametime entirely for retries/new games
         showLevelTransition(level);
     }
 });
@@ -701,20 +718,17 @@ canvas.addEventListener('contextmenu', (e) => {
     toggleDirection();
 });
 
+// Desktop Click
 canvas.addEventListener('mousedown', (e) => {
-    if (e.button !== 0 || gameState !== 'PLAYING' || activeWall) return;
-
-    let rect = canvas.getBoundingClientRect();
-    let scaleX = canvas.width / rect.width;
-    let scaleY = canvas.height / rect.height;
-    let x = (e.clientX - rect.left) * scaleX;
-    let y = (e.clientY - rect.top) * scaleY;
-
-    let targetRect = playableRects.find(r => 
-        x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h
-    );
-
-    if (targetRect) {
-        activeWall = new Wall(x, y, buildDirection, targetRect);
-    }
+    if (e.button !== 0) return;
+    handleInput(e.clientX, e.clientY);
 });
+
+// Mobile Touch handling
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault(); // Stop mobile scrolling/zooming when tapping the canvas
+    if (e.touches.length > 0) {
+        let touch = e.touches[0];
+        handleInput(touch.clientX, touch.clientY);
+    }
+}, { passive: false });
