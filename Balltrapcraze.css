@@ -1,325 +1,97 @@
-/* CSS Variables for Themes */
-:root {
-    --bg-color: linear-gradient(to bottom right, #1e3c72, #2a5298, #43cea2);
-    --ball-color: #ff0000;
-    --wall-color: #ffd700;
-    --wall-building-color: #ffe866;
-    --filled-color: rgba(0, 0, 0, 0.4);
-    --text-color: #ffffff;
-    --header-bg: rgba(0, 0, 0, 0.85);
-    --btn-bg: #4caf50;
-    --btn-hover: #45a049;
-    --canvas-border: #ffffff;
-}
-
-body.theme-bw {
-    --bg-color: #ffffff;
-    --ball-color: #000000;
-    --wall-color: #888888;
-    --wall-building-color: #aaaaaa;
-    --filled-color: rgba(200, 200, 200, 1);
-    --text-color: #333333;
-    --header-bg: #e0e0e0;
-    --btn-bg: #555555;
-    --btn-hover: #333333;
-    --canvas-border: #000000;
-}
-
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: Arial, sans-serif;
     user-select: none;
-    font-weight: bold;
 }
 
-/* CRITICAL: Setting position to fixed prevents mobile browsers from
-  allowing scroll bounce and effectively forces 100% viewport containment 
-*/
-body, html {
-    width: 100%;
-    height: 100%;
-    position: fixed; 
-    top: 0; left: 0;
-    overflow: hidden; 
-    background: var(--bg-color);
-    background-size: cover;
-    color: var(--text-color);
-    transition: background 0.3s ease;
-    font-size: 16px;
-    touch-action: none; 
+body {
+    background-color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
-#game-wrapper {
+#game-container {
+    width: 950px;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    width: 100%;
+    gap: 10px;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: #e0e0e0;
+}
+
+#return-btn {
+    background-color: #c0392b;
+    color: white;
+    text-decoration: none;
     padding: 10px 15px;
-    background: var(--header-bg);
-    color: var(--text-color);
-    flex: 0 0 auto; /* Prevent header from squishing or expanding */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    flex-wrap: wrap; 
-    gap: 8px;
+    border-radius: 8px;
+    font-weight: bold;
 }
 
 #stats {
     display: flex;
-    gap: 15px;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.stat-box {
+    gap: 20px;
+    font-weight: bold;
     font-size: 1.1em;
-    font-weight: 700;
+    color: #333;
 }
 
-.highlight-stat {
-    font-size: 1.2em;
-    font-weight: 900;
-    color: #ffeb3b;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-}
-
-body.theme-bw .highlight-stat {
-    color: #000000;
-    text-shadow: none;
-}
-
-button {
-    cursor: pointer;
+#pause-btn {
+    background-color: #555;
+    color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    background: var(--btn-bg);
-    color: #fff;
-    font-size: 1.1em;
-    font-weight: 800;
-    transition: background 0.2s, transform 0.1s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-button:hover { background: var(--btn-hover); }
-button:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+main {
+    display: flex;
+    gap: 15px;
+}
 
-#btn-return { background: #d32f2f; font-size: 0.95em; }
-#btn-return:hover { background: #b71c1c; }
+#canvas-wrapper {
+    border: 6px solid #000;
+    background-color: #000; /* Ensures borders are crisp */
+}
 
-#main-content {
-    flex: 1 1 0; /* Strictly fill remaining space without overflowing */
-    min-height: 0; 
-    min-width: 0;
+#gameCanvas {
+    display: block;
+    background-color: #ccc; /* The default "filled" color */
+    cursor: crosshair;
+}
+
+#switch-dir-btn {
+    flex-grow: 1;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    position: relative;
-    padding: 10px;
-    width: 100%;
-}
-
-#canvas-container {
-    flex: 1 1 0; /* Important: Prevents canvas from pushing boundaries */
-    min-height: 0; 
-    min-width: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    position: relative;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: background-color 0.2s;
 }
 
-canvas {
-    background-color: transparent;
-    border: 4px solid var(--canvas-border);
-    max-width: 100%;
-    max-height: 100%;
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Keeps ratio without stretching or overflowing */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-body.theme-bw canvas {
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-#controls-footer {
-    flex: 0 0 auto;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0,0,0,0.4);
-    padding: 10px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 400px;
-}
-
-#btn-toggle-dir {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    background: #007bff;
-    font-size: 1.1em;
-    padding: 10px 20px;
-    width: 100%;
-    border-radius: 8px;
-}
-#btn-toggle-dir:hover { background: #0056b3; }
-
-#direction-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    pointer-events: none; 
+#switch-dir-btn:hover {
+    background-color: #3367d6;
 }
 
 #dir-arrow {
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.4));
-    width: 100%;
-    height: 100%;
-}
-
-/* --- Mobile Landscape Optimizations --- */
-@media screen and (max-height: 600px) and (orientation: landscape) {
-    header {
-        padding: 4px 10px;
-        gap: 5px;
-    }
-    #stats {
-        gap: 10px;
-    }
-    .stat-box {
-        font-size: 0.85em;
-    }
-    .highlight-stat {
-        font-size: 0.95em;
-    }
-    button {
-        padding: 4px 8px;
-        font-size: 0.8em;
-    }
-    #btn-return {
-        font-size: 0.75em;
-    }
-    
-    #main-content {
-        flex-direction: row; 
-        padding: 5px;
-        gap: 10px;
-    }
-    
-    #controls-footer {
-        margin-top: 0;
-        padding: 0;
-        background: transparent;
-        width: 120px; /* Fixed width so it doesn't squish canvas */
-        height: 100%;
-    }
-    
-    #btn-toggle-dir {
-        flex-direction: column; 
-        font-size: 0.9em;
-        padding: 10px 5px;
-        text-align: center;
-        gap: 8px;
-        border-radius: 12px;
-        height: 100%; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    }
-    
-    #direction-indicator {
-        width: 35px;
-        height: 35px;
-    }
-}
-
-/* Overlays */
-.overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    color: #fff;
-}
-
-.overlay.hidden { display: none !important; }
-
-.overlay-content {
-    background: #333;
-    padding: 30px;
-    border-radius: 10px;
-    text-align: center;
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-}
-
-.overlay-content h1 {
-    font-size: 2.2em;
-    margin-bottom: 15px;
-    color: #fff;
-}
-
-.overlay-content h2 {
-    font-size: 1.8em;
-    margin-bottom: 15px;
-    color: #fff;
-}
-
-.overlay-content p {
-    margin-bottom: 15px;
-    font-size: 1.2em;
-}
-
-.form-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 1.1em;
-    font-weight: 800;
-}
-
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 4px;
-    border: 1px solid #555;
-    background: #222;
-    color: #fff;
-    font-size: 1em;
-    font-weight: bold;
-}
-
-.primary-btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 1.2em;
+    font-size: 2em;
     margin-top: 10px;
 }
