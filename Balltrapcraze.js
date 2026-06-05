@@ -287,7 +287,6 @@ function tutorialDraw() {
     ctx.fillText("TUTORIAL", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     ctx.restore();
 
-    // Reduced font size to 24px to ensure it never gets cut off on smaller screens
     ctx.font = 'bold 24px "Segoe UI", Tahoma, sans-serif';
     ctx.textAlign = 'center';
     ctx.lineWidth = 5;
