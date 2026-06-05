@@ -243,7 +243,7 @@ function tutorialUpdate(dt) {
             fakeCursor = { x: 400, y: 100, dir: 'H' };
             balls = [new Ball(600, 250, -1, 1, playableRects[0])]; 
         }
-        tutText = "Click the board to build walls.";
+        tutText = "Tap the board to build walls.";
         fakeCursor.y += (250 - fakeCursor.y) * 0.08; 
     } else if (tutTime >= 4500 && tutTime < 7000) {
         if (tutPhase === 1) {
@@ -269,7 +269,7 @@ function tutorialUpdate(dt) {
             activeWall = new Wall(400, 250, 'V', playableRects[0]);
         }
     } else if (tutTime >= 10500 && tutTime < 13000) { 
-        tutText = "Right-Click to switch directions. Good luck!";
+        tutText = "Use button or right-click to switch directions. Good luck!";
         fakeCursor.x = -100; 
     } else if (tutTime >= 13000) {
         endTutorial();
@@ -701,7 +701,8 @@ canvas.addEventListener('contextmenu', (e) => {
     toggleDirection();
 });
 
-canvas.addEventListener('mousedown', (e) => {
+// Use pointerdown instead of mousedown to better support all mobile touch types without double firing
+canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 || gameState !== 'PLAYING' || activeWall) return;
 
     let rect = canvas.getBoundingClientRect();
