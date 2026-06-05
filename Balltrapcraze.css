@@ -35,17 +35,17 @@ body.theme-bw {
 }
 
 body, html {
-    width: 100%;
-    height: 100%;
-    overflow: hidden; /* Prevents scrollbars globally */
-    position: fixed; /* Locks viewport in place */
-    overscroll-behavior: none; /* Stops mobile pull-to-refresh */
+    width: 100vw;
+    height: 100dvh; 
+    overflow: hidden; 
+    position: fixed; 
+    overscroll-behavior: none; 
     background: var(--bg-color);
     background-size: cover;
     color: var(--text-color);
     transition: background 0.3s ease;
     font-size: 16px;
-    touch-action: none; /* Stops pinch zoom and pan */
+    touch-action: none; 
 }
 
 #game-wrapper {
@@ -120,19 +120,21 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(0,0,0,0.2
     justify-content: center;
     position: relative;
     padding: 10px;
-    min-height: 0; /* Critical for flex children to shrink below content size */
+    min-height: 0; 
     overflow: hidden;
 }
 
 #canvas-container {
     flex: 1;
     width: 100%;
+    height: 100%; 
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    min-height: 0; /* Ensures the canvas scales down instead of forcing scroll */
+    min-height: 0; 
     min-width: 0;
+    padding: 4px; /* Padding ensures the border doesn't clip against the screen edge */
 }
 
 canvas {
@@ -140,7 +142,7 @@ canvas {
     border: 4px solid var(--canvas-border);
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
+    aspect-ratio: 8 / 5; /* This ensures the element shrinks wrapping the 800x500 content exactly */
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
@@ -149,6 +151,7 @@ body.theme-bw canvas {
 }
 
 #controls-footer {
+    appearance: none;
     margin-top: 10px;
     display: flex;
     align-items: center;
@@ -157,15 +160,27 @@ body.theme-bw canvas {
     background: rgba(0,0,0,0.4);
     padding: 10px 25px;
     border-radius: 50px;
-    flex-shrink: 0; /* Prevent controls from squishing */
+    flex-shrink: 0; 
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    color: white;
 }
 
-#btn-toggle-dir {
+#controls-footer:hover { background: rgba(0,0,0,0.6); }
+#controls-footer:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+#btn-toggle-dir-text {
     background: #007bff;
     font-size: 1.2em;
     padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 800;
+    transition: background 0.2s;
 }
-#btn-toggle-dir:hover { background: #0056b3; }
+
+#controls-footer:hover #btn-toggle-dir-text {
+    background: #0056b3;
+}
 
 #direction-indicator {
     display: flex;
@@ -218,26 +233,28 @@ body.theme-bw canvas {
 
 .primary-btn { width: 100%; padding: 14px; font-size: 1.3em; margin-top: 10px; }
 
+
 /* -------------------------------------- */
 /* RESPONSIVE LAYOUT RULES FOR NO-SCROLL  */
 /* -------------------------------------- */
 
-/* MOBILE PORTRAIT: Stack header densely so the canvas has room */
 @media screen and (orientation: portrait) and (max-width: 768px) {
     header {
-        flex-direction: column;
-        padding: 8px;
-        gap: 8px;
-    }
-    #stats {
-        width: 100%;
-        justify-content: space-around;
+        display: flex;
+        flex-wrap: wrap; 
+        padding: 10px;
         gap: 10px;
+    }
+    #btn-return { order: 1; font-size: 0.9em; padding: 8px 12px; }
+    #btn-pause { order: 2; font-size: 0.9em; padding: 8px 12px; }
+    #stats {
+        order: 3;
+        width: 100%; 
+        justify-content: space-around;
+        gap: 5px;
     }
     .stat-box { font-size: 1em; }
     .highlight-stat { font-size: 1.1em; }
-    #btn-return { font-size: 0.9em; padding: 8px 12px; }
-    #btn-pause { position: absolute; top: 8px; right: 8px; font-size: 0.9em; padding: 8px 12px; }
     
     #controls-footer {
         padding: 8px 20px;
@@ -246,28 +263,29 @@ body.theme-bw canvas {
     }
 }
 
-/* MOBILE LANDSCAPE: Shift controls to the right to maximize height */
 @media screen and (orientation: landscape) and (max-height: 600px) {
     header { padding: 5px 15px; }
     .stat-box { font-size: 1em; }
     .highlight-stat { font-size: 1.1em; }
     
     #main-content {
-        flex-direction: row; /* Shift to side-by-side */
+        flex-direction: row; 
         padding: 5px;
+        height: 100%;
     }
     
     #controls-footer {
-        flex-direction: column; /* Stack direction button and arrow */
+        flex-direction: column; 
         margin-top: 0;
         margin-left: 10px;
-        padding: 15px 10px;
+        padding: 10px;
         border-radius: 20px;
+        height: auto;
     }
     
-    #btn-toggle-dir {
+    #btn-toggle-dir-text {
         font-size: 1em;
-        padding: 10px;
+        padding: 8px 12px;
         white-space: normal;
         text-align: center;
     }
