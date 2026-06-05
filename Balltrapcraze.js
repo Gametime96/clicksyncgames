@@ -280,21 +280,22 @@ function tutorialDraw() {
     draw(); 
 
     ctx.save();
-    ctx.font = 'bold 140px "Segoe UI", Tahoma, sans-serif';
+    ctx.font = 'bold 120px "Segoe UI", Tahoma, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = theme === 'bw' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.35)';
+    ctx.fillStyle = theme === 'bw' ? 'rgba(0, 0, 0, 0.20)' : 'rgba(255, 255, 255, 0.25)';
     ctx.fillText("TUTORIAL", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     ctx.restore();
 
-    ctx.font = 'bold 36px "Segoe UI", Tahoma, sans-serif';
+    // Reduced font size to 24px to ensure it never gets cut off on smaller screens
+    ctx.font = 'bold 24px "Segoe UI", Tahoma, sans-serif';
     ctx.textAlign = 'center';
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.lineJoin = 'round';
     ctx.strokeStyle = 'black';
-    ctx.strokeText(tutText, CANVAS_WIDTH / 2, 70);
+    ctx.strokeText(tutText, CANVAS_WIDTH / 2, 60);
     ctx.fillStyle = 'white';
-    ctx.fillText(tutText, CANVAS_WIDTH / 2, 70);
+    ctx.fillText(tutText, CANVAS_WIDTH / 2, 60);
 
     if (fakeCursor.x > 0) {
         const pathH = new Path2D("M 10 50 L 30 30 L 30 42 L 70 42 L 70 30 L 90 50 L 70 70 L 70 58 L 30 58 L 30 70 Z");
