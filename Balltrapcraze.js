@@ -6,7 +6,7 @@ const uiLevel = document.getElementById('val-level');
 const uiLevelLabel = document.getElementById('val-level-label');
 const uiArea = document.getElementById('val-area');
 const btnPause = document.getElementById('btn-pause');
-const btnToggleDir = document.getElementById('btn-toggle-dir');
+const controlsFooter = document.getElementById('controls-footer'); 
 const dirArrow = document.getElementById('dir-arrow');
 
 const overlays = {
@@ -45,7 +45,7 @@ let wallSpeed = 5;
 
 let lastTime = 0;
 let reqAnimationId;
-let hasSeenGametime = false; // Prevents "Gametime" screen from showing after deaths
+let hasSeenGametime = false; 
 
 // Tutorial Variables
 let tutTime = 0;
@@ -187,18 +187,15 @@ window.onload = function() {
     const introScreen = document.getElementById('overlay-intro');
     const introText = document.getElementById('intro-text');
     
-    // 0.5s absolute black screen delay -> Fade in Text
     setTimeout(() => { 
         introText.style.opacity = '1'; 
     }, 500);
     
-    // Hold 2s (Total 3.5s) -> Fade out Text & Overlay
     setTimeout(() => { 
         introText.style.opacity = '0'; 
         introScreen.style.opacity = '0';
     }, 3500);
 
-    // Enter Tutorial 
     setTimeout(() => {
         introScreen.style.display = 'none'; 
         runVisualTutorial();
@@ -361,14 +358,11 @@ function showLevelTransition(levelNum) {
     p2.style.opacity = '0';
     overlay.classList.remove('hidden');
     
-    // Appear as instant black screen
     overlay.style.opacity = '1';
 
-    // 1 second black screen before "Entering:"
     setTimeout(() => {
         p1.style.opacity = '1';
 
-        // Wait 0.5s before Part 2
         setTimeout(() => {
             if (levelNum === 15) {
                 p2.innerText = "Level 15 ... The Final Level";
@@ -377,14 +371,12 @@ function showLevelTransition(levelNum) {
             }
             p2.style.opacity = '1';
 
-            // Hold on screen for 2s
             setTimeout(() => {
                 overlay.style.opacity = '0';
                 
-                // Fade out delay
                 setTimeout(() => {
                     overlay.classList.add('hidden');
-                    startLevel(); // Begin actual gameplay
+                    startLevel(); 
                 }, 500);
             }, 2000);
         }, 500);
@@ -402,11 +394,9 @@ function showVictorySequence() {
     overlay.style.opacity = '1';
     txt.style.opacity = '0';
     
-    // Hold black for 500ms then fade in text
     setTimeout(() => {
         txt.style.opacity = '1';
         
-        // Hold for 2s
         setTimeout(() => {
             txt.style.opacity = '0';
             overlay.style.opacity = '0';
@@ -414,7 +404,7 @@ function showVictorySequence() {
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 gameState = 'MENU';
-                showOverlay('menu'); // Loop back to menu decision
+                showOverlay('menu'); 
             }, 1000);
         }, 2000);
     }, 500);
@@ -444,7 +434,6 @@ function startLevel() {
     gameState = 'PLAYING';
     lastTime = performance.now();
     
-    // Only kick off a new animation frame if not already running
     if (!reqAnimationId) {
         reqAnimationId = requestAnimationFrame(gameLoop);
     }
@@ -513,7 +502,6 @@ function checkLevelProgress() {
     if (pct >= GOAL_PERCENTAGE) {
         gameState = 'LEVELCOMPLETE';
         if (level >= MAX_LEVELS) {
-            // Short delay to let player see the final wall complete before triggering ending
             setTimeout(() => { showVictorySequence(); }, 800);
         } else {
             showOverlay('levelcomplete');
@@ -663,14 +651,12 @@ document.getElementById('btn-start').addEventListener('click', () => {
     lives = 3;
     level = 1;
     
-    // Run Gametime transition only once per full page load, immediately chain to Level 1
     if (!hasSeenGametime) {
         hasSeenGametime = true;
         showGametimeTransition(() => {
             showLevelTransition(level);
         });
     } else {
-        // Skips gametime entirely for retries/new games
         showLevelTransition(level);
     }
 });
@@ -694,14 +680,13 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-btnToggleDir.addEventListener('click', toggleDirection);
+controlsFooter.addEventListener('click', toggleDirection);
 
 canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     toggleDirection();
 });
 
-// Use pointerdown instead of mousedown to better support all mobile touch types without double firing
 canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 || gameState !== 'PLAYING' || activeWall) return;
 
