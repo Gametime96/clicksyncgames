@@ -37,40 +37,15 @@ body.theme-bw {
 body, html {
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    overflow: hidden; /* Prevents scrollbars globally */
+    position: fixed; /* Locks viewport in place */
+    overscroll-behavior: none; /* Stops mobile pull-to-refresh */
     background: var(--bg-color);
     background-size: cover;
     color: var(--text-color);
     transition: background 0.3s ease;
     font-size: 16px;
-}
-
-/* Portrait Warning for Mobile */
-#portrait-warning {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #222;
-    color: white;
-    z-index: 100000;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px;
-}
-
-#portrait-warning h2 {
-    font-size: 2em;
-    margin-bottom: 10px;
-}
-
-#portrait-warning p {
-    font-size: 1.3em;
-}
-
-@media screen and (orientation: portrait) and (max-width: 768px) {
-    #portrait-warning { display: flex; }
-    #game-wrapper, #overlay-intro { display: none !important; }
+    touch-action: none; /* Stops pinch zoom and pan */
 }
 
 #game-wrapper {
@@ -78,32 +53,35 @@ body, html {
     flex-direction: column;
     height: 100%;
     width: 100%;
+    overflow: hidden;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 25px;
+    padding: 10px 20px;
     background: var(--header-bg);
     color: var(--text-color);
     flex-shrink: 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    z-index: 10;
 }
 
 #stats {
     display: flex;
-    gap: 40px;
+    gap: 30px;
     align-items: center;
 }
 
 .stat-box {
-    font-size: 1.5em;
+    font-size: 1.3em;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .highlight-stat {
-    font-size: 1.6em;
+    font-size: 1.4em;
     font-weight: 900;
     color: #ffeb3b;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
@@ -117,20 +95,21 @@ body.theme-bw .highlight-stat {
 button {
     cursor: pointer;
     border: none;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 6px;
     background: var(--btn-bg);
     color: #fff;
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: 800;
     transition: background 0.2s, transform 0.1s;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    white-space: nowrap;
 }
 
 button:hover { background: var(--btn-hover); }
 button:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
-#btn-return { background: #d32f2f; font-size: 1.1em; }
+#btn-return { background: #d32f2f; font-size: 1em; }
 #btn-return:hover { background: #b71c1c; }
 
 #main-content {
@@ -141,15 +120,19 @@ button:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(0,0,0,0.2
     justify-content: center;
     position: relative;
     padding: 10px;
+    min-height: 0; /* Critical for flex children to shrink below content size */
+    overflow: hidden;
 }
 
 #canvas-container {
-    max-width: 100%;
-    max-height: 72vh;
+    flex: 1;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    min-height: 0; /* Ensures the canvas scales down instead of forcing scroll */
+    min-width: 0;
 }
 
 canvas {
@@ -166,19 +149,21 @@ body.theme-bw canvas {
 }
 
 #controls-footer {
-    margin-top: 15px;
+    margin-top: 10px;
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
+    gap: 15px;
     background: rgba(0,0,0,0.4);
-    padding: 10px 30px;
+    padding: 10px 25px;
     border-radius: 50px;
+    flex-shrink: 0; /* Prevent controls from squishing */
 }
 
 #btn-toggle-dir {
     background: #007bff;
-    font-size: 1.3em;
-    padding: 12px 28px;
+    font-size: 1.2em;
+    padding: 12px 24px;
 }
 #btn-toggle-dir:hover { background: #0056b3; }
 
@@ -186,11 +171,13 @@ body.theme-bw canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
 }
 
 #dir-arrow {
+    width: 100%;
+    height: 100%;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.4));
 }
@@ -211,57 +198,77 @@ body.theme-bw canvas {
 
 .overlay-content {
     background: #333;
-    padding: 40px;
+    padding: 30px;
     border-radius: 10px;
     text-align: center;
-    max-width: 500px;
-    width: 90%;
+    max-width: 90%;
+    width: 400px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
-.overlay-content h1 {
-    font-size: 2.5em;
-    margin-bottom: 20px;
-    color: #fff;
+.overlay-content h1 { font-size: 2.2em; margin-bottom: 15px; color: #fff; }
+.overlay-content h2 { font-size: 1.8em; margin-bottom: 15px; color: #fff; }
+.overlay-content p { margin-bottom: 15px; font-size: 1.2em; }
+
+.form-group { margin-bottom: 15px; text-align: left; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 1.1em; font-weight: 800; }
+.form-group select { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #555; background: #222; color: #fff; font-size: 1em; font-weight: bold; }
+
+.primary-btn { width: 100%; padding: 14px; font-size: 1.3em; margin-top: 10px; }
+
+/* -------------------------------------- */
+/* RESPONSIVE LAYOUT RULES FOR NO-SCROLL  */
+/* -------------------------------------- */
+
+/* MOBILE PORTRAIT: Stack header densely so the canvas has room */
+@media screen and (orientation: portrait) and (max-width: 768px) {
+    header {
+        flex-direction: column;
+        padding: 8px;
+        gap: 8px;
+    }
+    #stats {
+        width: 100%;
+        justify-content: space-around;
+        gap: 10px;
+    }
+    .stat-box { font-size: 1em; }
+    .highlight-stat { font-size: 1.1em; }
+    #btn-return { font-size: 0.9em; padding: 8px 12px; }
+    #btn-pause { position: absolute; top: 8px; right: 8px; font-size: 0.9em; padding: 8px 12px; }
+    
+    #controls-footer {
+        padding: 8px 20px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
 }
 
-.overlay-content h2 {
-    font-size: 2em;
-    margin-bottom: 20px;
-    color: #fff;
-}
-
-.overlay-content p {
-    margin-bottom: 20px;
-    font-size: 1.3em;
-}
-
-.form-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 1.2em;
-    font-weight: 800;
-}
-
-.form-group select {
-    width: 100%;
-    padding: 12px;
-    border-radius: 4px;
-    border: 1px solid #555;
-    background: #222;
-    color: #fff;
-    font-size: 1.1em;
-    font-weight: bold;
-}
-
-.primary-btn {
-    width: 100%;
-    padding: 16px;
-    font-size: 1.4em;
-    margin-top: 10px;
+/* MOBILE LANDSCAPE: Shift controls to the right to maximize height */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    header { padding: 5px 15px; }
+    .stat-box { font-size: 1em; }
+    .highlight-stat { font-size: 1.1em; }
+    
+    #main-content {
+        flex-direction: row; /* Shift to side-by-side */
+        padding: 5px;
+    }
+    
+    #controls-footer {
+        flex-direction: column; /* Stack direction button and arrow */
+        margin-top: 0;
+        margin-left: 10px;
+        padding: 15px 10px;
+        border-radius: 20px;
+    }
+    
+    #btn-toggle-dir {
+        font-size: 1em;
+        padding: 10px;
+        white-space: normal;
+        text-align: center;
+    }
 }
