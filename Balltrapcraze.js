@@ -1,4 +1,3 @@
-@@ -1,735 +1,734 @@
 // --- DOM Elements ---
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -75,11 +74,11 @@ class Ball {
         this.rect = rect;
         this.radius = BALL_RADIUS;
     }
-
+    
     update(dt) {
         let stepX = this.dx * ballSpeed * (dt / 16.6);
         let stepY = this.dy * ballSpeed * (dt / 16.6);
-
+        
         this.x += stepX;
         this.y += stepY;
 
@@ -122,7 +121,7 @@ class Wall {
 
     update(dt) {
         let step = wallSpeed * (dt / 16.6);
-
+        
         if (!this.done1) this.len1 += step;
         if (!this.done2) this.len2 += step;
 
@@ -153,7 +152,7 @@ class Wall {
 function updateCursor() {
     const svgH = `<svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M 10 50 L 30 30 L 30 42 L 70 42 L 70 30 L 90 50 L 70 70 L 70 58 L 30 58 L 30 70 Z" fill="white" stroke="black" stroke-width="6" stroke-linejoin="round"/></svg>`;
     const svgV = `<svg width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M 50 10 L 70 30 L 58 30 L 58 70 L 70 70 L 50 90 L 30 70 L 42 70 L 42 30 L 30 30 Z" fill="white" stroke="black" stroke-width="6" stroke-linejoin="round"/></svg>`;
-
+    
     if (buildDirection === 'H') {
         canvas.style.cursor = `url('data:image/svg+xml;utf8,${encodeURIComponent(svgH)}') 24 24, auto`;
     } else {
@@ -165,7 +164,7 @@ function updateCursor() {
 function applySettings() {
     theme = document.getElementById('theme-select').value;
     difficulty = document.getElementById('diff-select').value;
-
+    
     if (theme === 'bw') {
         document.body.classList.add('theme-bw');
     } else {
@@ -179,20 +178,20 @@ function applySettings() {
 
 window.onload = function() {
     applySettings();
-
+    
     Object.values(overlays).forEach(o => {
         if(o) o.classList.add('hidden');
     });
-
+    
     gameState = 'INTRO';
     const introScreen = document.getElementById('overlay-intro');
     const introText = document.getElementById('intro-text');
-
+    
     // 0.5s absolute black screen delay -> Fade in Text
     setTimeout(() => { 
         introText.style.opacity = '1'; 
     }, 500);
-
+    
     // Hold 2s (Total 3.5s) -> Fade out Text & Overlay
     setTimeout(() => { 
         introText.style.opacity = '0'; 
@@ -218,11 +217,11 @@ function runVisualTutorial() {
     builtWalls = [];
     activeWall = null;
     clearedArea = 0;
-
+    
     balls = [new Ball(200, 250, 1, 0.8, playableRects[0])];
-
+    
     updateUI();
-
+    
     lastTime = performance.now();
     if (!reqAnimationId) reqAnimationId = requestAnimationFrame(gameLoop);
 }
@@ -244,7 +243,7 @@ function tutorialUpdate(dt) {
             fakeCursor = { x: 400, y: 100, dir: 'H' };
             balls = [new Ball(600, 250, -1, 1, playableRects[0])]; 
         }
-        tutText = "Tap/Click the board to build walls.";
+        tutText = "Click the board to build walls.";
         fakeCursor.y += (250 - fakeCursor.y) * 0.08; 
     } else if (tutTime >= 4500 && tutTime < 7000) {
         if (tutPhase === 1) {
@@ -270,7 +269,7 @@ function tutorialUpdate(dt) {
             activeWall = new Wall(400, 250, 'V', playableRects[0]);
         }
     } else if (tutTime >= 10500 && tutTime < 13000) { 
-        tutText = "Use the button to switch directions. Good luck!";
+        tutText = "Right-Click to switch directions. Good luck!";
         fakeCursor.x = -100; 
     } else if (tutTime >= 13000) {
         endTutorial();
@@ -281,22 +280,21 @@ function tutorialDraw() {
     draw(); 
 
     ctx.save();
-    ctx.font = 'bold 120px "Segoe UI", Tahoma, sans-serif';
+    ctx.font = 'bold 140px "Segoe UI", Tahoma, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = theme === 'bw' ? 'rgba(0, 0, 0, 0.20)' : 'rgba(255, 255, 255, 0.25)';
+    ctx.fillStyle = theme === 'bw' ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.35)';
     ctx.fillText("TUTORIAL", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
     ctx.restore();
 
-    // Reduced font size to 24px to ensure it never gets cut off on smaller screens
-    ctx.font = 'bold 24px "Segoe UI", Tahoma, sans-serif';
+    ctx.font = 'bold 36px "Segoe UI", Tahoma, sans-serif';
     ctx.textAlign = 'center';
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 6;
     ctx.lineJoin = 'round';
     ctx.strokeStyle = 'black';
-    ctx.strokeText(tutText, CANVAS_WIDTH / 2, 60);
+    ctx.strokeText(tutText, CANVAS_WIDTH / 2, 70);
     ctx.fillStyle = 'white';
-    ctx.fillText(tutText, CANVAS_WIDTH / 2, 60);
+    ctx.fillText(tutText, CANVAS_WIDTH / 2, 70);
 
     if (fakeCursor.x > 0) {
         const pathH = new Path2D("M 10 50 L 30 30 L 30 42 L 70 42 L 70 30 L 90 50 L 70 70 L 70 58 L 30 58 L 30 70 Z");
@@ -333,17 +331,17 @@ function showGametimeTransition(callback) {
     const overlay = document.getElementById('overlay-gametime');
     const txt = document.getElementById('gametime-text');
     overlay.classList.remove('hidden');
-
+    
     setTimeout(() => { 
         overlay.style.opacity = '1';
         txt.style.opacity = '1';
     }, 50);
-
+    
     setTimeout(() => {
         overlay.style.opacity = '0';
         txt.style.opacity = '0';
     }, 2000);
-
+    
     setTimeout(() => {
         overlay.classList.add('hidden');
         callback();
@@ -358,11 +356,11 @@ function showLevelTransition(levelNum) {
     const overlay = document.getElementById('overlay-level-transition');
     const p1 = document.getElementById('trans-part1');
     const p2 = document.getElementById('trans-part2');
-
+    
     p1.style.opacity = '0';
     p2.style.opacity = '0';
     overlay.classList.remove('hidden');
-
+    
     // Appear as instant black screen
     overlay.style.opacity = '1';
 
@@ -382,7 +380,7 @@ function showLevelTransition(levelNum) {
             // Hold on screen for 2s
             setTimeout(() => {
                 overlay.style.opacity = '0';
-
+                
                 // Fade out delay
                 setTimeout(() => {
                     overlay.classList.add('hidden');
@@ -396,23 +394,23 @@ function showLevelTransition(levelNum) {
 function showVictorySequence() {
     gameState = 'VICTORY';
     hideAllOverlays();
-
+    
     const overlay = document.getElementById('overlay-victory-seq');
     const txt = document.getElementById('victory-text');
-
+    
     overlay.classList.remove('hidden');
     overlay.style.opacity = '1';
     txt.style.opacity = '0';
-
+    
     // Hold black for 500ms then fade in text
     setTimeout(() => {
         txt.style.opacity = '1';
-
+        
         // Hold for 2s
         setTimeout(() => {
             txt.style.opacity = '0';
             overlay.style.opacity = '0';
-
+            
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 gameState = 'MENU';
@@ -430,7 +428,7 @@ function startLevel() {
     activeWall = null;
     balls = [];
     clearedArea = 0;
-
+    
     let mainRect = playableRects[0];
     for (let i = 0; i < level; i++) {
         let bx = mainRect.x + 50 + Math.random() * (mainRect.w - 100);
@@ -445,7 +443,7 @@ function startLevel() {
     hideAllOverlays();
     gameState = 'PLAYING';
     lastTime = performance.now();
-
+    
     // Only kick off a new animation frame if not already running
     if (!reqAnimationId) {
         reqAnimationId = requestAnimationFrame(gameLoop);
@@ -461,7 +459,7 @@ function finishWall(wall) {
     if (wall.dir === 'H') {
         r1 = new PlayableRect(r.x, r.y, r.w, wall.y - r.y - WALL_THICKNESS/2);
         r2 = new PlayableRect(r.x, wall.y + WALL_THICKNESS/2, r.w, r.y + r.h - wall.y - WALL_THICKNESS/2);
-
+        
         balls.forEach(b => {
             if (b.rect === r) {
                 b.rect = (b.y < wall.y) ? r1 : r2;
@@ -470,7 +468,7 @@ function finishWall(wall) {
     } else {
         r1 = new PlayableRect(r.x, r.y, wall.x - r.x - WALL_THICKNESS/2, r.h);
         r2 = new PlayableRect(wall.x + WALL_THICKNESS/2, r.y, r.x + r.w - wall.x - WALL_THICKNESS/2, r.h);
-
+        
         balls.forEach(b => {
             if (b.rect === r) {
                 b.rect = (b.x < wall.x) ? r1 : r2;
@@ -497,7 +495,7 @@ function fillRect(rect) {
 
 function loseLife() {
     if (gameState === 'TUTORIAL') return;
-
+    
     activeWall = null;
     lives--;
     updateUI();
@@ -625,7 +623,7 @@ function updateUI() {
 function toggleDirection() {
     buildDirection = buildDirection === 'H' ? 'V' : 'H';
     updateCursor(); 
-
+    
     if (buildDirection === 'H') {
         dirArrow.style.transform = 'rotate(0deg)';
     } else {
@@ -657,39 +655,22 @@ function togglePause() {
     }
 }
 
-// --- Player Input Handling ---
-function handleInput(clientX, clientY) {
-    if (gameState !== 'PLAYING' || activeWall) return;
-
-    let rect = canvas.getBoundingClientRect();
-    let scaleX = canvas.width / rect.width;
-    let scaleY = canvas.height / rect.height;
-    let x = (clientX - rect.left) * scaleX;
-    let y = (clientY - rect.top) * scaleY;
-
-    let targetRect = playableRects.find(r => 
-        x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h
-    );
-
-    if (targetRect) {
-        activeWall = new Wall(x, y, buildDirection, targetRect);
-    }
-}
-
 // --- Event Listeners ---
 document.getElementById('btn-start').addEventListener('click', () => {
     applySettings();
     hideAllOverlays();
-
+    
     lives = 3;
     level = 1;
-
+    
+    // Run Gametime transition only once per full page load, immediately chain to Level 1
     if (!hasSeenGametime) {
         hasSeenGametime = true;
         showGametimeTransition(() => {
             showLevelTransition(level);
         });
     } else {
+        // Skips gametime entirely for retries/new games
         showLevelTransition(level);
     }
 });
@@ -720,17 +701,20 @@ canvas.addEventListener('contextmenu', (e) => {
     toggleDirection();
 });
 
-// Desktop Click
 canvas.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
-    handleInput(e.clientX, e.clientY);
-});
+    if (e.button !== 0 || gameState !== 'PLAYING' || activeWall) return;
 
-// Mobile Touch handling
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault(); // Stop mobile scrolling/zooming when tapping the canvas
-    if (e.touches.length > 0) {
-        let touch = e.touches[0];
-        handleInput(touch.clientX, touch.clientY);
+    let rect = canvas.getBoundingClientRect();
+    let scaleX = canvas.width / rect.width;
+    let scaleY = canvas.height / rect.height;
+    let x = (e.clientX - rect.left) * scaleX;
+    let y = (e.clientY - rect.top) * scaleY;
+
+    let targetRect = playableRects.find(r => 
+        x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h
+    );
+
+    if (targetRect) {
+        activeWall = new Wall(x, y, buildDirection, targetRect);
     }
-}, { passive: false });
+});
