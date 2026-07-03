@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mirror Break Strategy</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #060709;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #020203;
+            border: 3px solid #1e293b;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.95);
+            overflow: hidden;
+        }
+
+        /* Header Top Bar */
+        #top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 46px;
+            background: rgba(9, 12, 22, 0.97);
+            border-bottom: 2px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
+        }
+
+        #home-link {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        #home-link:hover {
+            text-decoration: underline;
+        }
+
+        #points-counter {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4rem;
+            color: #f59e0b;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+        }
+
+        #pause-btn {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 5px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* Overlays Screen Configurations */
+        .overlay {
+            position: absolute;
+            top: 46px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 46px);
+            background: #090b11;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 80;
+            padding: 40px;
+            text-align: center;
+        }
+
+        /* Cinematic Intro Styling */
+        .overlay.cinematic {
+            top: 0;
+            height: 100%;
+            background: #02040a;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .overlay.cinematic.fade-active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .glow-title {
+            font-size: 3.6rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            background: linear-gradient(185deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 25px rgba(255,255,255,0.15));
+            margin-bottom: 10px;
+        }
+
+        .sub-ambient {
+            color: #475569;
+            font-size: 1.1rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+        }
+
+        /* HORIZONTAL Selection Catalog Formatting */
+        .view-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 6px;
+        }
+
+        .view-subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 35px;
+        }
+
+        .horizontal-catalog {
+            display: flex;
+            flex-direction: row; 
+            justify-content: center;
+            gap: 24px;
+            width: 100%;
+            max-width: 740px;
+            margin-bottom: 30px;
+        }
+
+        .shop-card {
+            flex: 1;
+            background: linear-gradient(180deg, #1e293b, #0f172a);
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 24px 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.2s ease;
+        }
+
+        .shop-card:hover {
+            transform: translateY(-5px);
+            border-color: #475569;
+        }
+
+        .shop-card.selected {
+            border-color: #38bdf8;
+            background: linear-gradient(180deg, #1e293b, #030712);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+        }
+
+        .shop-card.locked {
+            opacity: 0.45;
+            background: #090d16;
+            border-style: dashed;
+        }
+
+        /* Card Visual Graphic Assets */
+        .avatar-frame {
+            width: 84px;
+            height: 84px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 16px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .graphic-asset {
+            position: relative;
+        }
+
+        .asset-ball {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #e2e8f0, #475569, #0f172a);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .asset-brick {
+            width: 48px;
+            height: 26px;
+            background: linear-gradient(135deg, #ef4444, #7f1d1d);
+            border-radius: 4px;
+            border: 1px solid #450a0a;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+
+        .asset-hammer div {
+            width: 36px;
+            height: 16px;
+            background: linear-gradient(180deg, #94a3b8, #475569);
+            border-radius: 3px;
+        }
+
+        .asset-hammer div::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 32px;
+            background: #b45309;
+            left: 15px;
+            top: 16px;
+            border-radius: 2px;
+        }
+
+        .asset-sling-wood {
+            width: 34px;
+            height: 46px;
+            background: #a16207;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 100%, 0% 100%);
+        }
+
+        .asset-sling-metal {
+            width: 34px;
+            height: 46px;
+            background: linear-gradient(90deg, #cbd5e1, #64748b);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+        }
+
+        .asset-launcher-robot {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #0ea5e9, #0369a1);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .asset-launcher-robot span {
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        .shop-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: #f8fafc;
+        }
+
+        .spec-text {
+            font-size: 0.75rem;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .cost-indicator {
+            margin-top: auto;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #f59e0b;
+        }
+
+        /* RED BUTTON OUTLINED IN BLACK TEXT */
+        .red-next-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            background: #dc2626;
+            border: 3px solid #000000;
+            padding: 12px 42px;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #dc2626; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            text-shadow: 
+                -2px -2px 0 #000,  
+                 2px -2px 0 #000,
+                -2px  2px 0 #000,
+                 2px  2px 0 #000,
+                -2px  0px 0 #000,
+                 2px  0px 0 #000,
+                 0px -2px 0 #000,
+                 0px  2px 0 #000;
+        }
+
+        .red-next-btn:hover {
+            background: #b91c1c;
+            transform: scale(1.04);
+        }
+
+        /* Splash Transition Screens */
+        #splash-screen {
+            top: 0;
+            height: 100%;
+            background: #f8fafc;
+            z-index: 150;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none;
+        }
+
+        #splash-screen.visible {
+            opacity: 1;
+        }
+
+        #splash-screen h1 {
+            color: #0f172a;
+            font-size: 4.5rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+        }
+
+        /* Play HUD indicators */
+        #hud {
+            position: absolute;
+            top: 64px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        .hud-item {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #475569;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        /* Bottom Controls Dashboard */
+        #controls-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 30;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .power-container {
+            width: 200px;
+            height: 38px;
+            background: #0f172a;
+            border: 2px solid #475569;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #power-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #ef4444);
+        }
+
+        #power-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .btn {
+            background: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsiveness adapters */
+        @media (max-width: 800px), (max-height: 600px) {
+            #game-container {
+                width: 100vw;
+                height: 100vh;
+                border: none;
+            }
+            .horizontal-catalog {
+                flex-direction: column;
+                gap: 8px;
+                overflow-y: auto;
+            }
+            .red-next-btn {
+                position: relative;
+                bottom: 0;
+                right: 0;
+                margin-top: 15px;
+            }
+            #controls-panel {
+                flex-direction: column;
+                gap: 10px;
+                bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Header HUD System -->
+        <div id="top-bar">
+            <a href="https://clicksyncgames.com/" id="home-link">← Return to ClickSyncGames homepage</a>
+            <div id="points-counter">Points: 00000</div>
+            <button id="pause-btn">Pause (P)</button>
+        </div>
+
+        <!-- Scene 1: 4-Second Cinematic Intro Title -->
+        <div id="intro-screen" class="overlay cinematic">
+            <div class="cinematic-frame">
+                <h1 class="glow-title">MIRROR BREAK STRATEGY</h1>
+                <p class="sub-ambient">ASYLUM TACTICAL SIMULATION</p>
+            </div>
+        </div>
+
+        <!-- Scene 2: Horizontal Weapons Loadout Catalog Screen -->
+        <div id="weapons-screen" class="overlay catalog-view hidden">
+            <h2 class="view-title">Select Projectile Weapon</h2>
+            <p class="view-subtitle">Each object possesses individual aerodynamic velocities and mass values.</p>
+            
+            <div class="horizontal-catalog">
+                <div class="shop-card selected" data-type="projectile" data-id="ball">
+                    <div class="avatar-frame">
+                        <div class="graphic-asset asset-ball"></div>
+                    </div>
+                    <h4>Metal Ball</h4>
+                    <p class="spec-text">Velocity: Slow<br>Mass: Heavy</p>
+                    <span class="cost-indicator">FREE</span>
+                </div>
+                <div class="shop-card locked" data-type="projectile" data-id="hammer" data-cost="25">
+                    <div class="avatar-frame">
+                        <div class="graphic-asset asset-hammer"><div></div></div>
+                    </div>
+                    <h4>Hammer</h4>
+                    <p class="spec-text">Velocity: Medium<br>Mass: Balanced</p>
+                    <span class="cost-indicator">25 Pts</span>
+                </div>
+                <div class="shop-card locked" data-type="projectile" data-id="brick" data-cost="50">
+                    <div class="avatar-frame">
+                        <div class="graphic-asset asset-brick"></div>
+                    </div>
+                    <h4>Brick</h4>
+                    <p class="spec-text">Velocity: Fast<br>Mass: Light</p>
+                    <span class="cost-indicator">50 Pts</span>
+                </div>
+            </div>
+
+            <button id="weapons-next-btn" class="red-next-btn">Next</button>
+        </div>
+
+        <!-- Scene 3: Horizontal Launchers Catalog Screen -->
+        <div id="launchers-screen" class="overlay catalog-view hidden">
+            <h2 class="view-title">Select Mechanical Launcher</h2>
+            <p class="view-subtitle">High-grade rigs increase elastic release thrust and alignment paths.</p>
+            
+            <div class="horizontal-catalog">
+                <div class="shop-card selected" data-type="launcher" data-id="wooden">
+                    <div class="avatar-frame">
+                        <div class="graphic-asset asset-sling-wood"></div>
+                    </div>
+                    <h4>Wooden Sling</h4>
+                    <p class="spec-text">Base Elastic Tension<br>Manual Aim</p>
+                    <span class="cost-indicator">FREE</span>
+                </div>
+                <div class="shop-card locked" data-type="launcher" data-id="metal" data-cost="175">
+                    <div class="avatar-frame">
+                        <div class="graphic-asset asset-sling-metal"></div>
+                    </div>
+                    <h4>Metal Sling</h4>
+                    <p class="spec-text">Alloy Draw Rigs<br>High Thrust</p>
+                    <span class="cost-indicator">175 Pts</span>
+                </div>
+                <div class="shop-card locked" data-type="launcher" data-id="machine" data-cost="250">
+                    <div class="avatar-frame">
+                        <div class="graphic-asset asset-launcher-robot"><span></span></div>
+                    </div>
+                    <h4>Robot Launcher</h4>
+                    <p class="spec-text">Pneumatic Core Drive<br>Laser Sight Guide</p>
+                    <span class="cost-indicator">250 Pts</span>
+                </div>
+            </div>
+
+            <button id="launchers-next-btn" class="red-next-btn">Next</button>
+        </div>
+
+        <!-- Level Transition Overlay Screen -->
+        <div id="splash-screen" class="overlay hidden">
+            <h1 id="splash-title">Level 1</h1>
+        </div>
+
+        <!-- Pause Menu Overlay Screen -->
+        <div id="pause-screen" class="overlay hidden">
+            <h1>SIMULATION PAUSED</h1>
+            <p>Press "P" key or click below to resume track</p>
+            <button id="resume-btn" class="btn">Resume</button>
+        </div>
+
+        <!-- Play HUD Indicators -->
+        <div id="hud" class="hidden">
+            <div class="hud-item" id="level-display">Level: Tutorial</div>
+            <div class="hud-item" id="round-display">Round: 1/3</div>
+            <div class="hud-item" id="score-display">Mirrors: 0/0</div>
+        </div>
+
+        <!-- Dynamic Game Engine Canvas Rendering Screen -->
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+        <!-- Dynamic Flight Path Configuration Panel -->
+        <div id="controls-panel" class="hidden">
+            <div class="control-group">
+                <label for="curve-slider">Curve Flex Direction:</label>
+                <input type="range" id="curve-slider" min="-15" max="15" value="0">
+                <span id="curve-val">Straight</span>
+            </div>
+            <div class="control-group">
+                <div class="power-container">
+                    <div id="power-bar"></div>
+                    <span id="power-text">Power: 0%</span>
+                </div>
+                <button id="fire-btn" class="btn">Launch Object</button>
+            </div>
+        </div>
+
+        <!-- Mission Completion Overlay Screen -->
+        <div id="msg-screen" class="overlay hidden">
+            <h2 id="msg-title">Level Cleared!</h2>
+            <p id="msg-desc"></p>
+            <button id="msg-btn" class="btn">Next Level</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameState = "INTRO";
+
+        let playerPoints = 0;
+        let currentLevel = 0; 
+        let currentRound = 1;
+        const totalRounds = 3;
+        let isPaused = false;
+
+        let isPowerCharging = false;
+        let powerDirection = 1;
+        let currentPower = 0;
+
+        let selectedProjectile = 'ball';
+        let selectedLauncher = 'wooden';
+
+        let pointParticles = []; 
+
+        let trackingCameraZ = 0; 
+        let flightPathLog = []; 
+        let replayTimer = 0;
+        let totalReplayDuration = 300; 
+        let brokenInRoundTrack = []; 
+
+        const inventory = {
+            projectile: { ball: true, hammer: false, brick: false },
+            launcher: { wooden: true, metal: false, machine: false }
+        };
+
+        const PROJECTILES = {
+            ball: { name: 'Metal Ball', speed: 0.8, mass: 1.8, color: '#94a3b8', size: 14, shape: 'sphere' },
+            hammer: { name: 'Hammer', speed: 1.1, mass: 1.3, color: '#d97706', size: 16, shape: 'hammer' },
+            brick: { name: 'Brick', speed: 1.5, mass: 0.9, color: '#b91c1c', size: 15, shape: 'box' }
+        };
+
+        const LAUNCHERS = {
+            wooden: { name: 'Wooden Sling', powerMultiplier: 1.0, color: '#a16207' },
+            metal: { name: 'Metal Sling', powerMultiplier: 1.4, color: '#475569' },
+            machine: { name: 'Robot Launcher', powerMultiplier: 1.9, color: '#0284c7', laser: true }
+        };
+
+        let weaponEntity = null;
+        let mirrors = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const intro = document.getElementById('intro-screen');
+            setTimeout(() => intro.classList.add('fade-active'), 50);
+
+            setTimeout(() => {
+                intro.classList.remove('fade-active');
+                setTimeout(() => {
+                    intro.classList.add('hidden');
+                    gameState = "WEAPONS_CATALOG";
+                    document.getElementById('weapons-screen').classList.remove('hidden');
+                }, 800);
+            }, 4000);
+        });
+
+        document.getElementById('weapons-next-btn').addEventListener('click', () => {
+            if (gameState !== "WEAPONS_CATALOG") return;
+            document.getElementById('weapons-screen').classList.add('hidden');
+            gameState = "LAUNCHERS_CATALOG";
+            document.getElementById('launchers-screen').classList.remove('hidden');
+        });
+
+        document.getElementById('launchers-next-btn').addEventListener('click', () => {
+            if (gameState !== "LAUNCHERS_CATALOG") return;
+            document.getElementById('launchers-screen').classList.add('hidden');
+            initLevel(0);
+        });
+
+        document.querySelectorAll('.shop-card').forEach(card => {
+            card.addEventListener('click', () => {
+                if (gameState !== "WEAPONS_CATALOG" && gameState !== "LAUNCHERS_CATALOG") return;
+                const type = card.getAttribute('data-type');
+                const id = card.getAttribute('data-id');
+                const cost = parseInt(card.getAttribute('data-cost') || 0);
+
+                if (inventory[type][id]) {
+                    applyLoadoutSelection(type, id, card);
+                } else if (playerPoints >= cost) {
+                    playerPoints -= cost;
+                    inventory[type][id] = true;
+                    card.classList.remove('locked');
+                    updatePermanentPointsHUD();
+                    applyLoadoutSelection(type, id, card);
+                }
+            });
+        });
+
+        function applyLoadoutSelection(type, id, cardEl) {
+            document.querySelectorAll(`.shop-card[data-type="${type}"]`).forEach(c => c.classList.remove('selected'));
+            cardEl.classList.add('selected');
+            if (type === 'projectile') selectedProjectile = id;
+            if (type === 'launcher') selectedLauncher = id;
+        }
+
+        function updatePermanentPointsHUD() {
+            document.getElementById('points-counter').innerText = `Points: ${String(playerPoints).padStart(5, '0')}`;
+        }
+
+        function drawHighFidelityAsylum3D() {
+            let ambientGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            ambientGrad.addColorStop(0, '#0f172a');
+            ambientGrad.addColorStop(0.4, '#f1f5f9');
+            ambientGrad.addColorStop(1, '#94a3b8');
+            ctx.fillStyle = ambientGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const horizonY = 240;
+            const centerVX = canvas.width / 2;
+
+            ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+            ctx.lineWidth = 2;
+
+            const lateralGrids = 16;
+            for(let i = 0; i <= lateralGrids; i++) {
+                let xFloor = (canvas.width / lateralGrids) * i;
+                
+                ctx.beginPath();
+                ctx.moveTo(xFloor, canvas.height);
+                ctx.lineTo(centerVX + (xFloor - centerVX) * 0.15, horizonY);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(xFloor, 0);
+                ctx.lineTo(centerVX + (xFloor - centerVX) * 0.15, horizonY);
+                ctx.stroke();
+            }
+
+            for(let d = 0; d < 8; d++) {
+                let pct = Math.pow(0.45, d);
+                let cyFloor = horizonY + (canvas.height - horizonY) * (1 - pct);
+                let cyCeil = horizonY * (1 - pct);
+
+                ctx.strokeStyle = `rgba(51, 65, 85, ${0.1 + (d * 0.1)})`;
+                ctx.strokeRect(0, cyCeil, canvas.width, cyFloor - cyCeil);
+
+                ctx.fillStyle = `rgba(15, 23, 42, ${0.06 * (8 - d)})`;
+                ctx.fillRect(0, cyCeil, 60 * (1 - pct), cyFloor - cyCeil);
+                ctx.fillRect(canvas.width - (60 * (1 - pct)), cyCeil, 60 * (1 - pct), cyFloor - cyCeil);
+            }
+        }
+
+        function projectCameraPerspective3D(x, y, z) {
+            const horizonY = 240;
+            const fov = 340;
+            
+            let relativeZ = z - trackingCameraZ;
+            if (relativeZ < 5) relativeZ = 5; 
+
+            const scale = fov / (fov + relativeZ);
+            return {
+                x: (canvas.width / 2) + (x * scale),
+                y: horizonY + ((300 - y) * scale),
+                scale: scale
+            };
+        }
+
+        function generateLevelMirrors(level) {
+            let list = [];
+            const placementMatrix = [
+                { x: 0, y: 60, z: 220, angle: 0 },
+                { x: -75, y: 60, z: 250, angle: 0 },
+                { x: 75, y: 60, z: 250, angle: 0 },
+                { x: 40, y: 60, z: 310, angle: -0.25 },
+                { x: -110, y: 60, z: 200, angle: 0.35 },
+                { x: 0, y: 155, z: 240, angle: 0 }, 
+                { x: -65, y: 155, z: 280, angle: 0.1 },
+                { x: 65, y: 155, z: 280, angle: -0.1 },
+                { x: -140, y: 60, z: 350, angle: 0 },
+                { x: 140, y: 60, z: 350, angle: 0 },
+                { x: 0, y: 90, z: 400, angle: -0.15 },
+                { x: -45, y: 165, z: 360, angle: 0.2 }
+            ];
+
+            if (level === 0) {
+                list.push({ id: 0, x: 0, y: 60, z: 200, angle: 0, intact: true, width: 85, height: 130 });
+            } else {
+                let count = level + 2;
+                for(let i = 0; i < count; i++) {
+                    if (placementMatrix[i]) {
+                        list.push({
+                            id: i, x: placementMatrix[i].x, y: placementMatrix[i].y, z: placementMatrix[i].z,
+                            angle: placementMatrix[i].angle, intact: true, width: 80, height: 120
+                        });
+                    }
+                }
+            }
+            return list;
+        }
+
+        function initLevel(levelNum) {
+            gameState = "SPLASH";
+            currentLevel = levelNum;
+            currentRound = 1;
+            mirrors = generateLevelMirrors(currentLevel);
+            weaponEntity = null;
+            trackingCameraZ = 0;
+            flightPathLog = [];
+            pointParticles = [];
+
+            document.getElementById('msg-screen').classList.add('hidden');
+            document.getElementById('controls-panel').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+
+            const splash = document.getElementById('splash-screen');
+            document.getElementById('splash-title').innerText = currentLevel === 0 ? "Tutorial" : `Level ${currentLevel}`;
+            splash.classList.remove('hidden');
+            setTimeout(() => splash.classList.add('visible'), 50);
+
+            setTimeout(() => {
+                splash.classList.remove('visible');
+                splash.classList.add('hidden');
+                
+                gameState = "PLAYING";
+                document.getElementById('controls-panel').classList.remove('hidden');
+                document.getElementById('hud').classList.remove('hidden');
+                document.getElementById('level-display').innerText = currentLevel === 0 ? "Level: Tutorial" : `Level: ${currentLevel}/10`;
+                updateRoundHUD();
+            }, 4000);
+        }
+
+        function updateRoundHUD() {
+            const standing = mirrors.filter(m => m.intact).length;
+            document.getElementById('round-display').innerText = `Round: ${currentRound}/${totalRounds}`;
+            document.getElementById('score-display').innerText = `Mirrors: ${standing}/${mirrors.length}`;
+        }
+
+        const curveSlider = document.getElementById('curve-slider');
+        const curveValDisplay = document.getElementById('curve-val');
+        curveSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            if(val === 0) curveValDisplay.innerText = "Straight";
+            else if(val < 0) curveValDisplay.innerText = "Left Hook";
+            else curveValDisplay.innerText = "Right Hook";
+        });
+
+        function togglePauseState() {
+            if (gameState !== "PLAYING") return;
+            isPaused = !isPaused;
+            document.getElementById('pause-screen').classList.toggle('hidden', !isPaused);
+        }
+        document.getElementById('pause-btn').addEventListener('click', togglePauseState);
+        document.getElementById('resume-btn').addEventListener('click', togglePauseState);
+        window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'p') togglePauseState(); });
+
+        const fireBtn = document.getElementById('fire-btn');
+        function chargeStart() {
+            if (gameState === "PLAYING" && !weaponEntity && !isPaused) {
+                isPowerCharging = true;
+                currentPower = 0;
+                powerDirection = 1;
+            }
+        }
+        function chargeRelease() {
+            if (isPowerCharging && gameState === "PLAYING") {
+                isPowerCharging = false;
+                executeWeaponLaunch();
+            }
+        }
+
+        fireBtn.addEventListener('mousedown', chargeStart);
+        window.addEventListener('mouseup', chargeRelease);
+        fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); chargeStart(); });
+        window.addEventListener('touchend', chargeRelease);
+
+        function executeWeaponLaunch() {
+            const pConf = PROJECTILES[selectedProjectile];
+            const lConf = LAUNCHERS[selectedLauncher];
+            const curveVal = parseInt(curveSlider.value) * 0.15;
+
+            trackingCameraZ = 0;
+            flightPathLog = [];
+            brokenInRoundTrack = [];
+
+            weaponEntity = {
+                x: 0, y: 45, z: 10,
+                vx: curveVal * -0.35,
+                vy: (currentPower * 0.08) * (1 / pConf.mass) * lConf.powerMultiplier,
+                vz: (currentPower * 0.18) * pConf.speed * lConf.powerMultiplier,
+                curve: curveVal,
+                config: pConf
+            };
+        }
+
+        function updatePhysics() {
+            if (isPaused) return;
+
+            if (gameState === "PLAYING" && isPowerCharging) {
+                currentPower += powerDirection * 3.6;
+                if (currentPower >= 100) { currentPower = 100; powerDirection = -1; }
+                if (currentPower <= 0) { currentPower = 0; powerDirection = 1; }
+                document.getElementById('power-bar').style.width = currentPower + '%';
+                document.getElementById('power-text').innerText = `Power: ${Math.round(currentPower)}%`;
+            }
+
+            if (gameState === "PLAYING" && weaponEntity) {
+                flightPathLog.push({ x: weaponEntity.x, y: weaponEntity.y, z: weaponEntity.z });
+
+                weaponEntity.x += weaponEntity.vx;
+                weaponEntity.y += weaponEntity.vy;
+                weaponEntity.z += weaponEntity.vz;
+                weaponEntity.vx += (weaponEntity.curve * 0.03);
+                weaponEntity.vy -= 0.12 * weaponEntity.config.mass;
+
+                if (weaponEntity.z > 80) {
+                    trackingCameraZ = weaponEntity.z - 80;
+                }
+
+                if (weaponEntity.y < 0 || weaponEntity.z > 550) {
+                    gameState = "REPLAY_CAM";
+                    replayTimer = totalReplayDuration;
+                    return;
+                }
+
+                for (let m of mirrors) {
+                    if (!m.intact) continue;
+                    let gapZ = 12 + weaponEntity.vz;
+                    if (Math.abs(weaponEntity.z - m.z) < gapZ) {
+                        let rx = weaponEntity.x - m.x;
+                        if (rx >= -m.width/2 && rx <= m.width/2 && weaponEntity.y >= m.y - m.height/2 && weaponEntity.y <= m.y + m.height/2) {
+                            m.intact = false;
+                            brokenInRoundTrack.push({ x: m.x, y: m.y, z: m.z });
+                            weaponEntity.vz *= -0.1;
+                            weaponEntity.vy += 1.2;
+                        }
+                    }
+                }
+            }
+
+            if (gameState === "REPLAY_CAM") {
+                replayTimer--;
+
+                let progress = replayTimer / totalReplayDuration; 
+                if (flightPathLog.length > 0) {
+                    let logIndex = Math.floor(progress * (flightPathLog.length - 1));
+                    let snapshot = flightPathLog[logIndex] || flightPathLog[0];
+                    trackingCameraZ = Math.max(0, snapshot.z - 80);
+                }
+
+                if (replayTimer === Math.floor(totalReplayDuration * 0.5)) {
+                    triggerRetroactiveScoreSplashes();
+                }
+
+                if (replayTimer <= 0) {
+                    concludeRoundSequence();
+                }
+            }
+
+            for (let i = pointParticles.length - 1; i >= 0; i--) {
+                let p = pointParticles[i];
+                p.life--;
+
+                let targetScreenX = canvas.width / 2;
+                let targetScreenY = 25;
+
+                p.screenX += (targetScreenX - p.screenX) * 0.07;
+                p.screenY += (targetScreenY - p.screenY) * 0.07;
+
+                if (p.life <= 0 || (Math.abs(p.screenX - targetScreenX) < 8 && Math.abs(p.screenY - targetScreenY) < 8)) {
+                    playerPoints += p.value;
+                    updatePermanentPointsHUD();
+                    pointParticles.splice(i, 1);
+                }
+            }
+        }
+
+        function triggerRetroactiveScoreSplashes() {
+            brokenInRoundTrack.forEach(hit => {
+                let screenPos = projectCameraPerspective3D(hit.x, hit.y, hit.z);
+                
+                pointParticles.push({
+                    screenX: screenPos.x,
+                    screenY: screenPos.y,
+                    value: 125,
+                    life: 80 
+                });
+            });
+        }
+
+        function concludeRoundSequence() {
+            weaponEntity = null;
+            trackingCameraZ = 0;
+            updateRoundHUD();
+            const standing = mirrors.filter(m => m.intact).length;
+
+            if (standing === 0) {
+                evalLevelConclusion(true);
+            } else {
+                currentRound++;
+                if (currentRound > totalRounds) {
+                    evalLevelConclusion(false);
+                } else {
+                    gameState = "PLAYING";
+                }
+            }
+        }
+
+        function evalLevelConclusion(success) {
+            gameState = "LEVEL_OVER";
+            document.getElementById('controls-panel').classList.add('hidden');
+            
+            const scr = document.getElementById('msg-screen');
+            const t = document.getElementById('msg-title');
+            const d = document.getElementById('msg-desc');
+            const b = document.getElementById('msg-btn');
+            
+            if (success) {
+                t.innerText = "Level Cleared!";
+                t.style.color = "#4ade80";
+                d.innerText = "All targeted structural glass objects shattered completely.";
+                b.innerText = currentLevel === 10 ? "Return to Menu Loadout" : "Next Level";
+            } else {
+                t.innerText = "Failed Level!";
+                t.style.color = "#ef4444";
+                d.innerText = "Ran out of weapon rounds with glass stands remaining.";
+                b.innerText = "Retry Level";
+            }
+            scr.classList.remove('hidden');
+        }
+
+        document.getElementById('msg-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (gameState !== "LEVEL_OVER") return;
+            
+            document.getElementById('msg-screen').classList.add('hidden');
+            const standing = mirrors.filter(m => m.intact).length;
+
+            if (standing === 0) {
+                if (currentLevel === 0) {
+                    initLevel(1);
+                } else if (currentLevel < 10) {
+                    initLevel(currentLevel + 1);
+                } else {
+                    gameState = "WEAPONS_CATALOG";
+                    document.getElementById('weapons-screen').classList.remove('hidden');
+                    document.getElementById('hud').classList.add('hidden');
+                }
+            } else {
+                initLevel(currentLevel);
+            }
+        });
+
+        function renderScene() {
+            if (gameState === "INTRO" || gameState === "WEAPONS_CATALOG" || gameState === "LAUNCHERS_CATALOG") {
+                ctx.fillStyle = "#020408";
+                ctx.fillRect(0,0,canvas.width,canvas.height);
+                return;
+            }
+
+            drawHighFidelityAsylum3D();
+
+            let renderQueue = [...mirrors];
+            if ((gameState === "PLAYING" || gameState === "REPLAY_CAM") && weaponEntity) {
+                renderQueue.push({ type: 'weapon', z: weaponEntity.z });
+            }
+            renderQueue.sort((a,b) => b.z - a.z);
+
+            renderQueue.forEach(item => {
+                if (item.type === 'weapon') drawWeapon3D();
+                else drawMirror3D(item);
+            });
+
+            if (gameState === "PLAYING") {
+                drawLauncherStationForeground();
+            }
+
+            drawPointParticles2D();
+        }
+
+        function drawMirror3D(m) {
+            const pb = projectCameraPerspective3D(m.x, 0, m.z);
+            const pc = projectCameraPerspective3D(m.x, m.y, m.z);
+            
+            const sc = pc.scale;
+            const w = m.width * sc;
+            const h = m.height * sc;
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+            ctx.beginPath();
+            ctx.ellipse(pb.x, pb.y, w * 0.7, 8 * sc, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4.5 * sc;
+            ctx.beginPath();
+            ctx.moveTo(pb.x - w*0.55, pb.y);
+            ctx.lineTo(pc.x - w/2, pc.y);
+            ctx.moveTo(pb.x + w*0.55, pb.y);
+            ctx.lineTo(pc.x + w/2, pc.y);
+            ctx.stroke();
+
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(pb.x - w*0.55, pb.y, 6*sc, 0, Math.PI*2);
+            ctx.arc(pb.x + w*0.55, pb.y, 6*sc, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.save();
+            ctx.translate(pc.x, pc.y);
+            ctx.rotate(m.angle);
+
+            if (m.intact) {
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(-w/2, -h/2, w, h);
+                
+                let glassGrad = ctx.createLinearGradient(-w/2, -h/2, w/2, h/2);
+                glassGrad.addColorStop(0, '#bae6fd');
+                glassGrad.addColorStop(0.5, '#38bdf8');
+                glassGrad.addColorStop(1, '#0284c7');
+                ctx.fillStyle = glassGrad;
+                ctx.fillRect(-w/2 + 4, -h/2 + 4, w - 8, h - 8);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.moveTo(-w/2+6, -h/2+6);
+                ctx.lineTo(w/2-6, h/2-30);
+                ctx.lineTo(w/2-30, h/2-6);
+                ctx.fill();
+            } else {
+                ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+                ctx.strokeRect(-w/2, -h/2, w, h);
+            }
+            ctx.restore();
+        }
+
+        function drawWeapon3D() {
+            if (!weaponEntity) return;
+            const proj = projectCameraPerspective3D(weaponEntity.x, weaponEntity.y, weaponEntity.z);
+            const s = weaponEntity.config.size * proj.scale;
+
+            const floorProj = projectCameraPerspective3D(weaponEntity.x, 0, weaponEntity.z);
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+            ctx.beginPath();
+            ctx.arc(floorProj.x, floorProj.y, s * 1.2, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.fillStyle = weaponEntity.config.color;
+            ctx.save();
+            ctx.translate(proj.x, proj.y);
+
+            if (weaponEntity.config.shape === 'sphere') {
+                ctx.beginPath();
+                ctx.arc(0, 0, s, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (weaponEntity.config.shape === 'box') {
+                ctx.fillRect(-s, -s/1.5, s * 2, s * 1.3);
+            } else {
+                ctx.fillRect(-s, -s/4, s * 2, s / 2);
+                ctx.fillStyle = '#78350f';
+                ctx.fillRect(-s/4, s/4, s/2, s);
+            }
+            ctx.restore();
+        }
+
+        function drawLauncherStationForeground() {
+            const lConf = LAUNCHERS[selectedLauncher];
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height - 12);
+
+            if (lConf.laser && !weaponEntity) {
+                const cVal = parseInt(curveSlider.value) * -4.2;
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 6]);
+                ctx.beginPath();
+                ctx.moveTo(cVal, -50);
+                ctx.lineTo(cVal * 4.5, -280);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            ctx.fillStyle = lConf.color;
+            if (selectedLauncher === 'machine') {
+                ctx.fillRect(-40, -50, 80, 55);
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(-14, -75, 28, 30);
+            } else {
+                ctx.lineWidth = 10;
+                ctx.strokeStyle = lConf.color;
+                ctx.beginPath();
+                ctx.moveTo(-35, 0); ctx.lineTo(-35, -45);
+                ctx.moveTo(35, 0); ctx.lineTo(35, -45);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawPointParticles2D() {
+            pointParticles.forEach(p => {
+                ctx.save();
+                ctx.font = '900 1.6rem Arial Black, Impact, sans-serif';
+                ctx.fillStyle = '#dc2626'; 
+                
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.65)';
+                ctx.lineWidth = 4;
+                ctx.lineJoin = 'round';
+                
+                ctx.strokeText(`+${p.value}`, p.screenX, p.screenY);
+                ctx.fillText(`+${p.value}`, p.screenX, p.screenY);
+                ctx.restore();
+            });
+        }
+
+        function engineLoop() {
+            updatePhysics();
+            renderScene();
+            requestAnimationFrame(engineLoop);
+        }
+        engineLoop();
+    </script>
+</body>
+</html>
