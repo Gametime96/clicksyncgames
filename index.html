@@ -1,20 +1,6 @@
-The Google Analytics snippet needs to go right inside the `<head>` section of your HTML document, ideally immediately after the opening `<head>` tag. This ensures that the tracking script loads as early as possible when a user visits your site.
-
-Here is the complete, updated `index.html` file with the Google Tag script successfully integrated:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1NJM57ST1P"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-1NJM57ST1P');
-    </script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClickSyncGames | Premium Browser Games</title>
@@ -568,5 +554,3 @@ Here is the complete, updated `index.html` file with the Google Tag script succe
     </script>
 </body>
 </html>
-
-```
