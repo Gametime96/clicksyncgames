@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hole in Twelve - ClickSyncGames</title><link rel="stylesheet" href="holeintwelve.css">
+</head>
+<body>
+    <header>
+        <h1>Hole in Twelve</h1>
+        <div class="stats-container">
+            <button id="btn-pause" class="hdr-btn">⏸ PAUSE</button>
+            <div class="stat-box">LEVEL: <span id="lbl-level">1</span>/10</div><div class="stat-box">WALLS: <span id="lbl-walls">0</span>/12</div><div class="stat-box">TIME: <span id="lbl-time">90</span>s</div>
+        </div>
+    </header>
+    <main id="game-viewport">
+        <canvas id="gameCanvas"></canvas><div id="fx-vignette"></div>
+        <div id="screen-intro" class="overlay-screen">
+            <div class="intro-panel-container">
+                <h2>Meet Your Hazards</h2>
+                <div class="cards-grid">
+                    <div class="hazard-card" id="card-gates"><h3>Vintage Gates</h3><div class="hazard-icon">⛓️</div><p class="h-desc">Heavy industrial silver iron security grilles. Time your rolls to pass beneath them safely.</p></div>
+                    <div class="hazard-card" id="card-tape"><h3>Caution Tape</h3><div class="hazard-icon">🚧</div><p class="h-desc">Yellow warning ribbon stenciled with bold black CAUTION letters. Rips apart cleanly when hit.</p></div>
+                    <div class="hazard-card" id="card-cones"><h3>Striped Cones</h3><div class="hazard-icon">⚠️</div><p class="h-desc">High-definition 3D orange cones with double white safety stripes. Scattered elements bounce naturally.</p></div>
+                </div>
+                <button id="btn-intro-next" class="red-next-btn">NEXT</button>
+            </div>
+        </div>
+        <div id="screen-overlay" class="overlay-screen hidden">
+            <div class="overlay-content"><h2 id="overlay-title">Course Complete</h2><p id="overlay-desc"></p><button id="btn-overlay-action" class="game-btn">Continue</button></div>
+        </div>
+    </main>
+    <section id="ui-controls-wrapper">
+        <div id="touch-pad">
+            <button class="ctrl-btn up" data-dir="up">▲</button><button class="ctrl-btn left" data-dir="left">◀</button><button class="ctrl-btn down" data-dir="down">▼</button><button class="ctrl-btn right" data-dir="right">▶</button>
+        </div>
+    </section>
+    <script src="holeintwelve.js"></script>
+</body>
+</html>
