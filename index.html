@@ -189,6 +189,9 @@
         .thumb-sync::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.4) 0%, transparent 60%); }
         .thumb-pulse::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.5) 0%, transparent 60%); }
         .thumb-train::after { background-image: radial-gradient(circle at 50% 50%, rgba(26, 188, 156, 0.5) 0%, transparent 60%); }
+        
+        /* ADDED STYLING HOOK FOR HOLE IN TWELVE THUMBNAIL GLOW */
+        .thumb-twelve::after { background-image: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.45) 0%, transparent 65%); }
 
         .game-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
         .game-desc { font-size: 14px; line-height: 1.5; color: #475569; }
@@ -391,10 +394,10 @@
                 <div class="game-desc">Extract nutrients from infected roots to build a canopy defense system.</div>
             </a>
 
-            <!-- HOLE IN TWELVE WITH STRATEGY CATEGORY ADDED -->
+            <!-- HOLE IN TWELVE INTEGRATED WITH CSS HELPER GRADIENT LAYER -->
             <a href="holeintwelve.html" class="game-card" data-category="sports arcade simulation strategy">
-                <div class="thumbnail-container">
-                    <img src="holeintwelve.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Hole in Twelve">
+                <div class="thumbnail-container thumb-twelve">
+                    <img src="holeintwelve.JPEG" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Hole in Twelve">
                 </div>
                 <div class="game-title">Hole in Twelve</div>
                 <div class="game-desc">Test your patience and precision to sink your shots in exactly twelve strokes or fewer!</div>
@@ -551,5 +554,3 @@
     </script>
 </body>
 </html>
-
-
