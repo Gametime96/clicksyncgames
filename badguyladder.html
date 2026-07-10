@@ -1,522 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1NJM57ST1P"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-1NJM57ST1P');
-    </script>
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bad Guy Ladder | Escaping the Grid</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .top-nav {
-            width: 100%;
-            max-width: 1100px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .game-wrapper {
-            display: flex;
-            width: 100%;
-            max-width: 1100px;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        #game-container {
-            position: relative;
-            background-color: #1e293b;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        canvas {
-            background-color: #111827;
-            display: block;
-        }
-
-        #sidebar {
-            width: 300px;
-            background-color: #1e293b;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            box-sizing: border-box;
-        }
-
-        .stat-box {
-            background-color: #0f172a;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #3b82f6;
-        }
-
-        .stat-title {
-            font-size: 14px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #3b82f6;
-        }
-
-        #level-val { color: #f59e0b; }
-        #wood-val { color: #10b981; }
-
-        .btn {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-transform: uppercase;
-        }
-
-        .btn:hover { background-color: #2563eb; }
-        .btn-danger { background-color: #ef4444; }
-        .btn-danger:hover { background-color: #dc2626; }
-
-        .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .modal {
-            text-align: center;
-            padding: 30px;
-            max-width: 400px;
-        }
-
-        .modal h2 {
-            font-size: 28px;
-            color: #f59e0b;
-            margin-top: 0;
-        }
-
-        .instructions {
-            text-align: left;
-            font-size: 14px;
-            line-height: 1.6;
-            color: #cbd5e1;
-            margin: 20px 0;
-            background: #0f172a;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .hidden { display: none !important; }
-
-        footer {
-            background-color: #cbd5e1;
-            width: 100%;
-            padding: 40px 20px;
-            margin-top: auto;
-            text-align: center;
-            border-top: 2px solid #94a3b8;
-            color: #0f172a;
-            box-sizing: border-box;
-        }
-
-        .legal-text {
-            max-width: 800px;
-            margin: 0 auto 20px auto;
-            font-size: 11px;
-            color: #475569;
-            line-height: 1.6;
-        }
-
-        .contact-btn {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            text-decoration: none;
-            display: inline-block;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bad Guy Ladder</title>
+    <link rel="stylesheet" href="badguyladder.css">
 </head>
 <body>
 
-    <div class="top-nav">
-        <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold;">&larr; Back to ClickSync Games</a>
+    <div id="header-area">
+        <a href="index.html" class="universal-back-btn">← Back to ClickSyncGames Homepage</a>
     </div>
 
-    <div class="game-wrapper">
-        <div id="game-container">
-            <div id="menu-overlay" class="overlay">
-                <div class="modal">
-                    <h2 id="menu-title">Bad Guy Ladder</h2>
-                    <div class="instructions" id="menu-instructions">
-                        <p><strong>Objective:</strong> Collect wood bundles and build ladders to climb to the golden escape portal at the top floor!</p>
-                        <p><strong>Controls:</strong> Use <strong>Arrow Keys</strong> or <strong>WASD</strong> to run and climb. Press <strong>Spacebar</strong> to drop a structural ladder section beneath you.</p>
-                        <p><strong>Danger:</strong> The Bad Guy tracks your position and actively destroys ladders in his path. Don't let him touch you!</p>
+    <div id="portrait-banner">
+        <p>For the best experience, rotate your device to landscape orientation.</p>
+    </div>
+
+    <div id="intro-overlay">
+        <div id="intro-step-1" class="intro-box">
+            <h1>Welcome to<br>Bad Guy Ladder</h1>
+            <p class="intro-desc">Build ladders to escape<br>Watch out for bad guys and termites who want to destroy your ladder</p>
+            <button class="ability-btn red-btn" onclick="nextIntro(2)">NEXT</button>
+        </div>
+        <div id="intro-step-2" class="intro-box" style="display: none; max-width: 950px;">
+            <h2>Meet Your Enemies</h2>
+            <div class="bad-guy-showcase">
+                <div class="bg-card">
+                    <div class="card-header">
+                        <strong>Standard Bad Guy</strong>
                     </div>
-                    <button class="btn" id="start-btn" onclick="startCurrentLevel()">Start Game</button>
+                    <canvas id="preview-red" width="60" height="80"></canvas>
+                    <p>Normal Speed<br>Normal Damage</p>
+                </div>
+                <div class="bg-card">
+                    <div class="card-header">
+                        <strong>Elite Bad Guy</strong><br>
+                        <small>(Level 3+)</small>
+                    </div>
+                    <canvas id="preview-green" width="60" height="80"></canvas>
+                    <p>Faster Swings<br>Double Damage<br>Larger Hammer</p>
+                </div>
+                <div class="bg-card">
+                    <div class="card-header">
+                        <strong>Termite</strong><br>
+                        <small>(Level 10+)</small>
+                    </div>
+                    <canvas id="preview-termite" width="60" height="80"></canvas>
+                    <p>Paces platforms<br>Chews through ladders over time</p>
                 </div>
             </div>
-            <canvas id="gameCanvas" width="700" height="550"></canvas>
+            <button class="ability-btn red-btn" onclick="nextIntro(3)">NEXT</button>
         </div>
-
-        <div id="sidebar">
-            <div class="stat-box">
-                <div class="stat-title">Current Level</div>
-                <div class="stat-value" id="level-val">1</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-title">Wood Inventory</div>
-                <div class="stat-value" id="wood-val">0</div>
-            </div>
-            <button class="btn btn-danger" onclick="resetGame()">Restart Match</button>
+        <div id="intro-step-3" class="intro-box" style="display: none;">
+            <h2>How to Play</h2>
+            <p>1. Stand near a block and click <b>LIFT / DROP</b> or use <b>Spacebar</b>.</p>
+            <div class="block-demo"><div class="demo-b" style="background:#f1c40f">L</div><div class="demo-b" style="background:#e67e22">C</div><div class="demo-b" style="background:#e91e63">R</div></div>
+            <p>2. Arrange them to snap into an (L, C, R) line to build a ladder.</p>
+            <p>3. Ladders are the <b>only</b> way to reach higher platforms!</p>
+            <p>4. Reach the <b>Top Platform</b> and grab the spinning <b>Gold Coin</b> to advance!</p>
+            <p><i>Tip: Hold DOWN to drop through platforms!</i></p>
+            <button class="ability-btn red-btn" onclick="startGame()">START GAME</button>
         </div>
     </div>
 
-    <footer>
+    <div id="transition-overlay">
+        <div class="transition-content">
+            <h1 id="trans-lvl-text">LEVEL 1</h1>
+            <div id="trans-badguy-text"></div>
+            <div id="trans-enemies-preview"></div>
+            <button class="ability-btn red-btn" onclick="proceedToLevel()">PROCEED</button>
+        </div>
+    </div>
+
+    <div id="game-container">
+        
+        <div id="left-panel">
+            <div class="stats-area">
+                <h3>Level: <span id="lvl">1</span> / 7</h3>
+                <h3>Points: <span id="pts">50</span></h3>
+            </div>
+            <button id="slow-trigger" class="ability-btn" onclick="triggerSlow()">Slow Bad Guy (50 pts)</button>
+            <div id="slow-bar-bg"><div id="slow-bar"></div></div>
+            <button id="fix-trigger" class="ability-btn" onclick="triggerFix()">Fix Padlocks (50 pts)</button>
+            <button id="btn-pause" class="ability-btn" onclick="togglePause()">PAUSE (P)</button>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+            <div id="pause-overlay"><h1 class="overlay-text">PAUSED</h1></div>
+        </div>
+
+        <div id="controls">
+            <button class="ctrl-btn" id="btn-up">▲</button>
+            <button class="ctrl-btn" id="btn-left">◀</button>
+            <button id="btn-action">LIFT/<br>DROP</button>
+            <button class="ctrl-btn" id="btn-right">▶</button>
+            <button class="ctrl-btn" id="btn-down">▼</button>
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
         <p class="legal-text">
-            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™. Please utilize the "contact us" section for authorization inquiries.
+            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
         </p>
         <a href="contact.html" class="contact-btn">Contact Us</a>
     </footer>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Grid Configuration
-        const TILE_SIZE = 50;
-        const COLS = 14;
-        const ROWS = 11;
-
-        let level = 1;
-        let woodCount = 0;
-        let gameRunning = false;
-
-        // Entities
-        let player = { x: 1, y: 9, targetX: 1, targetY: 9, moving: false };
-        let badGuy = { x: 12, y: 1, targetX: 12, targetY: 1, moving: false, speedCooldown: 0 };
-        
-        let map = [];
-        let items = [];
-
-        function initLevel() {
-            map = [];
-            items = [];
-            woodCount = 0;
-            document.getElementById('wood-val').innerText = woodCount;
-
-            // Generate structural platforms (Floors on alternate rows)
-            for (let r = 0; r < ROWS; r++) {
-                map[r] = [];
-                for (let c = 0; c < COLS; c++) {
-                    if (r === ROWS - 1 || r === 7 || r === 4 || r === 1) {
-                        map[r][c] = 'FLOOR';
-                    } else {
-                        map[r][c] = 'EMPTY';
-                    }
-                }
-            }
-
-            // Create baseline escape zone
-            map[0][Math.floor(COLS / 2)] = 'PORTAL';
-
-            // Reset Entity Coordinates
-            player.x = player.targetX = 1;
-            player.y = player.targetY = ROWS - 2;
-            player.moving = false;
-
-            badGuy.x = badGuy.targetX = COLS - 2;
-            badGuy.y = badGuy.targetY = 2;
-            badGuy.moving = false;
-
-            // Distribute wood materials across platforms
-            spawnWood(ROWS - 2);
-            spawnWood(6);
-            spawnWood(3);
-        }
-
-        function spawnWood(rowY) {
-            let placed = 0;
-            while(placed < 2) {
-                let testX = Math.floor(Math.random() * (COLS - 2)) + 1;
-                if (!items.some(i => i.x === testX && i.y === rowY)) {
-                    items.push({ x: testX, y: rowY, type: 'WOOD' });
-                    placed++;
-                }
-            }
-        }
-
-        function startCurrentLevel() {
-            document.getElementById('menu-overlay').classList.add('hidden');
-            document.getElementById('level-val').innerText = level;
-            initLevel();
-            gameRunning = true;
-        }
-
-        function triggerGameOver(victory) {
-            gameRunning = false;
-            const overlay = document.getElementById('menu-overlay');
-            const title = document.getElementById('menu-title');
-            const inst = document.getElementById('menu-instructions');
-            const btn = document.getElementById('start-btn');
-
-            if (victory) {
-                level++;
-                title.innerText = "Level Cleared!";
-                inst.innerHTML = `<p>Excellent climbing! You evaded the bad guy and advanced out of the grid securely.</p>`;
-                btn.innerText = `Proceed to Level ${level}`;
-            } else {
-                title.innerText = "Captured!";
-                inst.innerHTML = `<p>The bad guy caught you or dismantled your escape route structural system!</p>`;
-                btn.innerText = "Try Match Again";
-            }
-            overlay.classList.remove('hidden');
-        }
-
-        function resetGame() {
-            level = 1;
-            startCurrentLevel();
-        }
-
-        // Input Mechanics
-        window.addEventListener('keydown', (e) => {
-            if (!gameRunning) return;
-
-            let dx = 0;
-            let dy = 0;
-
-            if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') dy = -1;
-            else if (e.key === 'ArrowDown' || e.key.toLowerCase() === 's') dy = 1;
-            else if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') dx = -1;
-            else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') dx = 1;
-            else if (e.key === ' ') {
-                // Drop structural ladder safely downwards
-                if (woodCount > 0 && player.y < ROWS - 2) {
-                    let targetY = player.y + 1;
-                    if (map[targetY][player.x] === 'EMPTY') {
-                        map[targetY][player.x] = 'LADDER';
-                        woodCount--;
-                        document.getElementById('wood-val').innerText = woodCount;
-                    }
-                }
-                return;
-            }
-
-            if ((dx !== 0 || dy !== 0) && !player.moving) {
-                let nx = player.x + dx;
-                let ny = player.y + dy;
-
-                if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
-                    let destTerrain = map[ny][nx];
-                    let currentTerrain = map[player.y][player.x];
-
-                    if (dy === 0) { // Horizontal Movement constraints
-                        if (destTerrain === 'FLOOR' || map[ny+1]?.[nx] === 'FLOOR' || destTerrain === 'LADDER' || currentTerrain === 'LADDER') {
-                            player.targetX = nx;
-                            player.moving = true;
-                        }
-                    } else { // Vertical climb authorization check
-                        if (dy === -1 && (currentTerrain === 'LADDER' || map[ny][nx] === 'PORTAL')) {
-                            player.targetY = ny;
-                            player.moving = true;
-                        } else if (dy === 1 && destTerrain === 'LADDER') {
-                            player.targetY = ny;
-                            player.moving = true;
-                        }
-                    }
-                }
-            }
-        });
-
-        // Simple Grid Pursuit Logic
-        function processBadGuyAI() {
-            if (badGuy.moving) return;
-
-            badGuy.speedCooldown++;
-            // Enemy speed scales gently based on target level layers
-            if (badGuy.speedCooldown < Math.max(8, 20 - level)) return; 
-            badGuy.speedCooldown = 0;
-
-            let bx = badGuy.x;
-            let by = badGuy.y;
-            let targetX = bx;
-            let targetY = by;
-
-            // Prefer descending/ascending if ladders exist near coordinates
-            if (by < player.y) {
-                if (map[by][bx] === 'LADDER' || map[by+1]?.[bx] === 'LADDER') { targetY = by + 1; }
-                else if (player.x < bx) targetX = bx - 1;
-                else targetX = bx + 1;
-            } else if (by > player.y) {
-                if (map[by][bx] === 'LADDER') { targetY = by - 1; }
-                else if (player.x < bx) targetX = bx - 1;
-                else targetX = bx + 1;
-            } else {
-                if (player.x < bx) targetX = bx - 1;
-                else if (player.x > bx) targetX = bx + 1;
-            }
-
-            // Clean boundaries verification
-            if (targetX >= 0 && targetX < COLS && targetY >= 0 && targetY < ROWS) {
-                // If a bad guy steps on a ladder segment, he has a probability of tearing it down
-                if (map[targetY][targetX] === 'LADDER' && Math.random() > 0.4) {
-                    map[targetY][targetX] = 'EMPTY';
-                } else {
-                    badGuy.targetX = targetX;
-                    badGuy.targetY = targetY;
-                    badGuy.moving = true;
-                }
-            }
-        }
-
-        function updateEntities() {
-            // Player Interpolation
-            if (player.moving) {
-                if (player.x < player.targetX) player.x += 0.1;
-                else if (player.x > player.targetX) player.x -= 0.1;
-                if (player.y < player.targetY) player.y += 0.1;
-                else if (player.y > player.targetY) player.y -= 0.1;
-
-                if (Math.abs(player.x - player.targetX) < 0.05 && Math.abs(player.y - player.targetY) < 0.05) {
-                    player.x = player.targetX;
-                    player.y = player.targetY;
-                    player.moving = false;
-
-                    // Evaluate resource acquisition
-                    items = items.filter(item => {
-                        if (item.x === player.x && item.y === player.y && item.type === 'WOOD') {
-                            woodCount += 2;
-                            document.getElementById('wood-val').innerText = woodCount;
-                            return false;
-                        }
-                        return true;
-                    });
-
-                    // Evaluate extraction success
-                    if (map[player.y][player.x] === 'PORTAL') {
-                        triggerGameOver(true);
-                    }
-                }
-            }
-
-            // Enemy Interpolation
-            if (badGuy.moving) {
-                if (badGuy.x < badGuy.targetX) badGuy.x += 0.05;
-                else if (badGuy.x > badGuy.targetX) badGuy.x -= 0.05;
-                if (badGuy.y < badGuy.targetY) badGuy.y += 0.05;
-                else if (badGuy.y > badGuy.targetY) badGuy.y -= 0.05;
-
-                if (Math.abs(badGuy.x - badGuy.targetX) < 0.05 && Math.abs(badGuy.y - badGuy.targetY) < 0.05) {
-                    badGuy.x = badGuy.targetX;
-                    badGuy.y = badGuy.targetY;
-                    badGuy.moving = false;
-                }
-            }
-
-            // Proximity Interception check
-            if (Math.hypot(player.x - badGuy.x, player.y - badGuy.y) < 0.7) {
-                triggerGameOver(false);
-            }
-        }
-
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Render Platform Grids
-            for (let r = 0; r < ROWS; r++) {
-                for (let c = 0; c < COLS; c++) {
-                    let type = map[r][c];
-                    if (type === 'FLOOR') {
-                        ctx.fillStyle = '#475569';
-                        ctx.fillRect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, 15);
-                    } else if (type === 'LADDER') {
-                        ctx.strokeStyle = '#b45309';
-                        ctx.lineWidth = 4;
-                        let rx = c * TILE_SIZE;
-                        let ry = r * TILE_SIZE;
-                        ctx.strokeRect(rx + 12, ry, TILE_SIZE - 24, TILE_SIZE);
-                        for (let step = 10; step < TILE_SIZE; step += 12) {
-                            ctx.beginPath();
-                            ctx.moveTo(rx + 12, ry + step);
-                            ctx.lineTo(rx + TILE_SIZE - 12, ry + step);
-                            ctx.stroke();
-                        }
-                    } else if (type === 'PORTAL') {
-                        ctx.fillStyle = '#eab308';
-                        ctx.fillRect(c * TILE_SIZE + 5, r * TILE_SIZE, TILE_SIZE - 10, TILE_SIZE);
-                    }
-                }
-            }
-
-            // Render Wood items
-            items.forEach(item => {
-                ctx.fillStyle = '#10b981';
-                ctx.fillRect(item.x * TILE_SIZE + 15, item.y * TILE_SIZE + 20, 20, 12);
-            });
-
-            // Render Player Avatar
-            ctx.fillStyle = '#3b82f6';
-            ctx.beginPath();
-            ctx.arc(player.x * TILE_SIZE + TILE_SIZE/2, player.y * TILE_SIZE + TILE_SIZE/2, 16, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Render Bad Guy Tracking Avatar
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(badGuy.x * TILE_SIZE + 10, badGuy.y * TILE_SIZE + 10, TILE_SIZE - 20, TILE_SIZE - 20);
-        }
-
-        function gameLoop() {
-            if (gameRunning) {
-                processBadGuyAI();
-                updateEntities();
-                render();
-            }
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Initialize Global Loop Animation
-        initLevel();
-        gameLoop();
-    </script>
+    <script src="badguyladder.js" defer></script>
 </body>
 </html>
