@@ -107,7 +107,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 15px;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
         }
 
         .category-btn {
@@ -142,6 +142,54 @@
             transform: scale(1.05);
             filter: saturate(100%) opacity(1);
             box-shadow: 0 0 0 4px var(--bg-color), 0 0 0 6px var(--text-color);
+        }
+
+        /* --- PAGINATION BOX STYLES --- */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .pagination-top {
+            margin-bottom: 30px;
+        }
+
+        .pagination-bottom {
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .page-box {
+            background: linear-gradient(135deg, #374151, #0f172a); 
+            color: white;
+            font-weight: bold;
+            border: none;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 0px !important; /* Strictly sharp corners */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            user-select: none;
+            box-sizing: border-box;
+        }
+
+        .page-box:hover {
+            transform: scale(1.1);
+        }
+
+        .page-box.active-page {
+            transform: scale(1.15) !important; /* Forces the active page box to be exactly 15% larger */
+            outline: 2px solid black; /* Crisp sharp black outline box */
+            outline-offset: 3px; /* Positions the square frame slightly outside the box border lines */
         }
 
         .game-grid {
@@ -199,8 +247,6 @@
         .thumb-sync::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.4) 0%, transparent 60%); }
         .thumb-pulse::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.5) 0%, transparent 60%); }
         .thumb-train::after { background-image: radial-gradient(circle at 50% 50%, rgba(26, 188, 156, 0.5) 0%, transparent 60%); }
-        
-        /* ADDED STYLING HOOK FOR HOLE IN TWELVE THUMBNAIL GLOW */
         .thumb-twelve::after { background-image: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.45) 0%, transparent 65%); }
 
         .game-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
@@ -298,202 +344,16 @@
         </div>
 
         <h2 class="section-title">Game Library</h2>
-        <div class="game-grid">
-            
-            <a href="airtrafficcontroller.html" class="game-card" data-category="airport simulation strategy">
-                <div class="thumbnail-container">
-                    <img src="AIRTRAFFICCONTROL.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Air Traffic Control">
-                </div>
-                <div class="game-title">Air Traffic Control</div>
-                <div class="game-desc">Manage the skies and safely guide aircraft to their runways without collisions.</div>
-            </a>
+        
+        <!-- Dynamic TOP Pagination Insertion Point -->
+        <div id="paginationTop" class="pagination-container pagination-top"></div>
 
-            <a href="badguyladder.html" class="game-card" data-category="strategy">
-                <div class="thumbnail-container">
-                    <img src="badguyladder.png" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Bad Guy Ladder">
-                </div>
-                <div class="game-title">Bad Guy Ladder</div>
-                <div class="game-desc">Build ladders to escape the levels, but watch out for the bad guys trying to break your path!</div>
-            </a>
-
-            <a href="Balltrapcraze.html" class="game-card" data-category="arcade simulation strategy">
-                <div class="thumbnail-container">
-                    <img src="balltrapcrazegame.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Ball Trap Craze">
-                </div>
-                <div class="game-title">Ball Trap Craze</div>
-                <div class="game-desc">Trap the bouncing balls by rapidly building walls to clear 75% of the board in this intense arcade game.</div>
-            </a>
-
-            <a href="batterybash.html" class="game-card" data-category="arcade strategy">
-                <div class="thumbnail-container">
-                    <img src="batterybash.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Battery Bash">
-                </div>
-                <div class="game-title">Battery Bash</div>
-                <div class="game-desc">High-voltage action! Protect the power grid and bash through charging obstacles.</div>
-            </a>
-            
-            <a href="bubbleshooter2026.html" class="game-card" data-category="arcade puzzle logic">
-                <div class="thumbnail-container">
-                    <img src="bubbleshooter2026.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Bubble Shooter 2026">
-                </div>
-                <div class="game-title">Bubble Shooter 2026</div>
-                <div class="game-desc">Match 3 or more bubbles to clear the board before they reach the bottom in this neon puzzle classic.</div>
-            </a>
-            
-            <a href="cardcountingblackjack.html" class="game-card" data-category="casino cards blackjack poker">
-                <div class="thumbnail-container">
-                    <img src="cardcountingblackjack.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Card Counting Blackjack">
-                </div>
-                <div class="game-title">Card Counting Blackjack</div>
-                <div class="game-desc">Master the odds and practice your card counting skills in this classic casino game.</div>
-            </a>
-            
-            <a href="billiardsgame.html" class="game-card" data-category="billiards multiplayer">
-                <div class="thumbnail-container">
-                    <img src="billiardsgame.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Classic Billiards">
-                </div>
-                <div class="game-title">Classic Billiards</div>
-                <div class="game-desc">Line up your shots and clear the table in this physics-based pool simulator.</div>
-            </a>
-
-            <a href="classicbowlingpro.html" class="game-card" data-category="sports multiplayer arcade">
-                <div class="thumbnail-container">
-                    <img src="classicbowlinggame.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Classic Bowling Pro">
-                </div>
-                <div class="game-title">Classic Bowling Pro</div>
-                <div class="game-desc">Hit the lanes in this classic 10-pin bowling simulator featuring up to 4 players and CPU opponents!</div>
-            </a>
-
-            <a href="clicksyncroller.html" class="game-card" data-category="arcade racing strategy">
-                <div class="thumbnail-container">
-                    <img src="clicksyncroller.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="ClickSync Roller">
-                </div>
-                <div class="game-title">ClickSync Roller</div>
-                <div class="game-desc">Race down an anti-gravity half-pipe, ride the high walls, and reach maximum velocity to clear structural gaps!</div>
-            </a>
-
-            <a href="cyberpath.html" class="game-card" data-category="puzzle strategy arcade">
-                <div class="thumbnail-container">
-                    <img src="cyberpath.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Cyber Path: Data Router">
-                </div>
-                <div class="game-title">Cyber Path</div>
-                <div class="game-desc">Rotate neon data pipes to route a secure signal from the Mainframe to the Terminal while avoiding firewalls!</div>
-            </a>
-
-            <a href="defendthevehicle.html" class="game-card" data-category="strategy action simulation">
-                <div class="thumbnail-container">
-                    <img src="defendthevehicle.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Defend the Vehicle">
-                </div>
-                <div class="game-title">Defend the Vehicle</div>
-                <div class="game-desc">Survive 10 levels of escalating chaos, tornadoes, zombies, and alien attacks in the desert.</div>
-            </a>
-
-            <a href="fastclickmadness.html" class="game-card" data-category="arcade action idle clicker">
-                <div class="thumbnail-container">
-                    <img src="fastclickmadnesspic.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Fast Click Madness">
-                </div>
-                <div class="game-title">Fast Click Madness</div>
-                <div class="game-desc">Test your reflexes and speed! Click as fast as you can before the clock runs out to dominate the scoreboard.</div>
-            </a>
-
-            <a href="florasys.html" class="game-card" data-category="arcade strategy">
-                <div class="thumbnail-container">
-                    <img src="flora.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Flora">
-                </div>
-                <div class="game-title">Flora</div>
-                <div class="game-desc">Extract nutrients from infected roots to build a canopy defense system.</div>
-            </a>
-
-            <!-- HOLE IN TWELVE INTEGRATED WITH CSS HELPER GRADIENT LAYER -->
-            <a href="holeintwelve.html" class="game-card" data-category="sports arcade simulation strategy">
-                <div class="thumbnail-container thumb-twelve">
-                    <img src="holeintwelve.JPEG" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Hole in Twelve">
-                </div>
-                <div class="game-title">Hole in Twelve</div>
-                <div class="game-desc">Test your patience and precision to sink your shots in exactly twelve strokes or fewer!</div>
-            </a>
-
-            <a href="golfgamecraze.html" class="game-card" data-category="arcade racing sports simulation">
-                <div class="thumbnail-container">
-                    <img src="golfgamecraze.JPEG" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Golf Game Craze">
-                </div>
-                <div class="game-title">Golf Game Craze</div>
-                <div class="game-desc">Maneuver a large golf ball through a fast-paced, 3D obstacle course with traps, speed lanes, and moving gates.</div>
-            </a>
-
-            <a href="impossibletictactoe.html" class="game-card" data-category="arcade multiplayer puzzle strategy">
-                <div class="thumbnail-container">
-                    <img src="tictactoe.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Impossible Tic Tac Toe">
-                </div>
-                <div class="game-title">Impossible Tic Tac Toe</div>
-                <div class="game-desc">Take on the impossible AI or challenge a friend in this classic 2D strategy game.</div>
-            </a>
-
-            <a href="golfcardgame.html" class="game-card" data-category="casino cards blackjack poker strategy">
-                <div class="thumbnail-container">
-                    <img src="golfcardgame3.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Golf Card Game">
-                </div>
-                <div class="game-title">Golf Card Game</div>
-                <div class="game-desc">Swap and match cards to get the lowest score possible in this classic 9-card golf game against the computer.</div>
-            </a>
-
-            <a href="mirrorbreakstrategy.html" class="game-card" data-category="strategy puzzle logic">
-                <div class="thumbnail-container">
-                    <img src="mirrorbreakstrategy.JPEG" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Mirror Break Strategy">
-                </div>
-                <div class="game-title">Mirror Break Strategy</div>
-                <div class="game-desc">Shatter tactical challenges by aligning your reflections and outsmarting geometric puzzles.</div>
-            </a>
-
-            <a href="neontilt.html" class="game-card" data-category="arcade action strategy">
-                <div class="thumbnail-container">
-                    <img src="neontilt.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Neon Tilt Collector">
-                </div>
-                <div class="game-title">Neon Tilt Collector</div>
-                <div class="game-desc">Roll the neon marble to collect yellow cubes while avoiding deadly red glitch blocks!</div>
-            </a>
-
-            <a href="pulsecapture.html" class="game-card" data-category="arcade puzzle">
-                <div class="thumbnail-container">
-                    <img src="pulsecapture.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Pulse Capture">
-                </div>
-                <div class="game-title">Pulse Capture</div>
-                <div class="game-desc">Test your reflexes and perception across 15 advanced levels of timing and synchronization.</div>
-            </a>
-
-            <a href="savethegolfballs.html" class="game-card" data-category="strategy simulation">
-                <div class="thumbnail-container">
-                    <img src="savethegolfballsthumbnail.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Save the Golf Balls">
-                </div>
-                <div class="game-title">Save the Golf Balls</div>
-                <div class="game-desc">Tilt the 3D box to save as many balls as you can before the walls fall away! Survive 10 rounds to win.</div>
-            </a>
-
-            <a href="synctime.html" class="game-card" data-category="arcade strategy">
-                <div class="thumbnail-container">
-                    <img src="synctime.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Synctime">
-                </div>
-                <div class="game-title">Synctime</div>
-                <div class="game-desc">Defend your vulnerable cores while swinging a lethal laser tether in this 12-level survival game.</div>
-            </a>
-
-            <a href="tabletenniscraze.html" class="game-card" data-category="arcade simulation sports">
-                <div class="thumbnail-container">
-                    <img src="tabletenniscraze.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Table Tennis Craze">
-                </div>
-                <div class="game-title">Table Tennis Craze</div>
-                <div class="game-desc">Experience an immersive first-person table tennis game. Battle the AI across three extreme difficulty levels!</div>
-            </a>
-
-            <a href="train-track-madness-pro.html" class="game-card" data-category="strategy puzzle">
-                <div class="thumbnail-container">
-                    <img src="traintrackmadnesspro.jpg" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="Train Track Madness Pro">
-                </div>
-                <div class="game-title">Train Track Madness Pro</div>
-                <div class="game-desc">Manage finite track resources to guide your train to pick up passengers in this 12-level puzzle game.</div>
-            </a>
-
+        <div id="gameGrid" class="game-grid">
+            <!-- Dynamic Injection Zone -->
         </div>
+
+        <!-- Dynamic BOTTOM Pagination Insertion Point -->
+        <div id="paginationBottom" class="pagination-container pagination-bottom"></div>
     </main>
 
     <footer>
@@ -508,12 +368,225 @@
     </footer>
 
     <script>
-        const searchInput = document.getElementById('searchInput');
-        const gameCards = document.querySelectorAll('.game-card');
-        const categoryBtns = document.querySelectorAll('.category-btn');
-        let activeCategory = '';
+        // Centralized Game Array Data Matrix
+        const gamesData = [
+            {
+                href: "airtrafficcontroller.html",
+                category: "airport simulation strategy",
+                imgSrc: "AIRTRAFFICCONTROL.jpg",
+                thumbClass: "",
+                title: "Air Traffic Control",
+                desc: "Manage the skies and safely guide aircraft to their runways without collisions."
+            },
+            {
+                href: "badguyladder.html",
+                category: "strategy",
+                imgSrc: "badguyladder.png",
+                thumbClass: "",
+                title: "Bad Guy Ladder",
+                desc: "Build ladders to escape the levels, but watch out for the bad guys trying to break your path!"
+            },
+            {
+                href: "Balltrapcraze.html",
+                category: "arcade simulation strategy",
+                imgSrc: "balltrapcrazegame.jpg",
+                thumbClass: "",
+                title: "Ball Trap Craze",
+                desc: "Trap the bouncing balls by rapidly building walls to clear 75% of the board in this intense arcade game."
+            },
+            {
+                href: "batterybash.html",
+                category: "arcade strategy",
+                imgSrc: "batterybash.jpg",
+                thumbClass: "",
+                title: "Battery Bash",
+                desc: "High-voltage action! Protect the power grid and bash through charging obstacles."
+            },
+            {
+                href: "bubbleshooter2026.html",
+                category: "arcade puzzle logic",
+                imgSrc: "bubbleshooter2026.jpg",
+                thumbClass: "",
+                title: "Bubble Shooter 2026",
+                desc: "Match 3 or more bubbles to clear the board before they reach the bottom in this neon puzzle classic."
+            },
+            {
+                href: "cardcountingblackjack.html",
+                category: "casino cards blackjack poker",
+                imgSrc: "cardcountingblackjack.jpg",
+                thumbClass: "",
+                title: "Card Counting Blackjack",
+                desc: "Master the odds and practice your card counting skills in this classic casino game."
+            },
+            {
+                href: "billiardsgame.html",
+                category: "billiards multiplayer",
+                imgSrc: "billiardsgame.jpg",
+                thumbClass: "",
+                title: "Classic Billiards",
+                desc: "Line up your shots and clear the table in this physics-based pool simulator."
+            },
+            {
+                href: "classicbowlingpro.html",
+                category: "sports multiplayer arcade",
+                imgSrc: "classicbowlinggame.jpg",
+                thumbClass: "",
+                title: "Classic Bowling Pro",
+                desc: "Hit the lanes in this classic 10-pin bowling simulator featuring up to 4 players and CPU opponents!"
+            },
+            {
+                href: "clicksyncroller.html",
+                category: "arcade racing strategy",
+                imgSrc: "clicksyncroller.jpg",
+                thumbClass: "",
+                title: "ClickSync Roller",
+                desc: "Race down an anti-gravity half-pipe, ride the high walls, and reach maximum velocity to clear structural gaps!"
+            },
+            {
+                href: "cyberpath.html",
+                category: "puzzle strategy arcade",
+                imgSrc: "cyberpath.jpg",
+                thumbClass: "",
+                title: "Cyber Path",
+                desc: "Rotate neon data pipes to route a secure signal from the Mainframe to the Terminal while avoiding firewalls!"
+            },
+            {
+                href: "defendthevehicle.html",
+                category: "strategy action simulation",
+                imgSrc: "defendthevehicle.jpg",
+                thumbClass: "",
+                title: "Defend the Vehicle",
+                desc: "Survive 10 levels of escalating chaos, tornadoes, zombies, and alien attacks in the desert."
+            },
+            {
+                href: "fastclickmadness.html",
+                category: "arcade action idle clicker",
+                imgSrc: "fastclickmadnesspic.jpg",
+                thumbClass: "",
+                title: "Fast Click Madness",
+                desc: "Test your reflexes and speed! Click as fast as you can before the clock runs out to dominate the scoreboard."
+            },
+            {
+                href: "florasys.html",
+                category: "arcade strategy",
+                imgSrc: "flora.jpg",
+                thumbClass: "",
+                title: "Flora",
+                desc: "Extract nutrients from infected roots to build a canopy defense system."
+            },
+            {
+                href: "golfcardgame.html",
+                category: "casino cards blackjack poker strategy",
+                imgSrc: "golfcardgame3.jpg",
+                thumbClass: "",
+                title: "Golf Card Game",
+                desc: "Swap and match cards to get the lowest score possible in this classic 9-card golf game against the computer."
+            },
+            {
+                href: "golfgamecraze.html",
+                category: "arcade racing sports simulation",
+                imgSrc: "golfgamecraze.JPEG",
+                thumbClass: "",
+                title: "Golf Game Craze",
+                desc: "Maneuver a large golf ball through a fast-paced, 3D obstacle course with traps, speed lanes, and moving gates."
+            },
+            {
+                href: "holeintwelve.html",
+                category: "sports arcade simulation strategy",
+                imgSrc: "holeintwelve.JPEG",
+                thumbClass: "thumb-twelve",
+                title: "Hole in Twelve",
+                desc: "Test your patience and precision to sink your shots in exactly twelve strokes or fewer!"
+            },
+            {
+                href: "impossibletictactoe.html",
+                category: "arcade multiplayer puzzle strategy",
+                imgSrc: "tictactoe.jpg",
+                thumbClass: "",
+                title: "Impossible Tic Tac Toe",
+                desc: "Take on the impossible AI or challenge a friend in this classic 2D strategy game."
+            },
+            {
+                href: "mirrorbreakstrategy.html",
+                category: "strategy puzzle logic",
+                imgSrc: "mirrorbreakstrategy.JPEG",
+                thumbClass: "",
+                title: "Mirror Break Strategy",
+                desc: "Shatter tactical challenges by aligning your reflections and outsmarting geometric puzzles."
+            },
+            {
+                href: "neontilt.html",
+                category: "arcade action strategy",
+                imgSrc: "neontilt.jpg",
+                thumbClass: "",
+                title: "Neon Tilt Collector",
+                desc: "Roll the neon marble to collect yellow cubes while avoiding deadly red glitch blocks!"
+            },
+            {
+                href: "pulsecapture.html",
+                category: "arcade puzzle",
+                imgSrc: "pulsecapture.jpg",
+                thumbClass: "",
+                title: "Pulse Capture",
+                desc: "Test your reflexes and perception across 15 advanced levels of timing and synchronization."
+            },
+            {
+                href: "savethegolfballs.html",
+                category: "strategy simulation",
+                imgSrc: "savethegolfballsthumbnail.jpg",
+                thumbClass: "",
+                title: "Save the Golf Balls",
+                desc: "Tilt the 3D box to save as many balls as you can before the walls fall away! Survive 10 rounds to win."
+            },
+            {
+                href: "synctime.html",
+                category: "arcade strategy",
+                imgSrc: "synctime.jpg",
+                thumbClass: "",
+                title: "Synctime",
+                desc: "Defend your vulnerable cores while swinging a lethal laser tether in this 12-level survival game."
+            },
+            {
+                href: "tabletenniscraze.html",
+                category: "arcade simulation sports",
+                imgSrc: "tabletenniscraze.jpg",
+                thumbClass: "",
+                title: "Table Tennis Craze",
+                desc: "Experience an immersive first-person table tennis game. Battle the AI across three extreme difficulty levels!"
+            },
+            {
+                href: "train-track-madness-pro.html",
+                category: "strategy puzzle",
+                imgSrc: "traintrackmadnesspro.jpg",
+                thumbClass: "",
+                title: "Train Track Madness Pro",
+                desc: "Manage finite track resources to guide your train to pick up passengers in this 12-level puzzle game."
+            }
+        ];
 
-        searchInput.addEventListener('input', runFilters);
+        // Strict Natural Alphabetical Sorting Algorithm (Numbers/Symbols Supercede Letters)
+        gamesData.sort((a, b) => {
+            return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+        // Application State Matrices
+        const ITEMS_PER_PAGE = 12;
+        let currentPage = 1;
+        let activeCategory = '';
+        let currentSearchTerm = '';
+
+        const searchInput = document.getElementById('searchInput');
+        const gameGrid = document.getElementById('gameGrid');
+        const paginationTop = document.getElementById('paginationTop');
+        const paginationBottom = document.getElementById('paginationBottom');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+        // Layout Event Attachments
+        searchInput.addEventListener('input', () => {
+            currentSearchTerm = searchInput.value.toLowerCase().trim();
+            currentPage = 1; 
+            filterAndRender();
+        });
 
         categoryBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -528,39 +601,116 @@
                     this.classList.add('active-filter');
                 }
 
-                
-                runFilters();
+                currentPage = 1; 
+                filterAndRender();
             });
         });
 
-        function runFilters() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-
+        function filterAndRender() {
+            // 1. Process Filtering Matrices Across Categories and Input Strings
             categoryBtns.forEach(btn => {
                 const catName = btn.textContent.toLowerCase();
                 const searchKeywords = btn.getAttribute('data-search');
-                if (catName.includes(searchTerm) || searchKeywords.includes(searchTerm)) {
+                if (catName.includes(currentSearchTerm) || searchKeywords.includes(currentSearchTerm)) {
                     btn.classList.remove('hidden');
                 } else {
                     btn.classList.add('hidden');
                 }
             });
 
-            gameCards.forEach(card => {
-                const title = card.querySelector('.game-title').textContent.toLowerCase();
-                const desc = card.querySelector('.game-desc').textContent.toLowerCase();
-                const gameCategories = card.getAttribute('data-category').toLowerCase();
+            const filteredGames = gamesData.filter(game => {
+                const matchesSearch = game.title.toLowerCase().includes(currentSearchTerm) || 
+                                      game.desc.toLowerCase().includes(currentSearchTerm);
+                const matchesCategory = activeCategory === '' || game.category.toLowerCase().includes(activeCategory);
+                return matchesSearch && matchesCategory;
+            });
 
-                const matchesSearch = title.includes(searchTerm) || desc.includes(searchTerm);
-                const matchesCategory = activeCategory === '' || gameCategories.includes(activeCategory);
+            // 2. Calculate Paging Tiers
+            const totalItems = filteredGames.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-                if (matchesSearch && matchesCategory) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            }
+
+            // 3. Render Both Paging Component Containers Synchronously
+            buildPaginationTrack(paginationTop, totalItems, totalPages, filteredGames);
+            buildPaginationTrack(paginationBottom, totalItems, totalPages, filteredGames);
+
+            // 4. Update Main Content Container Area
+            renderGridSection(filteredGames);
+        }
+
+        function buildPaginationTrack(containerNode, totalItems, totalPages, dataset) {
+            containerNode.innerHTML = '';
+            
+            // Render only if strictly greater than maximum display bounds (12 items)
+            if (totalItems > ITEMS_PER_PAGE) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBox = document.createElement('button');
+                    pageBox.className = 'page-box';
+                    pageBox.textContent = i;
+                    
+                    if (i === currentPage) {
+                        pageBox.classList.add('active-page');
+                    }
+                    
+                    pageBox.addEventListener('click', () => {
+                        currentPage = i;
+                        // Synchronize active states across both paths instantly
+                        document.querySelectorAll('.pagination-container').forEach(track => {
+                            const boxes = track.querySelectorAll('.page-box');
+                            boxes.forEach((box, index) => {
+                                box.classList.remove('active-page');
+                                if (index === (i - 1)) {
+                                    box.classList.add('active-page');
+                                }
+                            });
+                        });
+                        
+                        renderGridSection(dataset);
+                        
+                        // Scroll view smoothly up to top of library window
+                        document.getElementById('paginationTop').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
+                    
+                    containerNode.appendChild(pageBox);
                 }
+            }
+        }
+
+        function renderGridSection(itemsList) {
+            gameGrid.innerHTML = '';
+
+            if (itemsList.length === 0) {
+                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b; font-weight: bold;">No games found matching your filters.</div>';
+                paginationBottom.innerHTML = '';
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, itemsList.length);
+            const pageItems = itemsList.slice(startIndex, endIndex);
+
+            pageItems.forEach(game => {
+                const cardLink = document.createElement('a');
+                cardLink.href = game.href;
+                cardLink.className = 'game-card';
+                cardLink.setAttribute('data-category', game.category);
+
+                cardLink.innerHTML = `
+                    <div class="thumbnail-container ${game.thumbClass}">
+                        <img src="${game.imgSrc}" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="${game.title}">
+                    </div>
+                    <div class="game-title">${game.title}</div>
+                    <div class="game-desc">${game.desc}</div>
+                `;
+                gameGrid.appendChild(cardLink);
             });
         }
+
+        // Initialize Rendering Matrix Thread on System Mount
+        filterAndRender();
     </script>
 </body>
 </html>
