@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Zone Madness - ClickSyncGames</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.8);
+            --accent-gold: #fbbf24;
+            --accent-blue: #2563eb;
+            --text-light: #f8fafc;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            width: 100%;
+            max-width: 900px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .control-btn {
+            background: #334155;
+            color: var(--text-light);
+            border: 1px solid #475569;
+            padding: 8px 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-blue);
+            border-color: #3b82f6;
+        }
+
+        #level-display {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--accent-gold);
+        }
+
+        #hud-panel {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #1e293b;
+        }
+
+        .hud-stat {
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .hud-stat span {
+            color: var(--accent-gold);
+            font-variant-numeric: tabular-nums;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.7);
+            border: 2px solid #334155;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #theme-banner {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.7);
+            padding: 6px 14px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-blue);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #tutorial-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4.8rem;
+            font-weight: 900;
+            color: rgba(0, 0, 0, 0.35); 
+            letter-spacing: 6px;
+            -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.8); 
+            pointer-events: none;
+            user-select: none;
+            z-index: 15;
+        }
+
+        #virtual-dpad {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.45);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 16;
+        }
+
+        .dpad-middle-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .dpad-btn {
+            background: rgba(30, 41, 59, 0.85);
+            color: white;
+            border: 1px solid #475569;
+            width: 42px;
+            height: 42px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            transition: background 0.1s;
+        }
+
+        .dpad-btn:active, .dpad-btn.active-control {
+            background: var(--accent-blue);
+            border-color: #3b82f6;
+        }
+
+        #instructions-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            z-index: 20;
+        }
+
+        #instructions-overlay h2 {
+            color: var(--accent-gold);
+            font-size: 2.2rem;
+            margin: 0;
+            letter-spacing: 2px;
+            font-weight: 900;
+        }
+
+        #instructions-overlay p {
+            max-width: 500px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            margin: 0;
+            color: #cbd5e1;
+        }
+
+        .controls-guide {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 10px 0;
+            background: rgba(0,0,0,0.3);
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            text-align: left;
+        }
+
+        .controls-guide div {
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .controls-guide span {
+            background: #475569;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .action-btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .action-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 2px solid #334155;
+            padding: 35px;
+            text-align: center;
+            border-radius: 8px;
+            max-width: 380px;
+            width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 1.8rem;
+            font-weight: 900;
+        }
+
+        #modal-action-btn {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-wrapper">
+        <div id="top-bar">
+            <button class="control-btn" onclick="window.location.href='index.html'">Return to ClickSyncGames</button>
+            <div id="level-display">Level: <span id="current-level-val">1/9</span></div>
+            <button class="control-btn" id="pause-btn">Pause (P)</button>
+        </div>
+
+        <div id="hud-panel">
+            <div class="hud-stat">TIME LEFT: <span id="time-left-val">30.0</span>s</div>
+            <div class="hud-stat">HOOPS: <span id="hoops-count-val">0/1</span></div>
+            <div class="hud-stat">SPEED: <span id="speed-val">0</span> MPH</div>
+        </div>
+
+        <div id="canvas-container">
+            <div id="theme-banner">Beachside Run</div>
+            <div id="tutorial-watermark" class="hidden">TUTORIAL</div>
+
+            <canvas id="gameCanvas" width="800" height="450"></canvas>
+            
+            <div id="virtual-dpad">
+                <button class="dpad-btn" id="dpad-up">▲</button>
+                <div class="dpad-middle-row">
+                    <button class="dpad-btn" id="dpad-left">◀</button>
+                    <button class="dpad-btn" id="dpad-down">▼</button>
+                    <button class="dpad-btn" id="dpad-right">▶</button>
+                </div>
+            </div>
+
+            <div id="instructions-overlay">
+                <h2>SPEED ZONE MADNESS</h2>
+                <p>Drive through all <strong>Gold Rings</strong> before the countdown expires!</p>
+                <p>A 10-second demo tutorial will show you how to navigate the steep ramp jump.</p>
+                <div class="controls-guide">
+                    <div><span>▲ Arrow Key</span> / On-Screen Button: Accelerate</div>
+                    <div><span>▼ Arrow Key</span> / On-Screen Button: Brake</div>
+                    <div><span>◀</span> <span>▶ Arrow Keys</span> / On-Screen Buttons: True Steering Turn</div>
+                </div>
+                <button class="action-btn" id="start-btn">START TUTORIAL & RACE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Level Complete!</h2>
+            <p id="modal-desc"></p>
+            <button class="action-btn" id="modal-action-btn">Proceed to Level 2?</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const canvas = document.getElementById("gameCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const timeLeftDOM = document.getElementById("time-left-val");
+            const hoopsCountDOM = document.getElementById("hoops-count-val");
+            const speedDOM = document.getElementById("speed-val");
+            const levelDisplayDOM = document.getElementById("current-level-val");
+            const themeBannerDOM = document.getElementById("theme-banner");
+            const tutorialWatermark = document.getElementById("tutorial-watermark");
+            
+            const pauseBtn = document.getElementById("pause-btn");
+            const startBtn = document.getElementById("start-btn");
+            const instructionsOverlay = document.getElementById("instructions-overlay");
+            
+            const statusModal = document.getElementById("status-modal");
+            const modalTitle = document.getElementById("modal-title");
+            const modalDesc = document.getElementById("modal-desc");
+            const modalActionBtn = document.getElementById("modal-action-btn");
+
+            let currentLevel = 1;
+            let gameActive = false;
+            let isPaused = false;
+            let isTutorialMode = false;
+            let isFinaleMode = false;
+            let tutorialTimer = 0.0;
+            let finaleTimer = 0.0;
+            let timeRemaining = 30.0;
+            let lastTime = 0;
+
+            const segmentLength = 300; 
+            const drawDistance = 80;   
+            const cameraDepth = 0.84; 
+            
+            let playerX = 0;           
+            let playerY = 0;           
+            let playerYVelocity = 0;
+            let carYawAngle = 0;       
+            let steerIntensity = 0;    
+            
+            let trackPosition = 0;     
+            let speed = 0;
+            const maxSpeed = 160;
+            const accel = 2.8;
+            const breaking = 6;
+            const decel = 1.0;
+
+            let fireworkParticles = [];
+            const keys = { up: false, down: false, left: false, right: false };
+
+            const levelThemes = {
+                1: { name: "Beachside Run", time: 30, sky: "#7dd3fc", ground: "#fef08a", asphalt: "#475569", ocean: true, rings: [42] },
+                2: { name: "City Dusk Express", time: 33.75, sky: "#fdba74", ground: "#1e293b", asphalt: "#334155", city: true, rings: [25, 65] },
+                3: { name: "Alpine Switchbacks", time: 37.5, sky: "#a5f3fc", ground: "#166534", asphalt: "#3e4a5b", mountain: true, rings: [20, 50, 80] },
+                4: { name: "Harvest Farm Pass", time: 41.25, sky: "#bae6fd", ground: "#ca8a04", asphalt: "#334155", farm: true, rings: [15, 40, 65, 90] },
+                5: { name: "Desert Oasis Valley", time: 45, sky: "#fef08a", ground: "#eab308", asphalt: "#475569", desert: true, rings: [20, 45, 70, 95] },
+                6: { name: "Canyon Precipice Road", time: 48.75, sky: "#fca5a5", ground: "#78350f", asphalt: "#3e4a5b", canyon: true, rings: [25, 50, 75, 100] },
+                7: { name: "Forest Canopy Drive", time: 52.5, sky: "#86efac", ground: "#14532d", asphalt: "#334155", forest: true, rings: [15, 35, 55, 75, 95] },
+                8: { name: "Industrial Dock Outpost", time: 56.25, sky: "#cbd5e1", ground: "#334155", asphalt: "#1e293b", industrial: true, rings: [20, 40, 60, 80, 100] },
+                9: { name: "Midnight Neon Finale", time: 60, sky: "#1e1b4b", ground: "#0f172a", asphalt: "#111827", neon: true, rings: [15, 30, 45, 60, 75, 90, 105, 120] }
+            };
+
+            let trackSegments = [];
+            let activeRings = [];
+            let obstacles = [];
+
+            function buildTrack() {
+                trackSegments = [];
+                activeRings = [];
+                obstacles = [];
+                
+                const theme = levelThemes[currentLevel];
+                const totalSegments = 130 + (currentLevel * 15); 
+                
+                for (let i = 0; i < totalSegments; i++) {
+                    let curve = 0;
+                    let hill = 0;
+                    let isRamp = false;
+
+                    if (i > 25 && i < 65) curve = Math.sin((i - 25) / 6) * 2.2; 
+                    if (i >= 65 && i < totalSegments - 25) curve = Math.cos((i - 65) / 8) * 2.5;
+
+                    if (i >= 33 && i <= 41) {
+                        isRamp = true;
+                        hill = (i - 32) * 55; 
+                    } else if (currentLevel > 1 && i % 35 === 0 && i > 20 && i < totalSegments - 25) {
+                        hill = Math.sin(i) * 30; 
+                    }
+
+                    trackSegments.push({ index: i, curve: curve, hill: hill, isRamp: isRamp });
+
+                    if (theme.rings.includes(i)) {
+                        let hoopY = -45; 
+                        let hoopX = curve * 0.45;
+
+                        if (i === 42) {
+                            hoopY = -480; 
+                            hoopX = curve * 0.45;
+                        }
+                        activeRings.push({ segmentIndex: i, x: hoopX, y: hoopY, collected: false });
+                    }
+
+                    if (i > 45 && i % 18 === 0 && !theme.rings.includes(i)) {
+                        obstacles.push({
+                            segmentIndex: i,
+                            x: (Math.sin(i) * 0.65), 
+                            speed: -25 - (currentLevel * 3), 
+                            zOffset: 0
+                        });
+                    }
+                }
+            }
+
+            function project(segment, camX, camY, camZ) {
+                let worldZ = (segment.index * segmentLength) - camZ;
+                if (worldZ <= 0) return null;
+
+                let scale = cameraDepth / worldZ;
+                let screenX = Math.round((canvas.width / 2) + (scale * (segment.x - camX - (carYawAngle * worldZ * 0.08)) * (canvas.width / 2)));
+                let screenY = Math.round((canvas.height / 2) - (scale * (segment.y - camY) * (canvas.height / 2)));
+                let screenW = Math.round(scale * 1200 * (canvas.width / 800));
+
+                return { x: screenX, y: screenY, w: screenW, scale: scale };
+            }
+
+            function drawRing(ctx, x, y, size, scale, collected) {
+                ctx.save();
+                ctx.lineWidth = Math.max(3, scale * 16);
+                ctx.strokeStyle = collected ? "rgba(34, 197, 94, 0.9)" : "rgba(251, 191, 36, 0.95)";
+                ctx.shadowBlur = scale * 30;
+                ctx.shadowColor = collected ? "#22c55e" : "#fbbf24";
+                
+                ctx.beginPath();
+                ctx.ellipse(x, y, size, size * 1.5, carYawAngle * 0.2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawTrueTurningSedan(ctx) {
+                const cx = canvas.width / 2;
+                const cy = (canvas.height - 60) - (playerY * 0.45);
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                
+                let leanAngle = steerIntensity * 0.08; 
+                ctx.rotate(leanAngle);
+
+                ctx.fillStyle = "rgba(0,0,0,0.35)";
+                ctx.beginPath();
+                ctx.ellipse(0, (canvas.height - cy - 38), 55, 11, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                let yawOffset = steerIntensity * 12; 
+                
+                ctx.fillStyle = "#e11d48"; 
+                ctx.strokeStyle = "#9f1239";
+                ctx.lineWidth = 3;
+
+                ctx.beginPath();
+                ctx.moveTo(-54 + yawOffset * 0.2, 14);
+                ctx.lineTo(54 + yawOffset * 0.2, 14);
+                ctx.lineTo(48 + yawOffset, -12);
+                ctx.lineTo(-48 + yawOffset, -12);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#f43f5e";
+                ctx.beginPath();
+                ctx.moveTo(-36 + yawOffset, -12);
+                ctx.lineTo(36 + yawOffset, -12);
+                ctx.lineTo(22 + yawOffset * 1.4, -36);
+                ctx.lineTo(-22 + yawOffset * 1.4, -36);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = "#0f172a";
+                ctx.beginPath();
+                ctx.moveTo(-28 + yawOffset, -15);
+                ctx.lineTo(28 + yawOffset, -15);
+                ctx.lineTo(16 + yawOffset * 1.4, -32);
+                ctx.lineTo(-16 + yawOffset * 1.4, -32);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = "#fda4af";
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "#f43f5e";
+                ctx.fillRect(-46 + yawOffset * 0.4, -5, 14 - (steerIntensity * 3), 6);
+                ctx.fillRect(32 + yawOffset * 0.4, -5, 14 + (steerIntensity * 3), 6);
+
+                ctx.fillStyle = "#18181b";
+                ctx.shadowBlur = 0; 
+                ctx.fillRect(-50 + yawOffset * 0.1, 14, 15, 15);
+                ctx.fillRect(35 + yawOffset * 0.1, 14, 15, 15);
+
+                ctx.restore();
+            }
+
+            function spawnFireworkBurst() {
+                const colors = ["#ef4444", "#3b82f6", "#10b981", "#eab308", "#a855f7", "#ec4899", "#f97316"];
+                const randX = Math.random() * canvas.width;
+                const randY = Math.random() * (canvas.height * 0.6);
+                const burstColor = colors[Math.floor(Math.random() * colors.length)];
+
+                for (let i = 0; i < 45; i++) {
+                    let angle = Math.random() * Math.PI * 2;
+                    let force = 2 + Math.random() * 6;
+                    fireworkParticles.push({
+                        x: randX,
+                        y: randY,
+                        vx: Math.cos(angle) * force,
+                        vy: Math.sin(angle) * force,
+                        alpha: 1.0,
+                        color: burstColor
+                    });
+                }
+            }
+
+            function renderScene() {
+                if (isFinaleMode) {
+                    ctx.fillStyle = "#020617";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    fireworkParticles.forEach((p, idx) => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.08; 
+                        p.alpha -= 0.015;
+
+                        if (p.alpha <= 0) {
+                            fireworkParticles.splice(idx, 1);
+                            return;
+                        }
+
+                        ctx.save();
+                        ctx.globalAlpha = p.alpha;
+                        ctx.fillStyle = p.color;
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    });
+
+                    ctx.save();
+                    ctx.fillStyle = "white";
+                    ctx.font = "900 3.2rem 'Segoe UI'";
+                    ctx.textAlign = "center";
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = "#3b82f6";
+                    ctx.fillText("You won all levels!", canvas.width / 2, canvas.height / 2);
+                    ctx.restore();
+                    return;
+                }
+
+                const theme = levelThemes[currentLevel];
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = theme.sky;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = theme.ocean ? "#0284c7" : (theme.city ? "#1e293b" : "#15803d");
+                ctx.fillRect(0, canvas.height / 2, canvas.width, canvas.height / 2);
+
+                let currentSegmentIndex = Math.floor(trackPosition / segmentLength);
+                let baseSegment = trackSegments[currentSegmentIndex];
+                
+                if (!baseSegment) return;
+
+                let camHeight = baseSegment.hill + 520; 
+                let startX = 0;
+                let deltaX = 0;
+                let renderStack = [];
+
+                for (let n = 0; n < drawDistance; n++) {
+                    let idx = currentSegmentIndex + n;
+                    if (idx >= trackSegments.length) break;
+
+                    let seg = trackSegments[idx];
+                    deltaX += seg.curve;
+                    startX += deltaX;
+
+                    let worldX = startX * 420;
+                    let worldY = seg.hill;
+
+                    let projL = project({ index: idx, x: worldX - 400, y: worldY }, playerX * 420, camHeight, trackPosition);
+                    let projR = project({ index: idx, x: worldX + 400, y: worldY }, playerX * 420, camHeight, trackPosition);
+                    let projC = project({ index: idx, x: worldX, y: worldY }, playerX * 420, camHeight, trackPosition);
+
+                    if (projC) {
+                        renderStack.push({
+                            index: idx,
+                            projL: projL,
+                            projR: projR,
+                            projC: projC,
+                            segment: seg
+                        });
+                    }
+                }
+
+                for (let i = renderStack.length - 1; i >= 0; i--) {
+                    let curr = renderStack[i];
+                    let next = (i === 0) ? null : renderStack[i - 1];
+
+                    if (!next) continue;
+
+                    ctx.fillStyle = curr.segment.isRamp ? "#b45309" : theme.ground;
+                    ctx.beginPath();
+                    ctx.moveTo(0, curr.projL.y);
+                    ctx.lineTo(canvas.width, curr.projR.y);
+                    ctx.lineTo(canvas.width, next.projR.y);
+                    ctx.lineTo(0, next.projL.y);
+                    ctx.fill();
+
+                    ctx.fillStyle = curr.segment.isRamp ? "#e67e22" : theme.asphalt;
+                    ctx.beginPath();
+                    ctx.moveTo(curr.projL.x, curr.projL.y);
+                    ctx.lineTo(curr.projR.x, curr.projR.y);
+                    ctx.lineTo(next.projR.x, next.projR.y);
+                    ctx.lineTo(next.projL.x, next.projL.y);
+                    ctx.fill();
+
+                    if (curr.index % 2 === 0 && !curr.segment.isRamp) {
+                        ctx.fillStyle = "#ffffff";
+                        let w1 = curr.projC.w * 0.04;
+                        let w2 = next.projC.w * 0.04;
+                        ctx.beginPath();
+                        ctx.moveTo(curr.projC.x - w1, curr.projC.y);
+                        ctx.lineTo(curr.projC.x + w1, curr.projC.y);
+                        ctx.lineTo(next.projC.x + w2, next.projC.y);
+                        ctx.lineTo(next.projC.x - w2, next.projC.y);
+                        ctx.fill();
+                    }
+
+                    let ring = activeRings.find(rg => rg.segmentIndex === curr.index);
+                    if (ring) {
+                        let rx = curr.projC.x + (ring.x * curr.projC.w);
+                        let ry = curr.projC.y + (ring.y * (curr.projC.w / 1200 * 450));
+                        let radius = curr.projC.w * 0.32;
+                        drawRing(ctx, rx, ry, radius, curr.projC.scale, ring.collected);
+                    }
+
+                    let obs = obstacles.find(o => o.segmentIndex === curr.index);
+                    if (obs) {
+                        let ox = curr.projC.x + (obs.x * curr.projC.w);
+                        let oy = curr.projC.y;
+                        let ow = curr.projC.w * 0.25;
+                        let oh = ow * 0.65;
+                        
+                        ctx.save();
+                        ctx.fillStyle = "#1e40af"; 
+                        ctx.fillRect(ox - ow/2, oy - oh, ow, oh);
+                        ctx.fillStyle = "#fef08a";
+                        ctx.fillRect(ox - ow/2 + 2, oy - oh + 2, ow * 0.15, oh * 0.2);
+                        ctx.fillRect(ox + ow/2 - (ow * 0.15) - 2, oy - oh + 2, ow * 0.15, oh * 0.2);
+                        ctx.restore();
+                    }
+                }
+
+                drawTrueTurningSedan(ctx);
+            }
+
+            function updatePhysics(dt) {
+                if (!gameActive || isPaused) return;
+
+                if (isFinaleMode) {
+                    finaleTimer -= dt;
+                    if (Math.random() < 0.15) spawnFireworkBurst();
+                    if (finaleTimer <= 0) {
+                        isFinaleMode = false;
+                        currentLevel = 1;
+                        initLevelRace(true);
+                    }
+                    return;
+                }
+
+                if (isTutorialMode) {
+                    tutorialTimer -= dt;
+                    if (tutorialTimer <= 0) {
+                        isTutorialMode = false;
+                        tutorialWatermark.classList.add("hidden");
+                        initLevelRace(false); 
+                        return;
+                    }
+
+                    keys.up = true; 
+                    let currentSegmentIndex = Math.floor(trackPosition / segmentLength);
+                    
+                    if (currentSegmentIndex >= 30 && currentSegmentIndex <= 45) {
+                        playerX *= Math.pow(0.01, dt); 
+                    } else {
+                        let currSeg = trackSegments[currentSegmentIndex];
+                        if (currSeg && currSeg.curve !== 0) {
+                            playerX = (currSeg.curve * 0.32); 
+                        }
+                    }
+                } else {
+                    timeRemaining -= dt;
+                    if (timeRemaining <= 0) {
+                        timeRemaining = 0;
+                        triggerEndgame(false, "Time expired! You ran out of juice before crossing the line.");
+                        return;
+                    }
+                }
+
+                if (keys.up) speed += accel;
+                else if (keys.down) speed -= breaking;
+                else speed -= decel;
+
+                speed = Math.max(0, Math.min(speed, maxSpeed));
+
+                let currentSegmentIndex = Math.floor(trackPosition / segmentLength);
+                let currSeg = trackSegments[currentSegmentIndex];
+                let roadCurvatureFactor = currSeg ? currSeg.curve : 0;
+
+                if (speed > 5) {
+                    let turnVelocityMultiplier = (speed / maxSpeed);
+                    
+                    if (keys.left) {
+                        steerIntensity = Math.max(-1, steerIntensity - 8.0 * dt);
+                        carYawAngle -= 0.05 * turnVelocityMultiplier; 
+                    } else if (keys.right) {
+                        steerIntensity = Math.min(1, steerIntensity + 8.0 * dt);
+                        carYawAngle += 0.05 * turnVelocityMultiplier; 
+                    } else {
+                        steerIntensity *= Math.pow(0.02, dt); 
+                    }
+
+                    playerX += (carYawAngle - (roadCurvatureFactor * 0.08)) * 3.5 * turnVelocityMultiplier;
+                } else {
+                    steerIntensity *= Math.pow(0.01, dt);
+                }
+
+                if (!keys.left && !keys.right) {
+                    carYawAngle *= Math.pow(0.05, dt);
+                }
+
+                playerX = Math.max(-1.4, Math.min(playerX, 1.4));
+                trackPosition += speed * 5.0 * dt;
+
+                if (currSeg && currSeg.isRamp) {
+                    playerY = currSeg.hill; 
+                    playerYVelocity = speed * 0.45; 
+                } else {
+                    if (playerY > 0) {
+                        playerYVelocity -= 9.8 * 8.0 * dt;
+                        playerY += playerYVelocity * dt;
+                        if (playerY < 0) {
+                            playerY = 0;
+                            playerYVelocity = 0;
+                        }
+                    } else {
+                        playerY = 0; 
+                    }
+                }
+
+                if (!isTutorialMode && currentSegmentIndex >= trackSegments.length - 4) {
+                    let uncollected = activeRings.filter(rg => !rg.collected).length;
+                    if (uncollected === 0) {
+                        triggerEndgame(true, "Flawless race run! You cleared all tracking targets lines!");
+                    } else {
+                        triggerEndgame(false, `Race Failed! You left ${uncollected} Gold Rings uncollected behind you down the line.`);
+                    }
+                    return;
+                }
+
+                let ring = activeRings.find(rg => rg.segmentIndex === currentSegmentIndex && !rg.collected);
+                if (ring) {
+                    let horizontalDistance = Math.abs(playerX - ring.x);
+                    let verticalMatch = (ring.segmentIndex === 42) ? (playerY >= 400 && playerY <= 580) : (playerY <= 60);
+
+                    if (horizontalDistance < 0.55 && verticalMatch) {
+                        ring.collected = true;
+                    }
+                }
+
+                let vehicleObstacle = obstacles.find(o => o.segmentIndex === currentSegmentIndex);
+                if (vehicleObstacle && !isTutorialMode) {
+                    if (Math.abs(playerX - vehicleObstacle.x) < 0.42 && playerY <= 45) {
+                        if (playerX > vehicleObstacle.x) {
+                            playerX += 0.5;
+                            carYawAngle += 0.2; 
+                        } else {
+                            playerX -= 0.5;
+                            carYawAngle -= 0.2;
+                        }
+                        speed *= 0.65; 
+                    }
+                }
+
+                obstacles.forEach(o => {
+                    o.zOffset += o.speed * dt;
+                    if (Math.abs(o.zOffset) >= segmentLength) {
+                        o.segmentIndex--; 
+                        o.zOffset = 0;
+                    }
+                });
+
+                timeLeftDOM.innerText = isTutorialMode ? "DEMO" : timeRemaining.toFixed(1);
+                hoopsCountDOM.innerText = `${activeRings.filter(r => r.collected).length}/${activeRings.length}`;
+                speedDOM.innerText = Math.round(speed);
+            }
+
+            function gameLoop(timestamp) {
+                if (!lastTime) lastTime = timestamp;
+                let dt = (timestamp - lastTime) / 1000;
+                lastTime = timestamp;
+
+                if (dt > 0.1) dt = 0.1;
+
+                updatePhysics(dt);
+                renderScene();
+
+                if (gameActive) {
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+
+            function triggerEndgame(isVictory, descriptionText) {
+                gameActive = false;
+                statusModal.classList.remove("hidden");
+                
+                if (isVictory) {
+                    if (currentLevel < 9) {
+                        modalTitle.innerText = "LEVEL CLEAR!";
+                        modalDesc.innerText = descriptionText;
+                        modalActionBtn.innerText = `Proceed to Level ${currentLevel + 1}?`;
+                        modalActionBtn.onclick = () => {
+                            currentLevel++;
+                            statusModal.classList.add("hidden");
+                            initLevelRace(true); 
+                        };
+                    } else {
+                        statusModal.classList.add("hidden");
+                        isFinaleMode = true;
+                        gameActive = true;
+                        finaleTimer = 5.0; 
+                        lastTime = performance.now();
+                        requestAnimationFrame(gameLoop);
+                    }
+                } else {
+                    modalTitle.innerText = "RACE FAILED";
+                    modalDesc.innerText = descriptionText;
+                    modalActionBtn.innerText = "Retry Level";
+                    modalActionBtn.onclick = () => {
+                        statusModal.classList.add("hidden");
+                        initLevelRace(true);
+                    };
+                }
+            }
+
+            function initLevelRace(launchTutorialSequence = true) {
+                const theme = levelThemes[currentLevel];
+                
+                levelDisplayDOM.innerText = `${currentLevel}/9`;
+                themeBannerDOM.innerText = theme.name;
+                timeRemaining = theme.time;
+                
+                playerX = 0;
+                playerY = 0;
+                playerYVelocity = 0;
+                carYawAngle = 0;
+                steerIntensity = 0;
+                trackPosition = 0;
+                speed = 0;
+                lastTime = 0;
+
+                buildTrack();
+                
+                timeLeftDOM.innerText = timeRemaining.toFixed(1);
+                hoopsCountDOM.innerText = `0/${activeRings.length}`;
+                speedDOM.innerText = "0";
+
+                if (launchTutorialSequence) {
+                    isTutorialMode = true;
+                    tutorialTimer = 10.0; 
+                    tutorialWatermark.classList.remove("hidden");
+                    instructionsOverlay.classList.remove("hidden");
+                } else {
+                    isTutorialMode = false;
+                    tutorialWatermark.classList.add("hidden");
+                    instructionsOverlay.classList.add("hidden");
+                    gameActive = true;
+                    lastTime = performance.now();
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+
+            function startRaceAction() {
+                instructionsOverlay.classList.add("hidden");
+                gameActive = true;
+                isPaused = false;
+                lastTime = performance.now();
+                requestAnimationFrame(gameLoop);
+            }
+
+            function bindVirtualKey(elementId, keyToken) {
+                const btn = document.getElementById(elementId);
+                if(!btn) return;
+
+                const startPress = (e) => { 
+                    e.preventDefault(); 
+                    if (isTutorialMode) return; 
+                    keys[keyToken] = true; 
+                    btn.classList.add('active-control'); 
+                };
+                const endPress = (e) => { 
+                    e.preventDefault(); 
+                    keys[keyToken] = false; 
+                    btn.classList.remove('active-control'); 
+                };
+
+                btn.addEventListener("mousedown", startPress);
+                btn.addEventListener("mouseup", endPress);
+                btn.addEventListener("mouseleave", endPress);
+                
+                btn.addEventListener("touchstart", startPress);
+                btn.addEventListener("touchend", endPress);
+                btn.addEventListener("touchcancel", endPress);
+            }
+
+            bindVirtualKey("dpad-up", "up");
+            bindVirtualKey("dpad-down", "down");
+            bindVirtualKey("dpad-left", "left");
+            bindVirtualKey("dpad-right", "right");
+
+            window.addEventListener("keydown", (e) => {
+                if (isTutorialMode && gameActive) return; 
+                if (e.key === "ArrowUp") keys.up = true;
+                if (e.key === "ArrowDown") keys.down = true;
+                if (e.key === "ArrowLeft") keys.left = true;
+                if (e.key === "ArrowRight") keys.right = true;
+                if (e.key === "p" || e.key === "P") toggleGamePause();
+            });
+
+            window.addEventListener("keyup", (e) => {
+                if (e.key === "ArrowUp") keys.up = false;
+                if (e.key === "ArrowDown") keys.down = false;
+                if (e.key === "ArrowLeft") keys.left = false;
+                if (e.key === "ArrowRight") keys.right = false;
+            });
+
+            function toggleGamePause() {
+                if (!gameActive && !isPaused) return;
+                isPaused = !isPaused;
+                pauseBtn.innerText = isPaused ? "Resume" : "Pause (P)";
+                if (!isPaused) {
+                    lastTime = performance.now();
+                }
+            }
+
+            startBtn.onclick = startRaceAction;
+            pauseBtn.onclick = toggleGamePause;
+
+            initLevelRace(true);
+        });
+    </script>
+</body>
+</html>
