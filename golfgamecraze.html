@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Golf Game Craze</title>
+    <link rel="stylesheet" href="golfgamecraze.css">
+</head>
+<body>
+    <!-- Global Game UI Canvas Wrap Wrapper -->
+    <div id="game-viewport">
+        
+        <!-- Top Navigation Bar Controls -->
+        <div id="top-nav-bar">
+            <a href="https://clicksyncgames.com" id="return-link" title="Return to ClickSyncGames">
+                <span>Return to</span>
+                <div class="logo-wrapper">
+                    <span class="logo-brand">ClickSyncGames</span><span class="tm-symbol">TM</span>
+                </div>
+            </a>
+            
+            <div id="stats-display">
+                <span class="stat-lbl">LVL: <strong id="level-num">1</strong></span>
+                <span class="stat-lbl">STROKES: <strong id="stroke-count">0</strong></span>
+            </div>
+
+            <button id="pause-btn" aria-label="Pause Game">Pause</button>
+        </div>
+
+        <!-- Render Target Viewport -->
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Interactive Swing Meter / Power Bar Element -->
+        <div id="power-bar-container">
+            <div id="power-bar-fill"></div>
+            <div id="power-bar-label">POWER</div>
+        </div>
+
+        <!-- 1. Intro Splash State Overlay (4 Seconds Fade Sequence) -->
+        <div id="intro-splash" class="overlay-layer">
+            <div class="intro-centered-content">
+                <h1 class="intro-title">Golf Game Craze</h1>
+                <div class="logo-wrapper large-logo">
+                    <span class="logo-brand">ClickSyncGames</span><span class="tm-symbol">TM</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Interactive Onboarding & Instructions Overlay Screen -->
+        <div id="instructions-screen" class="overlay-layer hidden">
+            <div class="instructions-container">
+                <div class="instructions-layout">
+                    
+                    <!-- Left Column: Instructional Details -->
+                    <div class="instructions-text-block">
+                        <h2>How to Play</h2>
+                        
+                        <p><strong>Desktop Controls:</strong></p>
+                        <ul>
+                            <li><strong>Aiming Phase:</strong> Move your <strong>computer mouse</strong> or trackpad across the screen. A dynamic dashed guide vector will follow your path pointing directly toward the hole.</li>
+                            <li><strong>Lock Aim:</strong> <strong>Click once</strong> to secure your trajectory line.</li>
+                            <li><strong>Power System:</strong> The visual Power Bar meter will cycle up and down. <strong>Click a second time</strong> to select your force capacity and strike the golf ball!</li>
+                            <li><strong>Pause:</strong> Press the <strong>"P" key</strong> or click the Pause button on-screen anytime.</li>
+                        </ul>
+
+                        <p><strong>Mobile / Tablet Controls:</strong></p>
+                        <ul>
+                            <li><strong>Aiming Phase:</strong> <strong>Touch and drag your finger</strong> across the screen canvas surface to guide your trajectory line.</li>
+                            <li><strong>Lock Aim & Shoot:</strong> <strong>Lift your finger</strong> to freeze your aim line, instantly launching the automated Power Bar toggle. <strong>Tap the screen once more</strong> to lock power and strike!</li>
+                        </ul>
+
+                        <p><strong>Core Hazards:</strong> Avoid deep <strong>sand pits</strong> which absorb momentum heavily, and keep away from deep <strong>water lakes</strong> which wipe out your ball and restart the level!</p>
+                    </div>
+
+                    <!-- Right Column: Visual Loop Guide Video Simulation -->
+                    <div class="instructions-video-block">
+                        <div class="video-container-box">
+                            <!-- High performance looping preview video simulating level 1 capture sequence -->
+                            <video src="level1_preview.mp4" autoplay loop muted playsinline poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%231a3322'/><circle cx='50' cy='50' r='10' fill='%23fff'/></svg>">
+                                <track kind="captions" src="" label="no captions available">
+                            </video>
+                            <div class="video-overlay-tag">Gameplay Loop Preview</div>
+                        </div>
+                    </div>
+
+                </div>
+                
+                <div class="instructions-footer">
+                    <button id="start-game-btn">Start Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Dynamic Popups & Intermission Overlays (Pause, Game Over, Sunk Success) -->
+        <div id="popup-overlay" class="overlay-layer hidden">
+            <div class="popup-box">
+                <h2 id="popup-title">Game Paused</h2>
+                <p id="popup-desc">Click button below or press P to resume.</p>
+                <button id="popup-action-btn">Resume</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="golfgamecraze.js"></script>
+</body>
+</html>
