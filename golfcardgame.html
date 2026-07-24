@@ -1,116 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Game Craze - ClickSyncGames</title>
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link rel="stylesheet" href="golfgamecraze.css">
+    <title>KP's Golf Game - Clicksyncgames</title>
+    <link rel="stylesheet" href="kpsgolfgame.css">
+    <title>Golf Card Game - Clicksyncgames</title>
+    <link rel="stylesheet" href="golfcardgame.css">
 </head>
 <body>
-
-    <div id="game-container">
-        <!-- HUD Header -->
-        <div class="hud">
-            <a href="https://clicksyncgames.com" class="hud-link" title="Return to ClickSyncGames">
-                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="hud-logo">
-                <span>Return to ClickSyncGames™</span>
-            </a>
-            <div class="hud-stats">
-                <span>LVL: <strong id="level-num">1</strong> / 12</span>
-                <span>STROKES: <strong id="stroke-num">0</strong></span>
-            </div>
-            <button class="pause-btn-hud" id="pause-btn">Pause (P)</button>
+    <div id="game-wrapper">
+@@ -14,7 +14,7 @@
         </div>
 
-        <!-- Dynamic Control Area (Bottom Left) -->
-        <div id="shot-control-panel">
-            <!-- STEP 1: Direction Selection -->
-            <div id="direction-control-wrapper" class="control-step active">
-                <div class="hazy-background"></div>
-                <div id="joystick-container" class="bw-style">
-                    <div id="joystick-label">DIRECTION</div>
-                    <div id="joystick-base">
-                        <div id="joystick-thumb"></div>
-                    </div>
-                </div>
-                <button id="set-direction-btn" class="action-btn">Set Direction</button>
-            </div>
+        <header>
+            <h1>KP's Golf Game</h1>
+            <h1>Golf Card Game</h1>
+            <div id="message-board">Loading decks...</div>
+        </header>
 
-            <!-- STEP 2: Power Selection (Appears in the exact same spot after Direction is set) -->
-            <div id="power-control-wrapper" class="control-step hidden">
-                <div id="power-meter-wrapper">
-                    <div id="power-meter-label">SWING POWER</div>
-                    <div id="power-bar-bg">
-                        <div id="power-bar-fill"></div>
-                    </div>
-                </div>
-                <button id="swing-btn" class="action-btn power-btn">SWING</button>
-            </div>
+@@ -70,6 +70,6 @@ <h2>Game Paused</h2>
         </div>
-
-        <!-- Pre-Game Instructions Overlay -->
-        <div id="instruction-overlay">
-            <div class="instruction-card">
-                <h2>How to Play</h2>
-                <p class="instruction-text">
-                    <strong>Step 1:</strong> Use the direction controller on the bottom left to align your shot, then click <em>"Set Direction"</em>.<br><br>
-                    <strong>Step 2:</strong> Watch the Power Bar fill and drain (2 seconds each way) and click <em>"SWING"</em> at your desired power level to shoot!
-                </p>
-                <div class="instruction-images">
-                    <div class="img-box">
-                        <svg viewBox="0 0 160 100" class="game-svg-preview">
-                            <rect width="160" height="100" fill="#2e7d32" />
-                            <rect x="0" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
-                            <rect x="145" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
-                            <circle cx="80" cy="80" r="12" fill="#000000" stroke="#ffffff" stroke-width="1.5" />
-                            <circle cx="80" cy="80" r="5" fill="#ffffff"/>
-                            <line x1="80" y1="80" x2="80" y2="25" stroke="#ffffff" stroke-width="2" stroke-dasharray="4,3" />
-                        </svg>
-                        <span>1. Set Aim Direction</span>
-                    </div>
-                    <div class="img-box">
-                        <svg viewBox="0 0 160 100" class="game-svg-preview">
-                            <rect width="160" height="100" fill="#2e7d32" />
-                            <rect x="35" y="45" width="90" height="12" rx="6" fill="#111" stroke="#fff" stroke-width="1"/>
-                            <rect x="37" y="47" width="55" height="8" rx="4" fill="#00e676" />
-                        </svg>
-                        <span>2. Time Swing Power</span>
-                    </div>
-                </div>
-                <button class="start-btn" id="start-game-btn">Start Game</button>
-            </div>
-        </div>
-
-        <!-- Modern Level Transition Overlay -->
-        <div id="transition-overlay">
-            <div id="transition-text-container">
-                <span id="next-level-text">Next Level</span>
-                <span id="next-level-num"></span>
-            </div>
-        </div>
-
-        <!-- Pause Overlay -->
-        <div id="pause-overlay">
-            <h1>Game Paused</h1>
-            <p>Press <strong>P</strong> or click below to resume playing.</p>
-            <button class="resume-btn" id="resume-btn">Resume Game</button>
-        </div>
-
-        <!-- Game Completed Screen Overlay -->
-        <div id="completion-overlay">
-            <h1>Game completed!</h1>
-            <p>Congratulations on clearing all 12 golf courses!</p>
-        </div>
-
-        <!-- Canvas for Cartoon Fireworks -->
-        <canvas id="fireworks-canvas"></canvas>
-
-        <!-- 3D WebGL Canvas -->
-        <canvas id="webgl-canvas"></canvas>
     </div>
 
-    <script src="golfgamecraze.js"></script>
+    <script src="kpsgolfgame.js"></script>
+    <script src="golfcardgame.js"></script>
 </body>
 </html>
