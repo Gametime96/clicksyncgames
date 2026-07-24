@@ -1,391 +1,109 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Roboto:wght@400;700&display=swap');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Game Craze - ClickSyncGames</title>
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="golfgamecraze.css">
+</head>
+<body>
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    user-select: none;
-    -webkit-user-select: none;
-}
+    <div id="game-container">
+        <!-- HUD Header -->
+        <div class="hud">
+            <a href="https://clicksyncgames.com" class="hud-link" title="Return to ClickSyncGames">
+                Return to ClickSyncGames™
+            </a>
+            <div class="hud-stats">
+                <span>LVL: <strong id="level-num">1</strong> / 12</span>
+                <span>STROKES: <strong id="stroke-num">0</strong></span>
+            </div>
+            <button class="pause-btn-hud" id="pause-btn">Pause (P)</button>
+        </div>
 
-html, body {
-    width: 100%;
-    height: 100%;
-    background-color: #080a0d;
-    font-family: 'Roboto', sans-serif;
-    color: #f0f4f8;
-    overflow: hidden;
-}
+        <!-- Power Meter -->
+        <div id="power-meter-wrapper">
+            <div id="power-meter-label">SWING POWER</div>
+            <div id="power-bar-bg">
+                <div id="power-bar-fill"></div>
+            </div>
+        </div>
 
-/* Master viewport bounding container optimizing cross-platform display aspect ratios */
-#game-viewport {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        <!-- Perspective Direction Toggle Key -->
+        <div id="joystick-container">
+            <div id="joystick-label">DIRECTION</div>
+            <div id="joystick-base">
+                <div id="joystick-thumb"></div>
+            </div>
+        </div>
 
-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-    z-index: 1;
-}
+        <!-- Pre-Game Instructions Overlay -->
+        <div id="instruction-overlay">
+            <div class="instruction-card">
+                <h2>How to Play</h2>
+                <p class="instruction-text">
+                    Use the bottom direction toggle to rotate your camera view. Click once to lock your aim, click again to set stroke power, and launch your golf ball into the hole while avoiding hazards!
+                </p>
+                <div class="instruction-images">
+                    <div class="img-box">
+                        <svg viewBox="0 0 160 100" class="game-svg-preview">
+                            <rect width="160" height="100" fill="#2e7d32" />
+                            <rect x="0" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
+                            <rect x="145" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
+                            <circle cx="80" cy="80" r="12" fill="#81c784" />
+                            <circle cx="80" cy="80" r="5" fill="#ffffff" stroke="#ccc" stroke-width="0.8"/>
+                            <line x1="80" y1="80" x2="80" y2="25" stroke="#ffff00" stroke-width="2" stroke-dasharray="4,3" />
+                            <rect x="35" y="10" width="90" height="8" rx="4" fill="#222" />
+                            <rect x="37" y="12" width="55" height="4" rx="2" fill="#4caf50" />
+                        </svg>
+                        <span>1. Aim & Set Power</span>
+                    </div>
+                    <div class="img-box">
+                        <svg viewBox="0 0 160 100" class="game-svg-preview">
+                            <rect width="160" height="100" fill="#2e7d32" />
+                            <circle cx="50" cy="55" r="16" fill="#0288d1" opacity="0.85"/>
+                            <circle cx="110" cy="65" r="14" fill="#d7ccc8"/>
+                            <circle cx="80" cy="20" r="6" fill="#111111" />
+                            <line x1="80" y1="20" x2="80" y2="2" stroke="#dddddd" stroke-width="1.5" />
+                            <polygon points="80,2 95,6 80,10" fill="#d32f2f" />
+                        </svg>
+                        <span>2. Clear Hazards & Hole</span>
+                    </div>
+                </div>
+                <button class="start-btn" id="start-game-btn">Start Game</button>
+            </div>
+        </div>
 
-/* Fixed Overlay Layer Canvas Rules */
-.overlay-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(10, 14, 18, 0.95);
-    transition: opacity 0.5s ease, visibility 0.5s;
-    opacity: 1;
-    visibility: visible;
-}
+        <!-- Modern Level Transition Overlay -->
+        <div id="transition-overlay">
+            <div id="transition-text-container">
+                <span id="next-level-text">Next Level</span>
+                <span id="next-level-num"></span>
+            </div>
+        </div>
 
-.overlay-layer.hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
+        <!-- Pause Overlay -->
+        <div id="pause-overlay">
+            <h1>Game Paused</h1>
+            <p>Press <strong>P</strong> or click below to resume playing.</p>
+            <button class="resume-btn" id="resume-btn">Resume Game</button>
+        </div>
 
-/* Header Top HUD Bar Grid Configs */
-#top-nav-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    z-index: 5;
-    background: linear-gradient(to bottom, rgba(10,14,18,0.85), rgba(10,14,18,0));
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    pointer-events: none;
-}
+        <!-- Game Completed Screen Overlay -->
+        <div id="completion-overlay">
+            <h1>Game completed!</h1>
+            <p>Congratulations on clearing all 12 golf courses!</p>
+        </div>
 
-#top-nav-bar * {
-    pointer-events: auto;
-}
+        <!-- Canvas for Cartoon Fireworks -->
+        <canvas id="fireworks-canvas"></canvas>
 
-/* Trademark ClickSyncGames Custom Branding Graphics */
-#return-link {
-    display: flex;
-    flex-direction: column;
-    text-decoration: none;
-    color: #a0aec0;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+        <!-- 3D WebGL Canvas -->
+        <canvas id="webgl-canvas"></canvas>
+    </div>
 
-.logo-wrapper {
-    display: inline-flex;
-    align-items: flex-start;
-    margin-top: 2px;
-}
-
-.logo-brand {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 1.1rem;
-    color: #ffffff;
-    background: linear-gradient(45deg, #00f2fe, #4facfe);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.tm-symbol {
-    font-size: 0.45rem;
-    font-weight: 900;
-    color: #00f2fe;
-    margin-left: 1px;
-    transform: translateY(-2px);
-}
-
-/* Stats Display UI indicators */
-#stats-display {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 30px;
-    padding: 6px 18px;
-    font-family: 'Orbitron', sans-serif;
-    display: flex;
-    gap: 15px;
-}
-
-.stat-lbl {
-    font-size: 0.85rem;
-    color: #a0aec0;
-}
-
-.stat-lbl strong {
-    color: #00f2fe;
-}
-
-/* Action Control Button Elements */
-#pause-btn, button {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 600;
-    font-size: 0.8rem;
-    transition: all 0.2s;
-}
-
-#pause-btn:hover, button:hover {
-    background: #ffffff;
-    color: #0a0e12;
-}
-
-/* Intro Cinematic Screen Visual Rules */
-#intro-splash {
-    background: #0a0e12;
-    transition: opacity 1s ease-in-out;
-}
-
-.intro-centered-content {
-    text-align: center;
-}
-
-.intro-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 2.8rem;
-    font-weight: 900;
-    margin-bottom: 8px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-}
-
-.large-logo .logo-brand {
-    font-size: 1.8rem;
-}
-
-.large-logo .tm-symbol {
-    font-size: 0.7rem;
-    transform: translateY(-6px);
-}
-
-/* Onboarding Screen Instructions Board Grid Structure */
-.instructions-container {
-    background: #11161d;
-    border: 2px solid rgba(255,255,255,0.1);
-    width: 90%;
-    max-width: 860px;
-    max-height: 85%;
-    border-radius: 16px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-}
-
-.instructions-layout {
-    display: flex;
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px;
-    gap: 30px;
-}
-
-.instructions-text-block {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.instructions-text-block h2 {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.6rem;
-    color: #00f2fe;
-    margin-bottom: 5px;
-}
-
-.instructions-text-block p strong {
-    color: #ffffff;
-}
-
-.instructions-text-block ul {
-    list-style-position: inside;
-    margin-bottom: 10px;
-    padding-left: 5px;
-}
-
-.instructions-text-block li {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-    color: #cbd5e0;
-    line-height: 1.4;
-}
-
-/* Equidistant Right-Justified Media Panel Rules */
-.instructions-video-block {
-    width: 320px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.video-container-box {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 14;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 3px solid #1e293b;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-}
-
-.video-container-box video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.video-overlay-tag {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(10, 14, 18, 0.8);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    white-space: nowrap;
-    letter-spacing: 0.5px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.instructions-footer {
-    padding: 20px 30px;
-    background: #0d1117;
-    display: flex;
-    justify-content: flex-end;
-    border-top: 1px solid rgba(255,255,255,0.05);
-}
-
-#start-game-btn {
-    background: linear-gradient(45deg, #00f2fe, #4facfe);
-    color: #0c0f12;
-    padding: 14px 36px;
-    font-size: 1rem;
-    font-weight: 700;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
-}
-
-#start-game-btn:hover {
-    background: #ffffff;
-    color: #0c0f12;
-    transform: translateY(-2px);
-}
-
-/* Modals & Dialog Boxes */
-.popup-box {
-    background: #11161d;
-    border: 2px solid #00f2fe;
-    border-radius: 12px;
-    padding: 30px 40px;
-    text-align: center;
-    max-width: 400px;
-    width: 85%;
-    box-shadow: 0 10px 30px rgba(0, 242, 254, 0.15);
-}
-
-#popup-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.8rem;
-    margin-bottom: 8px;
-}
-
-#popup-desc {
-    color: #a0aec0;
-    margin-bottom: 24px;
-    font-size: 0.95rem;
-}
-
-#popup-action-btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 0.95rem;
-}
-
-/* Vertical Swing Power Meter Element UI */
-#power-bar-container {
-    position: absolute;
-    right: 30px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 240px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    overflow: hidden;
-    display: none;
-    flex-direction: column-reverse;
-    z-index: 4;
-}
-
-#power-bar-fill {
-    width: 100%;
-    height: 0%;
-    background: linear-gradient(to top, #39ff14, #ffdf00, #ff073a);
-}
-
-#power-bar-label {
-    position: absolute;
-    width: 100px;
-    text-align: center;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.6rem;
-    font-weight: 900;
-    transform: rotate(-90deg) translate(-105px, -36px);
-    transform-origin: left top;
-    letter-spacing: 2px;
-}
-
-/* Responsive Structural Layout Overrides for Portrait Displays and Mobile Units */
-@media(max-width: 768px) {
-    .instructions-layout {
-        flex-direction: column;
-        padding: 20px;
-    }
-    .instructions-video-block {
-        width: 100%;
-        margin: 10px 0;
-    }
-    .video-container-box {
-        width: 180px;
-    }
-    .intro-title {
-        font-size: 1.9rem;
-    }
-    .large-logo .logo-brand {
-        font-size: 1.3rem;
-    }
-    #power-bar-container {
-        right: 15px;
-        height: 180px;
-    }
-}
+    <script src="golfgamecraze.js"></script>
+</body>
+</html>
