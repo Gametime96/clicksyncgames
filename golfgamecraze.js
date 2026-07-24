@@ -8,15 +8,16 @@ let isTransitioning = false;
 let strokes = 0;
 let currentLevel = 1;
 
-// Ball Physics State
+// Ball Physics & Shot State
 let ballVel = new THREE.Vector3(0, 0, 0);
 let isMoving = false;
-let isAiming = true;
-let isPowering = false;
 let cameraAngle = 0;
+
+// Power Meter Oscillation Timing State
+let shotStep = 'AIM'; // 'AIM' | 'POWER' | 'SHOOTING'
 let power = 0;
-let powerDir = 1;
-let powerInterval = null;
+let powerStartTime = 0;
+let powerAnimFrame = null;
 
 // --- 12 PROGRESSIVE LEVEL DEFINITIONS ---
 const LEVELS_DATA = [
@@ -44,7 +45,6 @@ const LEVELS_DATA = [
         water: { x: 0, z: 0, radius: 5 },
         sand: [{ xMin: -8, xMax: -3, zMin: 10, zMax: 15 }]
     },
-    // Level 4+: Hole is centered on a small hill
     {
         level: 4,
         bounds: { xMin: -11, xMax: 11, zMin: -35, zMax: 35 },
@@ -69,7 +69,6 @@ const LEVELS_DATA = [
         water: { x: 0, z: -3, radius: 8 },
         sand: [{ xMin: -5, xMax: 5, zMin: 15, zMax: 24 }]
     },
-    // Level 7+: 2 Sand Areas & Circular Body of Water
     {
         level: 7,
         bounds: { xMin: -14, xMax: 14, zMin: -50, zMax: 50 },
@@ -92,7 +91,6 @@ const LEVELS_DATA = [
             { xMin: 3, xMax: 13, zMin: -32, zMax: -20 }
         ]
     },
-    // Levels 9-12: Massive Length Courses
     {
         level: 9,
         bounds: { xMin: -16, xMax: 16, zMin: -110, zMax: 110 },
@@ -127,7 +125,7 @@ const LEVELS_DATA = [
         ]
     },
     {
-        level: 12, // Ultimate Challenge Course
+        level: 12,
         bounds: { xMin: -22, xMax: 22, zMin: -800, zMax: 800 },
         tee: { x: 0, z: 760 },
         hole: { x: 0, z: -760 },
@@ -183,7 +181,7 @@ function init3D() {
 
     // 6. Aim Guide Line
     const lineMat = new THREE.LineDashedMaterial({
-        color: 0xffff00,
+        color: 0xffffff,
         dashSize: 0.5,
         gapSize: 0.25,
         linewidth: 2
@@ -198,6 +196,7 @@ function init3D() {
 
     loadLevel(currentLevel);
     setupJoystick();
+    setupShotControls();
 
     // Event Listeners
     window.addEventListener('resize', onWindowResize);
@@ -208,7 +207,6 @@ function init3D() {
     document.getElementById('pause-btn').addEventListener('click', () => { if (isGameStarted && !isTransitioning) togglePause(); });
     document.getElementById('resume-btn').addEventListener('click', togglePause);
     document.getElementById('start-game-btn').addEventListener('click', startGame);
-    canvas.addEventListener('click', handleCanvasClick);
 
     // Start Game Loop
     animate();
@@ -254,7 +252,7 @@ function loadLevel(lvlNum) {
     water.position.set(cfg.water.x, 0.01, cfg.water.z);
     courseGroup.add(water);
 
-    // Build Sand Traps (1 trap for Lvl 1-6; 2 traps for Lvl 7+)
+    // Build Sand Traps
     cfg.sand.forEach(s => {
         const sWidth = s.xMax - s.xMin;
         const sDepth = s.zMax - s.zMin;
@@ -265,10 +263,10 @@ function loadLevel(lvlNum) {
         courseGroup.add(sand);
     });
 
-    // Levels 4+: Build Small Hill with Hole Exactly in Center
+    // Hill Elevation (Level 4+)
     let holeYPosition = 0.02;
     if (currentLevel >= 4) {
-        holeYPosition = 0.52; // Elevation top of mound
+        holeYPosition = 0.52;
         const hillGeo = new THREE.CylinderGeometry(2.5, 5.0, 0.5, 32);
         const hillMat = new THREE.MeshStandardMaterial({ color: 0x388e3c, roughness: 0.75 });
         const hill = new THREE.Mesh(hillGeo, hillMat);
@@ -336,10 +334,11 @@ function resetBall() {
     ball.position.set(cfg.tee.x, 0.35, cfg.tee.z);
     ballVel.set(0, 0, 0);
     isMoving = false;
-    isAiming = true;
     cameraAngle = 0;
     aimingLine.visible = true;
-    document.getElementById('power-bar-fill').style.width = '0%';
+    
+    // Reset to Direction Step
+    switchShotStep('AIM');
     updateCameraPosition();
 }
 
@@ -367,12 +366,13 @@ function setupJoystick() {
     let startX = 0;
 
     function handleStart(clientX) {
+        if (shotStep !== 'AIM') return;
         isDragging = true;
         startX = clientX;
     }
 
     function handleMove(clientX) {
-        if (!isDragging || isPaused || !isGameStarted || isTransitioning) return;
+        if (!isDragging || isPaused || !isGameStarted || isTransitioning || shotStep !== 'AIM') return;
         const deltaX = clientX - startX;
         
         cameraAngle -= deltaX * 0.015;
@@ -397,37 +397,87 @@ function setupJoystick() {
     window.addEventListener('mouseup', handleEnd);
 }
 
-// --- SHOOTING CONTROLS ---
-function handleCanvasClick(e) {
-    if (!isGameStarted || isMoving || isPaused || isTransitioning || e.target.closest('#joystick-container')) return;
+// --- TWO-STEP SHOT CONTROLS & DYNAMIC POWER BAR ---
+function setupShotControls() {
+    const setDirectionBtn = document.getElementById('set-direction-btn');
+    const swingBtn = document.getElementById('swing-btn');
 
-    if (isAiming) {
-        isAiming = false;
-        isPowering = true;
-        startPowerMeter();
-    } else if (isPowering) {
-        isPowering = false;
-        stopPowerMeter();
-        shootBall();
+    setDirectionBtn.addEventListener('click', () => {
+        if (!isGameStarted || isMoving || isPaused || isTransitioning) return;
+        switchShotStep('POWER');
+    });
+
+    swingBtn.addEventListener('click', () => {
+        if (shotStep !== 'POWER' || isPaused) return;
+        executeSwing();
+    });
+}
+
+function switchShotStep(step) {
+    shotStep = step;
+    const dirWrapper = document.getElementById('direction-control-wrapper');
+    const powerWrapper = document.getElementById('power-control-wrapper');
+
+    if (step === 'AIM') {
+        stopPowerOscillation();
+        dirWrapper.classList.remove('hidden');
+        dirWrapper.classList.add('active');
+        powerWrapper.classList.remove('active');
+        powerWrapper.classList.add('hidden');
+        aimingLine.visible = true;
+    } else if (step === 'POWER') {
+        dirWrapper.classList.remove('active');
+        dirWrapper.classList.add('hidden');
+        powerWrapper.classList.remove('hidden');
+        powerWrapper.classList.add('active');
+        startPowerOscillation();
+    } else if (step === 'SHOOTING') {
+        dirWrapper.classList.remove('active');
+        dirWrapper.classList.add('hidden');
+        powerWrapper.classList.remove('active');
+        powerWrapper.classList.add('hidden');
+        aimingLine.visible = false;
     }
 }
 
-function startPowerMeter() {
+// Exactly 2 Seconds Fill, 2 Seconds Empty Oscillation
+function startPowerOscillation() {
     power = 0;
-    powerDir = 1;
-    powerInterval = setInterval(() => {
-        power += 2.5 * powerDir;
-        if (power >= 100 || power <= 0) powerDir *= -1;
-        document.getElementById('power-bar-fill').style.width = power + '%';
-    }, 16);
+    powerStartTime = performance.now();
+    document.getElementById('power-bar-fill').style.width = '0%';
+
+    function animatePower(currentTime) {
+        if (shotStep !== 'POWER') return;
+
+        const elapsedTime = (currentTime - powerStartTime) / 1000; // in seconds
+        const cycleTime = elapsedTime % 4.0; // Total cycle = 4s (2s up, 2s down)
+
+        if (cycleTime <= 2.0) {
+            // Fill phase: 0% to 100% in 2.0s
+            power = (cycleTime / 2.0) * 100;
+        } else {
+            // Drain phase: 100% to 0% in 2.0s
+            power = (1 - ((cycleTime - 2.0) / 2.0)) * 100;
+        }
+
+        document.getElementById('power-bar-fill').style.width = power.toFixed(1) + '%';
+        powerAnimFrame = requestAnimationFrame(animatePower);
+    }
+
+    powerAnimFrame = requestAnimationFrame(animatePower);
 }
 
-function stopPowerMeter() {
-    clearInterval(powerInterval);
+function stopPowerOscillation() {
+    if (powerAnimFrame) {
+        cancelAnimationFrame(powerAnimFrame);
+        powerAnimFrame = null;
+    }
 }
 
-function shootBall() {
-    aimingLine.visible = false;
+function executeSwing() {
+    stopPowerOscillation();
+    switchShotStep('SHOOTING');
+
     const impulse = (power / 100) * 1.6;
 
     ballVel.x = -Math.sin(cameraAngle) * impulse;
@@ -455,15 +505,12 @@ function triggerModernLevelTransition(nextLvl) {
     labelNum.style.opacity = '0';
     overlay.style.display = 'flex';
 
-    // Step 1: Blackout screen for 0.5s, then show "Next Level"
     setTimeout(() => {
         labelText.style.opacity = '1';
 
-        // Step 2: Show level number 0.5s later
         setTimeout(() => {
             labelNum.style.opacity = '1';
 
-            // Step 3: Transition to next level after ~2s total
             setTimeout(() => {
                 overlay.style.display = 'none';
                 strokes = 0;
@@ -585,15 +632,13 @@ function animate() {
                 }
             });
 
-            // Hill Elevation Slope Physics (Levels 4+)
+            // Hill Elevation Physics (Level 4+)
             if (currentLevel >= 4) {
                 const distToHillCenter = Math.hypot(ball.position.x - cfg.hole.x, ball.position.z - cfg.hole.z);
                 if (distToHillCenter < 5.0) {
-                    // Smooth mound height adjustment
                     const hillFactor = (1 - distToHillCenter / 5.0);
                     ball.position.y = 0.35 + (hillFactor * 0.5);
 
-                    // Gravity push down hill if velocity is low
                     if (ballVel.length() < 0.25) {
                         const pushAngle = Math.atan2(ball.position.z - cfg.hole.z, ball.position.x - cfg.hole.x);
                         ballVel.x += Math.cos(pushAngle) * 0.015;
@@ -631,9 +676,7 @@ function animate() {
             if (ballVel.length() < 0.01) {
                 ballVel.set(0, 0, 0);
                 isMoving = false;
-                isAiming = true;
-                aimingLine.visible = true;
-                document.getElementById('power-bar-fill').style.width = '0%';
+                switchShotStep('AIM'); // Return to Step 1: Set Aim
             }
 
             // Hole Completion Detection
