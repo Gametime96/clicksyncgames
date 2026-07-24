@@ -1,109 +1,396 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Game Craze - ClickSyncGames</title>
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link rel="stylesheet" href="golfgamecraze.css">
-</head>
-<body>
+* {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
 
-    <div id="game-container">
-        <!-- HUD Header -->
-        <div class="hud">
-            <a href="https://clicksyncgames.com" class="hud-link" title="Return to ClickSyncGames">
-                Return to ClickSyncGames™
-            </a>
-            <div class="hud-stats">
-                <span>LVL: <strong id="level-num">1</strong> / 12</span>
-                <span>STROKES: <strong id="stroke-num">0</strong></span>
-            </div>
-            <button class="pause-btn-hud" id="pause-btn">Pause (P)</button>
-        </div>
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #0d1117;
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
 
-        <!-- Power Meter -->
-        <div id="power-meter-wrapper">
-            <div id="power-meter-label">SWING POWER</div>
-            <div id="power-bar-bg">
-                <div id="power-bar-fill"></div>
-            </div>
-        </div>
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    max-width: 1200px;
+    max-height: 800px;
+    margin: auto;
+    background: #000;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    border-radius: 12px;
+    overflow: hidden;
+}
 
-        <!-- Perspective Direction Toggle Key -->
-        <div id="joystick-container">
-            <div id="joystick-label">DIRECTION</div>
-            <div id="joystick-base">
-                <div id="joystick-thumb"></div>
-            </div>
-        </div>
+/* HUD Header */
+.hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+    z-index: 10;
+}
 
-        <!-- Pre-Game Instructions Overlay -->
-        <div id="instruction-overlay">
-            <div class="instruction-card">
-                <h2>How to Play</h2>
-                <p class="instruction-text">
-                    Use the bottom direction toggle to rotate your camera view. Click once to lock your aim, click again to set stroke power, and launch your golf ball into the hole while avoiding hazards!
-                </p>
-                <div class="instruction-images">
-                    <div class="img-box">
-                        <svg viewBox="0 0 160 100" class="game-svg-preview">
-                            <rect width="160" height="100" fill="#2e7d32" />
-                            <rect x="0" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
-                            <rect x="145" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
-                            <circle cx="80" cy="80" r="12" fill="#81c784" />
-                            <circle cx="80" cy="80" r="5" fill="#ffffff" stroke="#ccc" stroke-width="0.8"/>
-                            <line x1="80" y1="80" x2="80" y2="25" stroke="#ffff00" stroke-width="2" stroke-dasharray="4,3" />
-                            <rect x="35" y="10" width="90" height="8" rx="4" fill="#222" />
-                            <rect x="37" y="12" width="55" height="4" rx="2" fill="#4caf50" />
-                        </svg>
-                        <span>1. Aim & Set Power</span>
-                    </div>
-                    <div class="img-box">
-                        <svg viewBox="0 0 160 100" class="game-svg-preview">
-                            <rect width="160" height="100" fill="#2e7d32" />
-                            <circle cx="50" cy="55" r="16" fill="#0288d1" opacity="0.85"/>
-                            <circle cx="110" cy="65" r="14" fill="#d7ccc8"/>
-                            <circle cx="80" cy="20" r="6" fill="#111111" />
-                            <line x1="80" y1="20" x2="80" y2="2" stroke="#dddddd" stroke-width="1.5" />
-                            <polygon points="80,2 95,6 80,10" fill="#d32f2f" />
-                        </svg>
-                        <span>2. Clear Hazards & Hole</span>
-                    </div>
-                </div>
-                <button class="start-btn" id="start-game-btn">Start Game</button>
-            </div>
-        </div>
+.hud-link {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+}
 
-        <!-- Modern Level Transition Overlay -->
-        <div id="transition-overlay">
-            <div id="transition-text-container">
-                <span id="next-level-text">Next Level</span>
-                <span id="next-level-num"></span>
-            </div>
-        </div>
+.hud-link:hover {
+    color: #81C784;
+}
 
-        <!-- Pause Overlay -->
-        <div id="pause-overlay">
-            <h1>Game Paused</h1>
-            <p>Press <strong>P</strong> or click below to resume playing.</p>
-            <button class="resume-btn" id="resume-btn">Resume Game</button>
-        </div>
+.hud-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
 
-        <!-- Game Completed Screen Overlay -->
-        <div id="completion-overlay">
-            <h1>Game completed!</h1>
-            <p>Congratulations on clearing all 12 golf courses!</p>
-        </div>
+/* Dark Orange HUD Pause Button */
+.pause-btn-hud {
+    background-color: #d35400;
+    color: #ffffff;
+    border: 1.5px solid #000000;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+}
 
-        <!-- Canvas for Cartoon Fireworks -->
-        <canvas id="fireworks-canvas"></canvas>
+.pause-btn-hud:hover {
+    background-color: #e67e22;
+}
 
-        <!-- 3D WebGL Canvas -->
-        <canvas id="webgl-canvas"></canvas>
-    </div>
+.pause-btn-hud:active {
+    transform: scale(0.96);
+}
 
-    <script src="golfgamecraze.js"></script>
-</body>
-</html>
+/* 3D Canvas */
+#webgl-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Fireworks Canvas */
+#fireworks-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 90;
+}
+
+/* Swing Power Meter UI */
+#power-meter-wrapper {
+    position: absolute;
+    bottom: 25px;
+    left: 25px;
+    width: 220px;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    z-index: 10;
+}
+
+#power-meter-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    color: #ddd;
+}
+
+#power-bar-bg {
+    width: 100%;
+    height: 16px;
+    background: #222;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #444;
+}
+
+#power-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4caf50 0%, #ffeb3b 70%, #f44336 100%);
+}
+
+/* Perspective Direction Controller (Joystick) */
+#joystick-container {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+}
+
+#joystick-label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #aaa;
+    margin-bottom: 6px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+#joystick-base {
+    width: 100px;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: relative;
+    touch-action: none;
+    cursor: grab;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+#joystick-base:active {
+    cursor: grabbing;
+}
+
+#joystick-thumb {
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, #81c784 0%, #2e7d32 100%);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    pointer-events: none;
+}
+
+/* Pre-Game Instructions Overlay */
+#instruction-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 120;
+}
+
+.instruction-card {
+    background: #1a232a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 25px 30px;
+    max-width: 520px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+
+.instruction-card h2 {
+    margin-top: 0;
+    color: #4CAF50;
+    font-size: 1.8rem;
+    letter-spacing: 0.5px;
+}
+
+.instruction-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.instruction-images {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.img-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 48%;
+}
+
+.game-svg-preview {
+    width: 100%;
+    height: 110px;
+    border-radius: 10px;
+    border: 1.5px solid #4CAF50;
+    margin-bottom: 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+.img-box span {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #bbb;
+}
+
+.start-btn {
+    background-color: #2e7d32;
+    color: #ffffff;
+    border: none;
+    padding: 12px 36px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
+}
+
+.start-btn:hover {
+    background-color: #388e3c;
+    transform: translateY(-2px);
+}
+
+/* Modern Blackout Transition Overlay */
+#transition-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 130;
+}
+
+#transition-text-container {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+#next-level-text {
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#next-level-num {
+    color: #4CAF50;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Pause Screen Overlay */
+#pause-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(6px);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+#pause-overlay h1 {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    color: #ffffff;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+#pause-overlay p {
+    color: #aaa;
+    margin-bottom: 25px;
+    font-size: 1rem;
+}
+
+/* White Resume Button */
+.resume-btn {
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 14px 36px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.resume-btn:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
+}
+
+/* Game Completion Overlay */
+#completion-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 110;
+}
+
+#completion-overlay h1 {
+    font-size: 3.5rem;
+    color: #ffeb3b;
+    margin: 0 0 10px 0;
+    text-shadow: 0 4px 15px rgba(255, 235, 59, 0.5);
+}
+
+#completion-overlay p {
+    font-size: 1.2rem;
+    color: #ffffff;
+}
