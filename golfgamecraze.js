@@ -335,9 +335,8 @@ function resetBall() {
     ballVel.set(0, 0, 0);
     isMoving = false;
     cameraAngle = 0;
-    aimingLine.visible = true;
     
-    // Reset to Direction Step
+    // Reset control flow to Step 1 (Aim)
     switchShotStep('AIM');
     updateCameraPosition();
 }
@@ -424,7 +423,7 @@ function switchShotStep(step) {
         dirWrapper.classList.add('active');
         powerWrapper.classList.remove('active');
         powerWrapper.classList.add('hidden');
-        aimingLine.visible = true;
+        if (aimingLine) aimingLine.visible = true;
     } else if (step === 'POWER') {
         dirWrapper.classList.remove('active');
         dirWrapper.classList.add('hidden');
@@ -436,7 +435,7 @@ function switchShotStep(step) {
         dirWrapper.classList.add('hidden');
         powerWrapper.classList.remove('active');
         powerWrapper.classList.add('hidden');
-        aimingLine.visible = false;
+        if (aimingLine) aimingLine.visible = false;
     }
 }
 
@@ -449,14 +448,12 @@ function startPowerOscillation() {
     function animatePower(currentTime) {
         if (shotStep !== 'POWER') return;
 
-        const elapsedTime = (currentTime - powerStartTime) / 1000; // in seconds
-        const cycleTime = elapsedTime % 4.0; // Total cycle = 4s (2s up, 2s down)
+        const elapsedTime = (currentTime - powerStartTime) / 1000;
+        const cycleTime = elapsedTime % 4.0; // 4s total loop (2s up, 2s down)
 
         if (cycleTime <= 2.0) {
-            // Fill phase: 0% to 100% in 2.0s
             power = (cycleTime / 2.0) * 100;
         } else {
-            // Drain phase: 100% to 0% in 2.0s
             power = (1 - ((cycleTime - 2.0) / 2.0)) * 100;
         }
 
@@ -493,7 +490,6 @@ function togglePause() {
     document.getElementById('pause-overlay').style.display = isPaused ? 'flex' : 'none';
 }
 
-// Modern Level Transition Sequence
 function triggerModernLevelTransition(nextLvl) {
     isTransitioning = true;
     const overlay = document.getElementById('transition-overlay');
@@ -528,7 +524,6 @@ function triggerCompletionSequence() {
     launchCartoonFireworks(4000);
 }
 
-// 2D Cartoon Particle Fireworks Generator
 function launchCartoonFireworks(duration) {
     const canvas = document.getElementById('fireworks-canvas');
     const ctx = canvas.getContext('2d');
@@ -676,7 +671,7 @@ function animate() {
             if (ballVel.length() < 0.01) {
                 ballVel.set(0, 0, 0);
                 isMoving = false;
-                switchShotStep('AIM'); // Return to Step 1: Set Aim
+                switchShotStep('AIM');
             }
 
             // Hole Completion Detection
