@@ -14,7 +14,8 @@
         <!-- HUD Header -->
         <div class="hud">
             <a href="https://clicksyncgames.com" class="hud-link" title="Return to ClickSyncGames">
-                Return to ClickSyncGames™
+                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="hud-logo">
+                <span>Return to ClickSyncGames™</span>
             </a>
             <div class="hud-stats">
                 <span>LVL: <strong id="level-num">1</strong> / 12</span>
@@ -23,19 +24,29 @@
             <button class="pause-btn-hud" id="pause-btn">Pause (P)</button>
         </div>
 
-        <!-- Power Meter -->
-        <div id="power-meter-wrapper">
-            <div id="power-meter-label">SWING POWER</div>
-            <div id="power-bar-bg">
-                <div id="power-bar-fill"></div>
+        <!-- Dynamic Control Area (Bottom Left) -->
+        <div id="shot-control-panel">
+            <!-- STEP 1: Direction Selection -->
+            <div id="direction-control-wrapper" class="control-step active">
+                <div class="hazy-background"></div>
+                <div id="joystick-container" class="bw-style">
+                    <div id="joystick-label">DIRECTION</div>
+                    <div id="joystick-base">
+                        <div id="joystick-thumb"></div>
+                    </div>
+                </div>
+                <button id="set-direction-btn" class="action-btn">Set Direction</button>
             </div>
-        </div>
 
-        <!-- Perspective Direction Toggle Key -->
-        <div id="joystick-container">
-            <div id="joystick-label">DIRECTION</div>
-            <div id="joystick-base">
-                <div id="joystick-thumb"></div>
+            <!-- STEP 2: Power Selection (Appears in the exact same spot after Direction is set) -->
+            <div id="power-control-wrapper" class="control-step hidden">
+                <div id="power-meter-wrapper">
+                    <div id="power-meter-label">SWING POWER</div>
+                    <div id="power-bar-bg">
+                        <div id="power-bar-fill"></div>
+                    </div>
+                </div>
+                <button id="swing-btn" class="action-btn power-btn">SWING</button>
             </div>
         </div>
 
@@ -44,7 +55,8 @@
             <div class="instruction-card">
                 <h2>How to Play</h2>
                 <p class="instruction-text">
-                    Use the bottom direction toggle to rotate your camera view. Click once to lock your aim, click again to set stroke power, and launch your golf ball into the hole while avoiding hazards!
+                    <strong>Step 1:</strong> Use the direction controller on the bottom left to align your shot, then click <em>"Set Direction"</em>.<br><br>
+                    <strong>Step 2:</strong> Watch the Power Bar fill and drain (2 seconds each way) and click <em>"SWING"</em> at your desired power level to shoot!
                 </p>
                 <div class="instruction-images">
                     <div class="img-box">
@@ -52,24 +64,19 @@
                             <rect width="160" height="100" fill="#2e7d32" />
                             <rect x="0" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
                             <rect x="145" y="0" width="15" height="100" fill="#1b5e20" opacity="0.5"/>
-                            <circle cx="80" cy="80" r="12" fill="#81c784" />
-                            <circle cx="80" cy="80" r="5" fill="#ffffff" stroke="#ccc" stroke-width="0.8"/>
-                            <line x1="80" y1="80" x2="80" y2="25" stroke="#ffff00" stroke-width="2" stroke-dasharray="4,3" />
-                            <rect x="35" y="10" width="90" height="8" rx="4" fill="#222" />
-                            <rect x="37" y="12" width="55" height="4" rx="2" fill="#4caf50" />
+                            <circle cx="80" cy="80" r="12" fill="#000000" stroke="#ffffff" stroke-width="1.5" />
+                            <circle cx="80" cy="80" r="5" fill="#ffffff"/>
+                            <line x1="80" y1="80" x2="80" y2="25" stroke="#ffffff" stroke-width="2" stroke-dasharray="4,3" />
                         </svg>
-                        <span>1. Aim & Set Power</span>
+                        <span>1. Set Aim Direction</span>
                     </div>
                     <div class="img-box">
                         <svg viewBox="0 0 160 100" class="game-svg-preview">
                             <rect width="160" height="100" fill="#2e7d32" />
-                            <circle cx="50" cy="55" r="16" fill="#0288d1" opacity="0.85"/>
-                            <circle cx="110" cy="65" r="14" fill="#d7ccc8"/>
-                            <circle cx="80" cy="20" r="6" fill="#111111" />
-                            <line x1="80" y1="20" x2="80" y2="2" stroke="#dddddd" stroke-width="1.5" />
-                            <polygon points="80,2 95,6 80,10" fill="#d32f2f" />
+                            <rect x="35" y="45" width="90" height="12" rx="6" fill="#111" stroke="#fff" stroke-width="1"/>
+                            <rect x="37" y="47" width="55" height="8" rx="4" fill="#00e676" />
                         </svg>
-                        <span>2. Clear Hazards & Hole</span>
+                        <span>2. Time Swing Power</span>
                     </div>
                 </div>
                 <button class="start-btn" id="start-game-btn">Start Game</button>
