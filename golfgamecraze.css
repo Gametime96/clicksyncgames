@@ -13,6 +13,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    min-height: 100vh;
     overflow: hidden;
 }
 
@@ -29,7 +31,9 @@ body {
     overflow: hidden;
 }
 
-/* HUD Header */
+/* ==========================================
+   HUD Header & Logo
+   ========================================== */
 .hud {
     position: absolute;
     top: 0;
@@ -40,19 +44,30 @@ body {
     align-items: center;
     padding: 15px 25px;
     background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
-    z-index: 10;
+    z-index: 50;
 }
 
 .hud-link {
-    color: #4CAF50;
+    color: #ffffff;
     text-decoration: none;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1rem;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .hud-link:hover {
-    color: #81C784;
+    color: #cccccc;
+}
+
+.hud-logo {
+    height: 32px;
+    width: auto;
+    border-radius: 6px;
+    object-fit: contain;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .hud-stats {
@@ -66,7 +81,6 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Dark Orange HUD Pause Button */
 .pause-btn-hud {
     background-color: #d35400;
     color: #ffffff;
@@ -91,14 +105,13 @@ body {
     transform: scale(0.96);
 }
 
-/* 3D Canvas */
+/* 3D Canvas & Effects */
 #webgl-canvas {
     width: 100%;
     height: 100%;
     display: block;
 }
 
-/* Fireworks Canvas */
 #fireworks-canvas {
     position: absolute;
     top: 0;
@@ -109,73 +122,81 @@ body {
     z-index: 90;
 }
 
-/* Swing Power Meter UI */
-#power-meter-wrapper {
+/* ==========================================
+   Unified Shot Control Dock (Bottom Left)
+   ========================================== */
+#shot-control-panel {
     position: absolute;
     bottom: 25px;
     left: 25px;
-    width: 220px;
-    background: rgba(0, 0, 0, 0.75);
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    text-align: center;
-    z-index: 10;
+    width: 240px;
+    z-index: 50;
 }
 
-#power-meter-label {
-    font-size: 0.8rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-    color: #ddd;
-}
-
-#power-bar-bg {
-    width: 100%;
-    height: 16px;
-    background: #222;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid #444;
-}
-
-#power-bar-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #4caf50 0%, #ffeb3b 70%, #f44336 100%);
-}
-
-/* Perspective Direction Controller (Joystick) */
-#joystick-container {
-    position: absolute;
-    bottom: 25px;
-    right: 25px;
+.control-step {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    z-index: 10;
+    width: 100%;
+}
+
+.control-step.hidden {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.control-step.active {
+    display: flex !important;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* STEP 1: Hazy Radial Glow Background */
+.hazy-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 240px;
+    height: 240px;
+    transform: translate(-50%, -60%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(0, 0, 0, 0) 70%);
+    border-radius: 50%;
+    filter: blur(10px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* STEP 1: Black and White Direction Toggle */
+#joystick-container.bw-style {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 12px;
 }
 
 #joystick-label {
-    font-size: 0.75rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-    color: #aaa;
-    margin-bottom: 6px;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
 }
 
 #joystick-base {
-    width: 100px;
-    height: 100px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 110px;
+    height: 110px;
+    background: #000000;
+    border: 3px solid #ffffff;
     border-radius: 50%;
     position: relative;
     touch-action: none;
     cursor: grab;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 #joystick-base:active {
@@ -183,20 +204,103 @@ body {
 }
 
 #joystick-thumb {
-    width: 40px;
-    height: 40px;
-    background: radial-gradient(circle, #81c784 0%, #2e7d32 100%);
-    border: 2px solid #ffffff;
+    width: 42px;
+    height: 42px;
+    background: #ffffff;
+    border: 3px solid #000000;
     border-radius: 50%;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
     pointer-events: none;
 }
 
-/* Pre-Game Instructions Overlay */
+/* Action Buttons */
+.action-btn {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    background-color: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 12px 18px;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border-radius: 25px;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+.action-btn:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.8);
+}
+
+.action-btn:active {
+    transform: translateY(1px);
+}
+
+/* STEP 2: Horizontal Power Meter */
+#power-control-wrapper {
+    background: rgba(0, 0, 0, 0.85);
+    padding: 16px;
+    border-radius: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+}
+
+#power-meter-wrapper {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+#power-meter-label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+#power-bar-bg {
+    width: 100%;
+    height: 20px;
+    background: #111111;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #ffffff;
+    position: relative;
+}
+
+#power-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4caf50 0%, #ffeb3b 60%, #f44336 100%);
+    transition: width 0.016s linear;
+}
+
+.action-btn.power-btn {
+    background-color: #ff3d00;
+    color: #ffffff;
+    border-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(255, 61, 0, 0.5);
+}
+
+.action-btn.power-btn:hover {
+    background-color: #ff5722;
+    box-shadow: 0 6px 20px rgba(255, 61, 0, 0.7);
+}
+
+/* ==========================================
+   Pre-Game Instructions Overlay
+   ========================================== */
 #instruction-overlay {
     position: absolute;
     top: 0;
@@ -224,16 +328,17 @@ body {
 
 .instruction-card h2 {
     margin-top: 0;
-    color: #4CAF50;
+    color: #ffffff;
     font-size: 1.8rem;
     letter-spacing: 0.5px;
 }
 
 .instruction-text {
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.6;
     color: #e0e0e0;
     margin-bottom: 20px;
+    text-align: left;
 }
 
 .instruction-images {
@@ -254,7 +359,7 @@ body {
     width: 100%;
     height: 110px;
     border-radius: 10px;
-    border: 1.5px solid #4CAF50;
+    border: 1.5px solid #ffffff;
     margin-bottom: 6px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
@@ -283,7 +388,9 @@ body {
     transform: translateY(-2px);
 }
 
-/* Modern Blackout Transition Overlay */
+/* ==========================================
+   Transitions, Pause & Completion Overlays
+   ========================================== */
 #transition-overlay {
     position: absolute;
     top: 0;
@@ -306,7 +413,7 @@ body {
     letter-spacing: 1.5px;
 }
 
-#next-level-text {
+#next-level-text, #next-level-num {
     color: #ffffff;
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -314,11 +421,8 @@ body {
 
 #next-level-num {
     color: #4CAF50;
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
-/* Pause Screen Overlay */
 #pause-overlay {
     position: absolute;
     top: 0;
@@ -347,7 +451,6 @@ body {
     font-size: 1rem;
 }
 
-/* White Resume Button */
 .resume-btn {
     background-color: #ffffff;
     color: #000000;
@@ -367,7 +470,6 @@ body {
     box-shadow: 0 6px 20px rgba(255, 255, 255, 0.35);
 }
 
-/* Game Completion Overlay */
 #completion-overlay {
     position: absolute;
     top: 0;
