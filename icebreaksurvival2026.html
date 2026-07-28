@@ -2,25 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Icebreak Survival 2026 - ClickSyncGames</title>
     <link rel="stylesheet" href="icebreaksurvival2026.css">
-    <!-- Three.js Engine CDN -->
+    <!-- Three.js 3D Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
     <!-- 1. INTRO SCREEN (5 Seconds Total) -->
     <div id="intro-screen" class="overlay-screen">
-        <div id="intro-title" class="hidden">Ice Break Survival 2026</div>
-        <img id="intro-logo" class="hidden" src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" onerror="this.outerHTML='<span style=\'font-size:28px; color:#5bc0be; font-weight:bold; margin-top:15px;\'>ClickSyncGames™</span>';">
+        <div id="intro-title">Ice Break Survival 2026</div>
+        <img id="intro-logo" src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" onerror="this.outerHTML='<span style=\'font-size:28px; color:#5bc0be; font-weight:bold; margin-top:15px;\'>ClickSyncGames™</span>';">
     </div>
 
     <!-- 2. STREAMLINED DIRECTIONS SCREEN -->
     <div id="instructions-screen" class="overlay-screen hidden">
         <div class="minimal-instructions">
+            <!-- 5% Enlarged 3D Tutorial Container with 50% Faded Overlay -->
+            <div class="tutorial-video-container">
+                <div id="tutorial-3d-viewport"></div>
+                <div class="tutorial-overlay-text">TUTORIAL</div>
+            </div>
+
             <h1>HOW TO PLAY</h1>
-            <p class="condensed-text">Collect all gold coins before time runs out. Avoid red ice cracks and open water!</p>
+            
+            <!-- Left-justified, vertically separated hyphenated sentences -->
+            <div class="instructions-bullets">
+                <p>- Collect all gold coins before time runs out.</p>
+                <p>- Avoid red ice cracks and open water!</p>
+            </div>
+
             <button id="btn-to-car-select" class="btn-primary">CHOOSE SUV</button>
         </div>
     </div>
@@ -106,9 +118,9 @@
         </div>
     </div>
 
-    <!-- MAIN GAME HUD & VIEWPORT -->
+    <!-- MAIN GAME HUD & 3D VIEWPORT -->
     <div id="game-container">
-        <!-- TOP HUD -->
+        <!-- TOP HUD (Enlarged ~10%) -->
         <div id="hud">
             <div id="hud-left-coins">
                 COINS: <strong id="hud-coins">0/2</strong>
@@ -130,7 +142,7 @@
             </div>
 
             <!-- RIGHT ICE THICKNESS GAUGE -->
-            <div id="ice-gauge-container">
+            <div id="ice-gauge-container" class="gameplay-only-gauge hidden">
                 <div class="gauge-label">ICE THICKNESS</div>
                 <div class="gauge-body">
                     <svg viewBox="0 0 50 160" width="50" height="160">
@@ -141,7 +153,7 @@
             </div>
         </div>
 
-        <!-- ON-SCREEN D-PAD CONTROLS -->
+        <!-- ON-SCREEN ENLARGED D-PAD CONTROLS -->
         <div id="controls-bar">
             <div class="dpad-grid">
                 <button class="dpad-btn btn-up" id="btn-up">▲</button>
