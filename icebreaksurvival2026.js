@@ -1,15 +1,16 @@
-/* Ice Break Survival 2026 - Cracking Physics, Jump Dynamics & Responsive Layout */
+/* Ice Break Survival 2026 - Solid Ramp Physics, Directional Strips, Snowmen & Responsive Layout */
 
 document.addEventListener('DOMContentLoaded', () => {
     let scene, camera, renderer;
-    let suvMesh, iceMesh, waterMesh, forestGroup;
-    let coins3D = [], activeCracks = [], holes3D = [], ramps3D = [], speedPads3D = [];
+    let suvMesh, iceMesh, forestGroup;
+    let coins3D = [], activeCracks = [], holes3D = [], ramps3D = [], speedPads3D = [], snowmen3D = [];
 
     // Tutorial 3D variables
     let tScene, tCam, tRenderer;
 
     const introScreen = document.getElementById('intro-screen');
     const instructionsScreen = document.getElementById('instructions-screen');
+    const instructionsScreen2 = document.getElementById('instructions-screen-2');
     const selectScreen = document.getElementById('select-screen');
     const pauseScreen = document.getElementById('pause-screen');
     const gameOverScreen = document.getElementById('game-over-screen');
@@ -37,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isPaused = false;
     let isTransitioning = false;
 
+    let boostTimer = 0; // Speed strip boost frames counter
+
     let lakeLength = 160; 
     const lakeWidth = 120;  
     const keys = { up: false, down: false, left: false, right: false };
@@ -46,15 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         x: 0,
         z: -lakeLength / 2 + 10,
         y: 0,
-        vy: 0,          // Vertical Jump Velocity
-        gravity: -0.018,// Airborne Gravity Pull
+        vy: 0,
+        gravity: -0.018,
         isAirborne: false,
         vx: 0,
         vz: 0,
         angle: 0,
         sinking: false,
-        sinkScale: 1,
-        dwellTimer: 0,   // Dwell tracking for cracks
+        dwellTimer: 0,
         lastX: 0,
         lastZ: 0
     };
@@ -142,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return suvGroup;
     }
 
-    // --- 3. UNIFIED SPINNING GOLD COIN ---
+    // --- 3. ORANGE-GOLD SPINNING COIN MESH ---
     function create3DCoinMesh(radius = 1.5) {
         if (typeof THREE === 'undefined') return { group: null, spinnerUnit: null, auraMesh: null };
 
@@ -150,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const spinnerUnit = new THREE.Group();
 
         const coinGeo = new THREE.CylinderGeometry(radius, radius, 0.3, 24);
-        const coinMat = new THREE.MeshStandardMaterial({ color: 0xFFDD00, emissive: 0xFFAA00, emissiveIntensity: 0.5 });
+        const coinMat = new THREE.MeshStandardMaterial({ color: 0xFF8C00, emissive: 0xFF5500, emissiveIntensity: 0.6 });
         const coinMesh = new THREE.Mesh(coinGeo, coinMat);
         coinMesh.rotation.x = Math.PI / 2;
         spinnerUnit.add(coinMesh);
@@ -163,14 +165,14 @@ document.addEventListener('DOMContentLoaded', () => {
         coinGroup.add(spinnerUnit);
 
         const auraGeo = new THREE.SphereGeometry(radius * 1.7, 24, 24);
-        const auraMat = new THREE.MeshBasicMaterial({ color: 0xFFFF55, transparent: true, opacity: 0.25, wireframe: true });
+        const auraMat = new THREE.MeshBasicMaterial({ color: 0xFF8C00, transparent: true, opacity: 0.3, wireframe: true });
         const auraMesh = new THREE.Mesh(auraGeo, auraMat);
         coinGroup.add(auraMesh);
 
         return { group: coinGroup, spinnerUnit: spinnerUnit, auraMesh: auraMesh };
     }
 
-    // --- 4. RAMP & SPEED PAD CREATION ---
+    // --- 4. RAMP, SPEED STRIP & SNOWMAN CREATION ---
     function createSolidGreenRampMesh(width, height, depth) {
         const shape = new THREE.Shape();
         shape.moveTo(0, 0);
@@ -188,7 +190,87 @@ document.addEventListener('DOMContentLoaded', () => {
         return mesh;
     }
 
-    // --- 5. TUTORIAL LOOP WITH LEFT TURN REFORM & ASPECT RATIO FIX ---
+    function createRedSpeedStripMesh(width = 6, depth = 12) {
+        const group = new THREE.Group();
+        const padGeo = new THREE.PlaneGeometry(width, depth);
+        const padMat = new THREE.MeshBasicMaterial({ color: 0xD32F2F, side: THREE.DoubleSide });
+        const padMesh = new THREE.Mesh(padGeo, padMat);
+        padMesh.rotation.x = -Math.PI / 2;
+        group.add(padMesh);
+
+        // White Directional Arrow Decal (Pointing Forward +Z)
+        const arrowShape = new THREE.Shape();
+        arrowShape.moveTo(0, 3);
+        arrowShape.lineTo(-2, -1);
+        arrowShape.lineTo(-0.8, -1);
+        arrowShape.lineTo(-0.8, -3);
+        arrowShape.lineTo(0.8, -3);
+        arrowShape.lineTo(0.8, -1);
+        arrowShape.lineTo(2, -1);
+        arrowShape.closePath();
+
+        const arrowGeo = new THREE.ShapeGeometry(arrowShape);
+        const arrowMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide });
+        const arrowMesh = new THREE.Mesh(arrowGeo, arrowMat);
+        arrowMesh.rotation.x = -Math.PI / 2;
+        arrowMesh.position.y = 0.02;
+        group.add(arrowMesh);
+
+        return group;
+    }
+
+    function createSnowmanMesh() {
+        const group = new THREE.Group();
+
+        const mat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.2 });
+        const b1 = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 16), mat);
+        b1.position.y = 1.2;
+        group.add(b1);
+
+        const b2 = new THREE.Mesh(new THREE.SphereGeometry(1.1, 16, 16), mat);
+        b2.position.y = 3.2;
+        group.add(b2);
+
+        const b3 = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 16), mat);
+        b3.position.y = 4.7;
+        group.add(b3);
+
+        const noseMat = new THREE.MeshBasicMaterial({ color: 0xFF6600 });
+        const nose = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.8, 8), noseMat);
+        nose.rotation.x = Math.PI / 2;
+        nose.position.set(0, 4.7, 0.8);
+        group.add(nose);
+
+        const hatMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+        const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.08, 16), hatMat);
+        brim.position.y = 5.3;
+        group.add(brim);
+
+        const hatBody = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.8, 16), hatMat);
+        hatBody.position.y = 5.7;
+        group.add(hatBody);
+
+        const stickMat = new THREE.MeshBasicMaterial({ color: 0x5C4033 });
+        const arm1 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.6), stickMat);
+        arm1.rotation.z = Math.PI / 3;
+        arm1.position.set(-1.2, 3.4, 0);
+        group.add(arm1);
+
+        const arm2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.6), stickMat);
+        arm2.rotation.z = -Math.PI / 3;
+        arm2.position.set(1.2, 3.4, 0);
+        group.add(arm2);
+
+        const wireGeo = new THREE.SphereGeometry(1.52, 8, 8);
+        const wireMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+        const wire = new THREE.Mesh(wireGeo, wireMat);
+        wire.position.y = 1.2;
+        group.add(wire);
+
+        return group;
+    }
+
+    // --- 5. TUTORIAL LOOP WITH ORANGE-GOLD COIN & LEFT TURN ---
     function init3DTutorial() {
         const container = document.getElementById('tutorial-3d-viewport');
         if (!container || container.children.length > 0 || typeof THREE === 'undefined') return;
@@ -217,14 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const redSUV = create3DSUVMesh(0xD32F2F);
         if (redSUV) tScene.add(redSUV);
 
-        // First Coin
         const coin1 = create3DCoinMesh(1.2);
         if (coin1.group) {
             coin1.group.position.set(0, 1.5, 4);
             tScene.add(coin1.group);
         }
 
-        // Second Coin placed on LEFT side
         const coin2 = create3DCoinMesh(1.2);
         if (coin2.group) {
             coin2.group.position.set(-10, 1.5, 22);
@@ -248,14 +328,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (elapsed < 1.6) {
                     if (coin1.group) coin1.group.visible = false;
                     const turnProgress = (elapsed - 0.8) / 0.8;
-                    // TURN LEFT (positive angle / negative X movement)
                     redSUV.position.set(-turnProgress * 2.5, 0, 4 + turnProgress * 3.5);
-                    redSUV.rotation.y = turnProgress * 0.55;
+                    redSUV.rotation.y = -turnProgress * 0.55; 
                 } else {
                     const driveProgress = (elapsed - 1.6) / 4.4;
-                    // TRAVEL LEFT TOWARDS SECOND COIN AT X = -10
                     redSUV.position.set(-2.5 - driveProgress * 7.5, 0, 7.5 + driveProgress * 14.5);
-                    redSUV.rotation.y = 0.55;
+                    redSUV.rotation.y = -0.55;
                     if (coin2.group) coin2.group.visible = true;
                 }
 
@@ -273,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         animateTutorial();
     }
 
-    // --- 6. SAFETY ZONE PROXIMITY CHECK ---
+    // --- 6. SAFETY ZONE CHECK ---
     function isNearSafetyZone(x, z) {
         const isOddLevel = currentLevel % 2 !== 0;
         if (isOddLevel) {
@@ -310,10 +388,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (scene) scene.add(crackGroup);
 
-        activeCracks.push({ mesh: crackGroup, x: x, z: z, timer: 0, maxTimer: 75 });
+        activeCracks.push({ mesh: crackGroup, x: x, z: z, timer: 0, maxTimer: 180 });
     }
 
-    // --- 8. 3D CAR SELECTION PREVIEWS ---
+    // --- 8. PREVIEW CAR SELECTION ---
     function setup3DVehiclePreviews() {
         const cards = document.querySelectorAll('.car-card');
         cards.forEach(card => {
@@ -388,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isTransitioning = true;
         isPaused = true;
         isGameOver = false;
+        boostTimer = 0;
 
         setGaugeVisible(false);
 
@@ -444,7 +523,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lakeLength = 160 + (level - 1) * 40;
 
         if (iceMesh && scene) scene.remove(iceMesh);
-        if (waterMesh && scene) scene.remove(waterMesh);
 
         if (typeof THREE !== 'undefined' && scene) {
             const infiniteIceGeo = new THREE.PlaneGeometry(800, 800);
@@ -466,6 +544,8 @@ document.addEventListener('DOMContentLoaded', () => {
         activeCracks = [];
         holes3D.forEach(h => scene && scene.remove(h.mesh));
         holes3D = [];
+        snowmen3D.forEach(sm => scene && scene.remove(sm.mesh));
+        snowmen3D = [];
 
         requiredCoins = level * 2;
         scoreCoins = 0;
@@ -478,11 +558,52 @@ document.addEventListener('DOMContentLoaded', () => {
             if (scene) scene.add(solidRamp);
 
             ramps3D.push({ mesh: solidRamp, x: rampX, z: rampZ, width: 8, depth: 14, height: 2.5 });
+
+            // RAMP TOP COIN
+            const rampCoinData = create3DCoinMesh(1.5);
+            const topCoinZ = rampZ + 7;
+            if (rampCoinData.group) {
+                rampCoinData.group.position.set(rampX, 4.3, topCoinZ);
+                if (scene) scene.add(rampCoinData.group);
+            }
+            coins3D.push({
+                group: rampCoinData.group,
+                spinnerUnit: rampCoinData.spinnerUnit,
+                auraMesh: rampCoinData.auraMesh,
+                collected: false,
+                x: rampX,
+                y: 4.3,
+                z: topCoinZ
+            });
+
+            // LEVEL 3+ SPEED STRIPS (2 RED STRIPS WITH WHITE ARROWS POINTING +Z FORWARD)
+            for (let s = 0; s < 2; s++) {
+                const stripMesh = createRedSpeedStripMesh(6, 12);
+                const sX = (Math.random() - 0.5) * (lakeWidth - 30);
+                const sZ = -lakeLength / 2 + 35 + s * 45;
+                stripMesh.position.set(sX, 0.03, sZ);
+                if (scene) scene.add(stripMesh);
+
+                // dirZ = 1 means arrow points forward along positive Z
+                speedPads3D.push({ mesh: stripMesh, x: sX, z: sZ, width: 6, depth: 12, dirX: 0, dirZ: 1 });
+            }
         }
 
-        for (let i = 0; i < requiredCoins; i++) {
-            const coinData = create3DCoinMesh(1.5);
+        if (level >= 4) {
+            for (let sm = 0; sm < 3; sm++) {
+                const snowmanMesh = createSnowmanMesh();
+                const smX = (Math.random() - 0.5) * (lakeWidth - 25);
+                const smZ = -lakeLength / 2 + 40 + sm * 35;
+                snowmanMesh.position.set(smX, 0, smZ);
+                if (scene) scene.add(snowmanMesh);
 
+                snowmen3D.push({ mesh: snowmanMesh, x: smX, z: smZ, active: true });
+            }
+        }
+
+        const coinsToSpawn = requiredCoins - (level >= 3 ? 1 : 0);
+        for (let i = 0; i < coinsToSpawn; i++) {
+            const coinData = create3DCoinMesh(1.5);
             const xPos = (Math.random() - 0.5) * (lakeWidth - 30);
             const zPos = -lakeLength / 2 + 30 + (i * ((lakeLength - 50) / requiredCoins));
 
@@ -523,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hudCoins.textContent = `${scoreCoins}/${requiredCoins}`;
 
         const progressRatio = Math.max(0.05, 1 - (currentLevel - 1) * 0.1 - ((suv.z + lakeLength / 2) / lakeLength));
-        gaugeDial.style.bottom = `${15 + progressRatio * 95}px`;
+        gaugeDial.style.bottom = `${12 + progressRatio * 95}px`;
     }
 
     function togglePause() {
@@ -579,8 +700,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => { window.location.href = "https://clicksyncgames.com"; });
         });
 
-        document.getElementById('btn-to-car-select').addEventListener('click', () => {
+        // 2-PAGE HOW TO PLAY ONBOARDING NAVIGATION
+        document.getElementById('btn-to-page-2').addEventListener('click', () => {
             instructionsScreen.classList.add('hidden');
+            instructionsScreen2.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-to-car-select').addEventListener('click', () => {
+            instructionsScreen2.classList.add('hidden');
             selectScreen.classList.remove('hidden');
             setup3DVehiclePreviews();
         });
@@ -601,41 +728,68 @@ document.addEventListener('DOMContentLoaded', () => {
     function update() {
         if (isGameOver || isPaused) return;
 
-        let currentMaxAccel = 0.052;
+        let currentMaxAccel = 0.0398;
+        if (boostTimer > 0) {
+            boostTimer--;
+            currentMaxAccel *= 1.40; // 40% Speed Boost
+        }
+
         if (keys.up) {
             suv.vx += Math.sin(suv.angle) * currentMaxAccel;
             suv.vz += Math.cos(suv.angle) * currentMaxAccel;
         }
         if (keys.down) {
-            suv.vx -= Math.sin(suv.angle) * 0.028;
-            suv.vz -= Math.cos(suv.angle) * 0.028;
+            suv.vx -= Math.sin(suv.angle) * 0.0214;
+            suv.vz -= Math.cos(suv.angle) * 0.0214;
         }
         if (keys.left) suv.angle += 0.045;
         if (keys.right) suv.angle -= 0.045;
 
         suv.vx *= 0.955;
         suv.vz *= 0.955;
-        suv.x += suv.vx;
-        suv.z += suv.vz;
 
+        let nextX = suv.x + suv.vx;
+        let nextZ = suv.z + suv.vz;
+
+        // SOLID RAMP COLLISION & SURFACE INCLINE PHYSICS (PREVENTS DRIVING INTO / SINKING)
         let rampSurfaceY = 0;
         let onRamp = false;
 
         ramps3D.forEach(r => {
-            const relZ = suv.z - (r.z - r.depth / 2);
-            if (Math.abs(suv.x - r.x) < r.width / 2 && relZ >= 0 && relZ <= r.depth) {
-                onRamp = true;
-                const ratio = relZ / r.depth;
-                rampSurfaceY = ratio * r.height;
+            const minX = r.x - r.width / 2;
+            const maxX = r.x + r.width / 2;
+            const minZ = r.z - r.depth / 2;
+            const maxZ = r.z + r.depth / 2;
+
+            // Check if SUV is inside ramp's X/Z bounding box
+            if (nextX >= minX && nextX <= maxX && nextZ >= minZ && nextZ <= maxZ) {
+                const relZ = nextZ - minZ; // Distance along ramp incline
+                const targetRampY = (relZ / r.depth) * r.height;
+
+                // Vehicle driving from low end up ramp or resting on ramp incline
+                if (suv.y >= targetRampY - 0.6) {
+                    onRamp = true;
+                    rampSurfaceY = targetRampY;
+                } else {
+                    // SUV attempting to drive through side or back wall of ramp: SOLID BLOCK
+                    suv.vx = 0;
+                    suv.vz = 0;
+                    nextX = suv.x;
+                    nextZ = suv.z;
+                }
             }
         });
+
+        suv.x = nextX;
+        suv.z = nextZ;
 
         if (onRamp) {
             suv.y = rampSurfaceY;
             suv.isAirborne = false;
             suv.vy = 0;
         } else {
-            if (suv.y > 0 && !suv.isAirborne && suv.vz > 0.1) {
+            // Vehicle airborne after flying off ramp peak
+            if (suv.y > 0 && !suv.isAirborne) {
                 suv.isAirborne = true;
                 suv.vy = 0.18;
             }
@@ -654,8 +808,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // SPEED STRIP DIRECTIONAL CHECK LOGIC
+        // Vehicle must be heading in the arrow direction (positive dot product) to trigger boost
+        const vehicleDirX = Math.sin(suv.angle);
+        const vehicleDirZ = Math.cos(suv.angle);
+
+        speedPads3D.forEach(sp => {
+            if (Math.abs(suv.x - sp.x) < sp.width / 2 && Math.abs(suv.z - sp.z) < sp.depth / 2) {
+                const dotProduct = (vehicleDirX * sp.dirX) + (vehicleDirZ * sp.dirZ);
+                // Heading same direction as strip arrow
+                if (dotProduct > 0.45) {
+                    boostTimer = 120; // 2 seconds at 60 FPS
+                }
+            }
+        });
+
+        // DESTRUCTIBLE SNOWMEN COLLISION
+        snowmen3D.forEach(sm => {
+            if (sm.active && Math.hypot(suv.x - sm.x, suv.z - sm.z) < 2.2) {
+                sm.active = false;
+                if (scene && sm.mesh) scene.remove(sm.mesh);
+            }
+        });
+
+        // ICE CRACK SPAWNING
         const moveDist = Math.hypot(suv.x - suv.lastX, suv.z - suv.lastZ);
-        if (moveDist < 0.25) {
+        if (moveDist < 0.25 && !onRamp) {
             suv.dwellTimer++;
             if (suv.dwellTimer >= 60) {
                 suv.dwellTimer = 0;
@@ -667,6 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
         suv.lastX = suv.x;
         suv.lastZ = suv.z;
 
+        // CRACK TIMER & HOLE FORMATION
         for (let i = activeCracks.length - 1; i >= 0; i--) {
             const crack = activeCracks[i];
             crack.timer++;
@@ -693,6 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // HOLE FALL DETECTION
         for (let hole of holes3D) {
             if (Math.hypot(suv.x - hole.x, suv.z - hole.z) < hole.radius - 0.4 && suv.y <= 0.2) {
                 handleLifeLost();
@@ -726,13 +906,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // COIN COLLECTION
         coins3D.forEach(coin => {
             if (!coin.collected) {
                 if (coin.spinnerUnit) coin.spinnerUnit.rotation.z += 0.07;
                 if (coin.auraMesh) coin.auraMesh.rotation.y += 0.04;
 
                 const dist = Math.hypot(suv.x - coin.x, suv.z - coin.z);
-                if (dist < 3.2) {
+                const vertDist = Math.abs(suv.y - coin.y);
+
+                if (dist < 3.2 && vertDist < 2.5) {
                     coin.collected = true;
                     if (scene && coin.group) scene.remove(coin.group);
                     scoreCoins++;
@@ -779,7 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
         victoryScreen.classList.remove('hidden');
     }
 
-    // --- 13. DYNAMIC RESIZE HANDLER (FOR BOTH MAIN GAME AND TUTORIAL) ---
+    // --- 13. DYNAMIC RESIZE HANDLER ---
     function handleResize() {
         const container = document.getElementById('webgl-container');
         if (renderer && camera && container && container.clientWidth > 0) {
