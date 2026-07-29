@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Speed Boat Strategy 2026 - ClickSyncGames</title>
+    <link rel="stylesheet" href="speedboatstrategy2026.css">
+    <!-- Three.js 3D Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <!-- 1. INTRO SCREEN (5 Seconds Total) -->
+    <div id="intro-screen" class="overlay-screen">
+        <div id="intro-title">Speed Boat Strategy 2026</div>
+        <img id="intro-logo" src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" onerror="this.outerHTML='<span style=\'font-size:28px; color:#5bc0be; font-weight:bold; margin-top:15px;\'>ClickSyncGames™</span>';">
+    </div>
+
+    <!-- 2. STREAMLINED DIRECTIONS SCREEN - PAGE 1 -->
+    <div id="instructions-screen" class="overlay-screen hidden">
+        <div class="minimal-instructions">
+            <div class="tutorial-video-container">
+                <div id="tutorial-3d-viewport"></div>
+                <div class="tutorial-overlay-text">TUTORIAL</div>
+            </div>
+
+            <h1>HOW TO PLAY (1/2)</h1>
+            
+            <div class="instructions-bullets">
+                <p>- Drive through all gold coins and red half-loops before time expires.</p>
+                <p>- Avoid crashing into islands with palm trees!</p>
+            </div>
+
+            <button id="btn-to-page-2" class="btn-primary">NEXT: GAME FEATURES &gt;</button>
+        </div>
+    </div>
+
+    <!-- 2B. GAME FEATURES SCREEN - PAGE 2 -->
+    <div id="instructions-screen-2" class="overlay-screen hidden">
+        <div class="minimal-instructions">
+            <h1>GAME FEATURES (2/2)</h1>
+            
+            <div class="instructions-bullets feature-bullets">
+                <p>- <strong>Red Half-Loops:</strong> Pass under bright red rainbow arches to complete level objectives.</p>
+                <p>- <strong>Current Boost Pads:</strong> Drive in the arrow's direction for a 2s speed burst!</p>
+                <p>- <strong>Palm Islands:</strong> Steer clear of landmasses to avoid damaging your hull.</p>
+            </div>
+
+            <button id="btn-to-car-select" class="btn-primary">CHOOSE BOAT</button>
+        </div>
+    </div>
+
+    <!-- 3. VEHICLE COLOR SELECTION -->
+    <div id="select-screen" class="overlay-screen hidden">
+        <div class="modal-box select-modal">
+            <h2>Select Your Speed Boat Color</h2>
+            <div id="car-select-container">
+                <div class="car-card" data-color="#111111" data-hex="0x111111">
+                    <div class="car-preview-box bg-white" id="prev-black"></div>
+                    <span class="color-label text-white">BLACK</span>
+                </div>
+                <div class="car-card" data-color="#D3D3D3" data-hex="0xD3D3D3">
+                    <div class="car-preview-box" id="prev-grey"></div>
+                    <span class="color-label">LIGHT GREY</span>
+                </div>
+                <div class="car-card" data-color="#2E7D32" data-hex="0x2E7D32">
+                    <div class="car-preview-box" id="prev-green"></div>
+                    <span class="color-label">GREEN</span>
+                </div>
+                <div class="car-card" data-color="#D32F2F" data-hex="0xD32F2F">
+                    <div class="car-preview-box" id="prev-red"></div>
+                    <span class="color-label">RED</span>
+                </div>
+                <div class="car-card" data-color="#EF6C00" data-hex="0xEF6C00">
+                    <div class="car-preview-box" id="prev-orange"></div>
+                    <span class="color-label">ORANGE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. LEVEL INTRO OVERLAY -->
+    <div id="level-intro-screen" class="overlay-screen hidden">
+        <h1 id="level-intro-text">LEVEL 1</h1>
+        <p id="level-intro-sub">GET READY...</p>
+    </div>
+
+    <!-- 5. PAUSE OVERLAY -->
+    <div id="pause-screen" class="overlay-screen hidden">
+        <div class="modal-box">
+            <h1>GAME PAUSED</h1>
+            <div class="button-group">
+                <button id="btn-resume" class="btn-primary">Resume Game</button>
+                <button class="btn-return-csg btn-secondary">
+                    <span>Return to</span>
+                    <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" onerror="this.outerHTML='<span style=\'color:#5bc0be; font-weight:bold;\'>ClickSyncGames™</span>';">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. LEVEL FAILED OVERLAY -->
+    <div id="game-over-screen" class="overlay-screen hidden">
+        <div class="modal-box">
+            <h1 id="game-over-title">LEVEL FAILED</h1>
+            <p id="lives-left-msg">Lives Remaining: <strong id="modal-lives-count">3</strong></p>
+            <div class="button-group">
+                <button id="btn-restart-level" class="btn-primary">Restart Level 1</button>
+                <button class="btn-return-csg btn-secondary">
+                    <span>Return to</span>
+                    <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" onerror="this.outerHTML='<span style=\'color:#5bc0be; font-weight:bold;\'>ClickSyncGames™</span>';">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. VICTORY SCREEN -->
+    <div id="victory-screen" class="overlay-screen hidden">
+        <canvas id="fireworks-canvas"></canvas>
+        <div class="modal-box victory-box">
+            <h1>YOU WON!</h1>
+            <p>You mastered all 8 levels of Speed Boat Strategy!</p>
+            <div class="button-group">
+                <button id="btn-play-again" class="btn-primary">Play Again?</button>
+                <button class="btn-return-csg btn-secondary">
+                    <span>Return to</span>
+                    <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" onerror="this.outerHTML='<span style=\'color:#5bc0be; font-weight:bold;\'>ClickSyncGames™</span>';">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME HUD & 3D VIEWPORT -->
+    <div id="game-container">
+        <!-- TOP HUD -->
+        <div id="hud">
+            <div id="hud-left-coins">
+                COINS: <strong id="hud-coins">0/2</strong>
+            </div>
+            <button class="btn-return-csg btn-top-nav">
+                <span>Return to</span>
+                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" onerror="this.outerHTML='<span style=\'color:#ffdd00; font-weight:bold;\'>ClickSyncGames™</span>';">
+            </button>
+            <button id="btn-pause-hud" class="hud-action-btn">PAUSE</button>
+        </div>
+
+        <!-- 3D VIEWPORT CONTAINER -->
+        <div id="canvas-wrapper">
+            <div id="webgl-container"></div>
+            
+            <!-- BOTTOM LEFT TIME DISPLAY -->
+            <div id="bottom-time-box">
+                TIME: <span id="hud-time">30</span>s
+            </div>
+
+            <!-- RIGHT FUEL GAUGE -->
+            <div id="ice-gauge-container" class="gameplay-only-gauge hidden">
+                <div class="gauge-label">WATER DEPTH</div>
+                <div class="gauge-body">
+                    <svg viewBox="0 0 50 160" width="100%" height="100%" preserveAspectRatio="none">
+                        <polygon points="10,150 40,150 25,10" fill="#00BFFF" stroke="#000000" stroke-width="3" stroke-linejoin="round"/>
+                    </svg>
+                    <div id="gauge-dial"></div>
+                </div>
+            </div>
+
+            <!-- FLOATING SEAMLESS D-PAD CONTROLS OVERLAY -->
+            <div id="controls-bar">
+                <div class="dpad-grid">
+                    <button class="dpad-btn btn-up" id="btn-up">▲</button>
+                    <button class="dpad-btn btn-left" id="btn-left">◀</button>
+                    <button class="dpad-btn btn-right" id="btn-right">▶</button>
+                    <button class="dpad-btn btn-down" id="btn-down">▼</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="speedboatstrategy2026.js"></script>
+</body>
+</html>
