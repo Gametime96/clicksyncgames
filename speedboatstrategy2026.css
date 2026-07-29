@@ -1,0 +1,516 @@
+/* Speed Boat Strategy 2026 - Styles & Layout */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+html, body {
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    touch-action: none;
+    background-color: #002b49;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ffffff;
+}
+
+/* OVERLAY SCREENS */
+.overlay-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: #002b49;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* INTRO SCREEN */
+#intro-screen {
+    text-align: center;
+}
+
+#intro-title {
+    font-size: clamp(24px, 5vw, 42px);
+    font-weight: bold;
+    color: #00bfff;
+    text-shadow: 0 0 12px rgba(0, 191, 255, 0.6);
+    margin-bottom: 20px;
+}
+
+#intro-logo {
+    max-width: 180px;
+    max-height: 80px;
+    object-fit: contain;
+}
+
+/* INSTRUCTIONS SCREENS */
+.minimal-instructions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 650px;
+    height: 100%;
+    max-height: calc(100dvh - 20px);
+    background: rgba(0, 53, 84, 0.95);
+    border: 2px solid #00bfff;
+    border-radius: 12px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.tutorial-video-container {
+    position: relative;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 100px;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #005f73;
+}
+
+#tutorial-3d-viewport {
+    width: 100%;
+    height: 100%;
+}
+
+#tutorial-3d-viewport canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+.tutorial-overlay-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    font-size: clamp(20px, 5vw, 44px);
+    font-weight: 900;
+    color: rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    letter-spacing: 4px;
+}
+
+.minimal-instructions h1 {
+    font-size: clamp(18px, 4.2vw, 26px);
+    font-weight: 900;
+    color: #00bfff;
+    margin: 8px 0 4px 0;
+    text-transform: uppercase;
+}
+
+.instructions-bullets {
+    text-align: left;
+    width: 100%;
+    max-width: 540px;
+    font-size: clamp(13px, 3.2vw, 17px);
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.instructions-bullets p {
+    margin: 8px 0;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.feature-bullets p strong {
+    color: #ffdd00;
+}
+
+#level-intro-sub {
+    font-size: clamp(22px, 5vw, 36px);
+    font-weight: 800;
+    color: #00bfff;
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+/* BUTTONS */
+.btn-primary {
+    background: #00bfff;
+    color: #002b49;
+    border: none;
+    padding: 10px 22px;
+    font-size: clamp(14px, 3.2vw, 18px);
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+}
+
+.btn-primary:active {
+    transform: scale(0.96);
+    background: #0088cc;
+}
+
+.btn-secondary {
+    background: #005f73;
+    color: #ffffff;
+    border: 1px solid #00bfff;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-secondary img {
+    height: 18px;
+    object-fit: contain;
+}
+
+.btn-return-csg.btn-secondary {
+    width: 100%;
+    max-width: 260px;
+    margin: 0 auto;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.btn-top-nav {
+    background: transparent !important;
+    border: none !important;
+    color: #ffdd00 !important;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+
+.btn-top-nav span {
+    color: #ffdd00 !important;
+    font-weight: 800;
+}
+
+.btn-top-nav img {
+    height: 20px;
+    object-fit: contain;
+    margin-left: 2px;
+}
+
+/* MODAL BOXES */
+.modal-box {
+    background: #003554;
+    border: 2px solid #00bfff;
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+    max-width: 90%;
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-box h1, .modal-box h2 {
+    color: #00bfff;
+    margin-bottom: 10px;
+}
+
+/* BOAT SELECTION */
+.select-modal {
+    width: 95%;
+    max-width: 700px;
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+}
+
+#car-select-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.car-card {
+    background: #002b49;
+    border: 2px solid #005f73;
+    border-radius: 8px;
+    padding: 8px;
+    width: 100px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.car-card:hover, .car-card:active {
+    border-color: #00bfff;
+    transform: translateY(-4px);
+}
+
+.car-preview-box {
+    width: 80px;
+    height: 60px;
+    border-radius: 4px;
+}
+
+.car-preview-box.bg-white {
+    background-color: #ffffff !important;
+}
+
+.color-label {
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 6px;
+    color: #ffffff;
+}
+
+.color-label.text-white {
+    color: #ffffff !important;
+}
+
+.selected-enlarge {
+    transform: scale(1.15) !important;
+    border-color: #00bfff !important;
+}
+
+.fade-out {
+    opacity: 0.2;
+}
+
+/* MAIN GAME CONTAINER */
+#game-container {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    width: 100vw;
+    height: 100dvh;
+    max-width: 100vw;
+    max-height: 100dvh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* HUD */
+#hud {
+    height: 42px;
+    background: #003554;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 2px solid #005f73;
+    z-index: 10;
+}
+
+#hud-left-coins {
+    font-weight: bold;
+    font-size: 14px;
+    color: #ff8c00;
+}
+
+.hud-action-btn {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* VIEWPORT CONTAINER */
+#canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    background: #000;
+    overflow: hidden;
+}
+
+#webgl-container {
+    width: 100%;
+    height: 100%;
+}
+
+#webgl-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* TIME DISPLAY */
+#bottom-time-box {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(0, 43, 73, 0.88);
+    border: 2px solid #00bfff;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 17px;
+    z-index: 5;
+}
+
+.urgent-warning {
+    color: #ff3333;
+    animation: pulse 0.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+}
+
+/* DEPTH GAUGE */
+#ice-gauge-container {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 43, 73, 0.88);
+    border: 2px solid #005f73;
+    border-radius: 10px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+}
+
+.gauge-label {
+    font-size: 10px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: #00bfff;
+}
+
+.gauge-body {
+    position: relative;
+    width: 35px;
+    height: 125px;
+}
+
+#gauge-dial {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 5px;
+    background: #d32f2f;
+    border-radius: 3px;
+    bottom: 12px;
+    transition: bottom 0.2s ease-out;
+}
+
+/* LOWERED SEAMLESS FLOATING CONTROLS OVERLAY */
+#controls-bar {
+    position: absolute;
+    bottom: 3%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    background: transparent !important;
+    border: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.dpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, clamp(52px, 15vw, 70px));
+    grid-template-rows: repeat(2, clamp(48px, 10dvh, 64px));
+    gap: clamp(8px, 2vw, 14px);
+    pointer-events: auto;
+}
+
+.dpad-btn {
+    background: rgba(0, 53, 84, 0.65);
+    color: #00bfff;
+    border: 2px solid #00bfff;
+    border-radius: 12px;
+    font-size: clamp(22px, 5.5vw, 30px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(3px);
+}
+
+.dpad-btn:active, .dpad-btn.active {
+    background: #00bfff;
+    color: #002b49;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-up { grid-column: 2; grid-row: 1; }
+.btn-left { grid-column: 1; grid-row: 2; }
+.btn-down { grid-column: 2; grid-row: 2; }
+.btn-right { grid-column: 3; grid-row: 2; }
+
+/* LANDSCAPE ORIENTATION ADJUSTMENTS */
+@media (max-height: 500px) and (orientation: landscape) {
+    #controls-bar {
+        bottom: 2%;
+    }
+
+    .dpad-grid {
+        grid-template-columns: repeat(3, clamp(40px, 10vw, 52px));
+        grid-template-rows: repeat(2, clamp(30px, 12dvh, 40px));
+        gap: 5px;
+    }
+
+    .dpad-btn {
+        font-size: 16px;
+        border-radius: 8px;
+    }
+
+    #bottom-time-box {
+        font-size: 13px;
+        padding: 4px 8px;
+        bottom: 6px;
+        left: 6px;
+    }
+
+    .gauge-body {
+        height: 80px;
+        width: 24px;
+    }
+
+    .gauge-label {
+        font-size: 8px;
+    }
+}
