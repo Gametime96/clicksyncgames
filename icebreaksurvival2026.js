@@ -1,9 +1,12 @@
-/* Icebreak Survival 2026 - Cracking Physics, Jump Dynamics & Unified Spinning Coins */
+/* Ice Break Survival 2026 - Cracking Physics, Jump Dynamics & Responsive Layout */
 
 document.addEventListener('DOMContentLoaded', () => {
     let scene, camera, renderer;
     let suvMesh, iceMesh, waterMesh, forestGroup;
     let coins3D = [], activeCracks = [], holes3D = [], ramps3D = [], speedPads3D = [];
+
+    // Tutorial 3D variables
+    let tScene, tCam, tRenderer;
 
     const introScreen = document.getElementById('intro-screen');
     const instructionsScreen = document.getElementById('instructions-screen');
@@ -77,6 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!camera) {
             camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
             camera.position.set(0, 7, -15);
+        } else {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
         }
 
         if (!renderer) {
@@ -95,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             forestGroup = new THREE.Group();
             scene.add(forestGroup);
+        } else {
+            renderer.setSize(container.clientWidth, container.clientHeight);
         }
         return true;
     }
@@ -134,21 +142,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return suvGroup;
     }
 
-    // --- 3. UNIFIED SPINNING GOLD COIN (GOLD + BLACK RIM AS ONE UNIT) ---
+    // --- 3. UNIFIED SPINNING GOLD COIN ---
     function create3DCoinMesh(radius = 1.5) {
         if (typeof THREE === 'undefined') return { group: null, spinnerUnit: null, auraMesh: null };
 
         const coinGroup = new THREE.Group();
-        const spinnerUnit = new THREE.Group(); // Single unit that spins together
+        const spinnerUnit = new THREE.Group();
 
-        // Core Gold Cylinder
         const coinGeo = new THREE.CylinderGeometry(radius, radius, 0.3, 24);
         const coinMat = new THREE.MeshStandardMaterial({ color: 0xFFDD00, emissive: 0xFFAA00, emissiveIntensity: 0.5 });
         const coinMesh = new THREE.Mesh(coinGeo, coinMat);
         coinMesh.rotation.x = Math.PI / 2;
         spinnerUnit.add(coinMesh);
 
-        // THIN BLACK OUTER EDGE LAYER (UNIFIED INSIDE SPINNER UNIT)
         const rimGeo = new THREE.TorusGeometry(radius + 0.02, 0.06, 12, 32);
         const rimMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
         const rimMesh = new THREE.Mesh(rimGeo, rimMat);
@@ -156,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         coinGroup.add(spinnerUnit);
 
-        // Outer Aura
         const auraGeo = new THREE.SphereGeometry(radius * 1.7, 24, 24);
         const auraMat = new THREE.MeshBasicMaterial({ color: 0xFFFF55, transparent: true, opacity: 0.25, wireframe: true });
         const auraMesh = new THREE.Mesh(auraGeo, auraMat);
@@ -183,30 +188,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return mesh;
     }
 
-    function createRedSpeedStripMesh(width, depth) {
-        const padGroup = new THREE.Group();
-
-        const baseGeo = new THREE.PlaneGeometry(width, depth);
-        const baseMat = new THREE.MeshBasicMaterial({ color: 0xD32F2F, side: THREE.DoubleSide });
-        const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-        baseMesh.rotation.x = -Math.PI / 2;
-        padGroup.add(baseMesh);
-
-        return padGroup;
-    }
-
-    // --- 5. TUTORIAL LOOP WITH UNIFIED COIN SPINNER ---
+    // --- 5. TUTORIAL LOOP WITH LEFT TURN REFORM & ASPECT RATIO FIX ---
     function init3DTutorial() {
         const container = document.getElementById('tutorial-3d-viewport');
         if (!container || container.children.length > 0 || typeof THREE === 'undefined') return;
 
-        const tScene = new THREE.Scene();
+        tScene = new THREE.Scene();
         tScene.background = new THREE.Color(0xb0e0e6);
 
-        const tCam = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+        tCam = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
         tCam.position.set(0, 8, -14);
 
-        const tRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        tRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         tRenderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(tRenderer.domElement);
 
@@ -224,16 +217,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const redSUV = create3DSUVMesh(0xD32F2F);
         if (redSUV) tScene.add(redSUV);
 
-        // Unified Coins for Tutorial
+        // First Coin
         const coin1 = create3DCoinMesh(1.2);
         if (coin1.group) {
             coin1.group.position.set(0, 1.5, 4);
             tScene.add(coin1.group);
         }
 
+        // Second Coin placed on LEFT side
         const coin2 = create3DCoinMesh(1.2);
         if (coin2.group) {
-            coin2.group.position.set(10, 1.5, 22);
+            coin2.group.position.set(-10, 1.5, 22);
             tScene.add(coin2.group);
         }
 
@@ -242,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
         function animateTutorial() {
             const elapsed = ((Date.now() - startTime) % 6000) / 1000;
 
-            // Spin Gold Coin + Black Outline as single unit
             if (coin1.spinnerUnit) coin1.spinnerUnit.rotation.z += 0.08;
             if (coin2.spinnerUnit) coin2.spinnerUnit.rotation.z += 0.08;
 
@@ -255,12 +248,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (elapsed < 1.6) {
                     if (coin1.group) coin1.group.visible = false;
                     const turnProgress = (elapsed - 0.8) / 0.8;
-                    redSUV.position.set(turnProgress * 2.5, 0, 4 + turnProgress * 3.5);
-                    redSUV.rotation.y = -turnProgress * 0.55;
+                    // TURN LEFT (positive angle / negative X movement)
+                    redSUV.position.set(-turnProgress * 2.5, 0, 4 + turnProgress * 3.5);
+                    redSUV.rotation.y = turnProgress * 0.55;
                 } else {
                     const driveProgress = (elapsed - 1.6) / 4.4;
-                    redSUV.position.set(2.5 + driveProgress * 7.5, 0, 7.5 + driveProgress * 14.5);
-                    redSUV.rotation.y = -0.55;
+                    // TRAVEL LEFT TOWARDS SECOND COIN AT X = -10
+                    redSUV.position.set(-2.5 - driveProgress * 7.5, 0, 7.5 + driveProgress * 14.5);
+                    redSUV.rotation.y = 0.55;
                     if (coin2.group) coin2.group.visible = true;
                 }
 
@@ -269,16 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 tCam.lookAt(redSUV.position.x, 1.2, redSUV.position.z + 4);
             }
 
-            tRenderer.render(tScene, tCam);
+            if (tRenderer && tScene && tCam) {
+                tRenderer.render(tScene, tCam);
+            }
             requestAnimationFrame(animateTutorial);
         }
 
         animateTutorial();
     }
 
-    // --- 6. SAFETY ZONE PROXIMITY CHECK (NO CRACKS NEAR LAND/SPEED/RAMPS/COINS) ---
+    // --- 6. SAFETY ZONE PROXIMITY CHECK ---
     function isNearSafetyZone(x, z) {
-        // 1. Shoreline / Land Exclusion Buffer
         const isOddLevel = currentLevel % 2 !== 0;
         if (isOddLevel) {
             const marginX = (lakeWidth / 2) * 0.82;
@@ -286,19 +282,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Math.abs(x) >= marginX || Math.abs(z) >= marginZ) return true;
         }
 
-        // 2. Speed Boost Strips Radius
         if (speedPads3D.some(sp => Math.hypot(x - sp.x, z - sp.z) < 14)) return true;
-
-        // 3. Ramps Radius
         if (ramps3D.some(r => Math.hypot(x - r.x, z - r.z) < 18)) return true;
-
-        // 4. Gold Coins Radius
         if (coins3D.some(c => !c.collected && Math.hypot(x - c.x, z - c.z) < 12)) return true;
 
         return false;
     }
 
-    // --- 7. SPAWN RED LINE CRACKS THAT TURN INTO HOLES ---
+    // --- 7. SPAWN RED ICE CRACKS ---
     function spawnRedIceCrack(x, z) {
         if (isNearSafetyZone(x, z) || typeof THREE === 'undefined') return;
 
@@ -387,6 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
             introScreen.classList.add('hidden');
             instructionsScreen.classList.remove('hidden');
             init3DTutorial();
+            handleResize();
         }, 5000);
     }
 
@@ -437,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timeRemaining = calculateLevelTime(currentLevel);
             updateHUD();
             startTimer();
+            handleResize();
         }, 1800);
     }
 
@@ -477,7 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
         requiredCoins = level * 2;
         scoreCoins = 0;
 
-        // Build Ramps (Level >= 3)
         if (level >= 3) {
             const solidRamp = createSolidGreenRampMesh(8, 2.5, 14);
             const rampX = (Math.random() - 0.5) * (lakeWidth - 40);
@@ -531,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
         hudCoins.textContent = `${scoreCoins}/${requiredCoins}`;
 
         const progressRatio = Math.max(0.05, 1 - (currentLevel - 1) * 0.1 - ((suv.z + lakeLength / 2) / lakeLength));
-        gaugeDial.style.bottom = `${15 + progressRatio * 125}px`;
+        gaugeDial.style.bottom = `${15 + progressRatio * 95}px`;
     }
 
     function togglePause() {
@@ -605,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 12. GAMEPLAY UPDATE LOOP (PHYSICS, JUMPS, CRACKS & HOLES) ---
+    // --- 12. GAMEPLAY UPDATE LOOP ---
     function update() {
         if (isGameOver || isPaused) return;
 
@@ -626,7 +618,6 @@ document.addEventListener('DOMContentLoaded', () => {
         suv.x += suv.vx;
         suv.z += suv.vz;
 
-        // RAMP HEIGHT & BALLISTIC AIRBORNE JUMP DYNAMICS
         let rampSurfaceY = 0;
         let onRamp = false;
 
@@ -646,7 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             if (suv.y > 0 && !suv.isAirborne && suv.vz > 0.1) {
                 suv.isAirborne = true;
-                suv.vy = 0.18; // Upward initial launch impulse
+                suv.vy = 0.18;
             }
 
             if (suv.isAirborne) {
@@ -663,11 +654,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // 1-SECOND DWELL TRACKING FOR RED ICE CRACK FORMATION
         const moveDist = Math.hypot(suv.x - suv.lastX, suv.z - suv.lastZ);
         if (moveDist < 0.25) {
             suv.dwellTimer++;
-            if (suv.dwellTimer >= 60) { // Spends 1 Second in an area
+            if (suv.dwellTimer >= 60) {
                 suv.dwellTimer = 0;
                 spawnRedIceCrack(suv.x, suv.z);
             }
@@ -677,7 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
         suv.lastX = suv.x;
         suv.lastZ = suv.z;
 
-        // PROCESS RED CRACKS TRANSITION TO WATER HOLES
         for (let i = activeCracks.length - 1; i >= 0; i--) {
             const crack = activeCracks[i];
             crack.timer++;
@@ -704,7 +693,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // HOLE FALL COLLISION
         for (let hole of holes3D) {
             if (Math.hypot(suv.x - hole.x, suv.z - hole.z) < hole.radius - 0.4 && suv.y <= 0.2) {
                 handleLifeLost();
@@ -717,7 +705,6 @@ document.addEventListener('DOMContentLoaded', () => {
             suvMesh.rotation.y = suv.angle;
         }
 
-        // CAMERA TRACKING
         if (camera) {
             const distanceBehind = 12;
             const cameraHeight = 6;
@@ -739,10 +726,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // UNIFIED COIN ROTATION & COLLECTION
         coins3D.forEach(coin => {
             if (!coin.collected) {
-                if (coin.spinnerUnit) coin.spinnerUnit.rotation.z += 0.07; // Spin Gold + Black Rim together
+                if (coin.spinnerUnit) coin.spinnerUnit.rotation.z += 0.07;
                 if (coin.auraMesh) coin.auraMesh.rotation.y += 0.04;
 
                 const dist = Math.hypot(suv.x - coin.x, suv.z - coin.z);
@@ -793,16 +779,27 @@ document.addEventListener('DOMContentLoaded', () => {
         victoryScreen.classList.remove('hidden');
     }
 
+    // --- 13. DYNAMIC RESIZE HANDLER (FOR BOTH MAIN GAME AND TUTORIAL) ---
     function handleResize() {
         const container = document.getElementById('webgl-container');
-        if (renderer && camera && container) {
+        if (renderer && camera && container && container.clientWidth > 0) {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
+
+        const tContainer = document.getElementById('tutorial-3d-viewport');
+        if (tRenderer && tCam && tContainer && tContainer.clientWidth > 0) {
+            tCam.aspect = tContainer.clientWidth / tContainer.clientHeight;
+            tCam.updateProjectionMatrix();
+            tRenderer.setSize(tContainer.clientWidth, tContainer.clientHeight);
+        }
     }
 
     window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(handleResize, 200);
+    });
 
     setupControls();
     startIntro();
