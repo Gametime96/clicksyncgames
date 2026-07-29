@@ -1,0 +1,229 @@
+/* Golf Ball Strategy 2026 - HD 3D Viewport & Overlay Styles */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+html, body {
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    touch-action: none;
+    background-color: #0b132b;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ffffff;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* PORTRAIT WARNING BANNER */
+#portrait-warning {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #ffdd00;
+    z-index: 200;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+@media (orientation: portrait) and (max-width: 768px) {
+    #portrait-warning { display: block; }
+}
+
+/* MAIN HUD OVERLAY */
+#ui {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.stats-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(11, 19, 43, 0.85);
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 2px solid #00bfff;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #00bfff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+    letter-spacing: 0.5px;
+}
+
+h2 span {
+    color: #ffdd00;
+}
+
+.button-group {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.button-group button {
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: background 0.2s, transform 0.1s;
+}
+
+.button-group button:hover {
+    background-color: #b71c1c;
+}
+
+.btn-top-nav {
+    background: transparent !important;
+    border: none !important;
+    color: #ffdd00 !important;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: none !important;
+}
+
+.btn-top-nav img {
+    height: 20px;
+    object-fit: contain;
+}
+
+/* CENTERED ON-SCREEN LEFT/RIGHT CONTROLS */
+#on-screen-controls {
+    position: absolute;
+    bottom: 3.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+.arrow-row {
+    display: flex;
+    gap: 30px;
+    pointer-events: auto;
+}
+
+.arrow-btn {
+    width: clamp(62px, 17vw, 82px);
+    height: clamp(54px, 12dvh, 72px);
+    border-radius: 14px;
+    background-color: rgba(11, 19, 43, 0.65);
+    color: #00bfff;
+    border: 2px solid #00bfff;
+    font-size: clamp(24px, 6.5vw, 34px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.15s, transform 0.1s;
+}
+
+.arrow-btn:active, .arrow-btn.simulated-active {
+    background-color: #00bfff;
+    color: #0b132b;
+    transform: scale(0.95);
+}
+
+/* OVERLAYS */
+.overlay {
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100dvh;
+    background-color: rgba(11, 19, 43, 0.94);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.overlay h1 {
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    color: #00bfff;
+    margin-bottom: 15px;
+    text-shadow: 0 0 16px rgba(0, 191, 255, 0.6);
+}
+
+.overlay p {
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    color: #ffffff;
+    margin: 6px 0;
+    font-weight: 600;
+}
+
+#status-desc {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #ffdd00;
+    margin: 15px 0;
+}
+
+.overlay button {
+    margin-top: 25px;
+    padding: 12px 36px;
+    font-size: 1.3rem;
+    background-color: #00bfff;
+    color: #0b132b;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.4);
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.overlay button:hover { 
+    background-color: #0088cc; 
+    transform: scale(1.05); 
+}
