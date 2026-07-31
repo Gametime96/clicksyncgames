@@ -3,22 +3,24 @@
 const TABLE_WIDTH = 14;
 const TABLE_LENGTH = 28;
 const BALL_RADIUS = 0.45;
-const FRICTION = 0.988;
+const FRICTION = 0.990;
 const POCKET_RADIUS = 1.35;
+const SUB_STEPS = 5; // Sub-stepping to resolve high-speed ball tunneling
 
 let scene, camera, renderer;
 let balls = [];
 let cueBall;
 let cueStickGroup, cueStickMesh;
-let aimLine, lineMaterial;
+let dashesGroup = [];
 let feltMesh;
 
 let aimAngle = Math.PI; // Pivoting angle in radians
 let power = 0;
 let isCharging = false;
 let canShoot = true;
+let isPaused = false;
 let isDraggingDial = false;
-let cameraMode = 'locked'; // 'locked' (behind stick) or 'overhead'
+let cameraMode = 'locked'; // 'locked' or 'overhead'
 
 let selectedTheme = 'green';
 let selectedCue = 'default';
@@ -71,23 +73,25 @@ function init() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // Softened lighting to eliminate glare
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    // High Definition Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.80);
     scene.add(ambientLight);
 
-    const light1 = new THREE.DirectionalLight(0xfffaed, 0.4);
-    light1.position.set(0, 25, -5);
+    const light1 = new THREE.DirectionalLight(0xfff8e7, 0.45);
+    light1.position.set(0, 25, -6);
     light1.castShadow = true;
+    light1.shadow.mapSize.width = 2048;
+    light1.shadow.mapSize.height = 2048;
     scene.add(light1);
 
-    const light2 = new THREE.DirectionalLight(0xfffaed, 0.4);
-    light2.position.set(0, 25, 5);
+    const light2 = new THREE.DirectionalLight(0xfff8e7, 0.45);
+    light2.position.set(0, 25, 6);
     scene.add(light2);
 
     createTable();
     createBalls();
     createCueStick();
-    createAimLine();
+    createAimDashes();
 
     setupModalUI();
     setupDialControls();
@@ -131,17 +135,19 @@ function createBallTexture(def) {
 }
 
 function createTable() {
+    // Felt surface
     const feltGeo = new THREE.BoxGeometry(TABLE_WIDTH, 0.4, TABLE_LENGTH);
     const feltMat = new THREE.MeshStandardMaterial({
         color: THEME_COLORS[selectedTheme],
-        roughness: 0.85
+        roughness: 0.8
     });
     feltMesh = new THREE.Mesh(feltGeo, feltMat);
     feltMesh.position.y = -0.2;
     feltMesh.receiveShadow = true;
     scene.add(feltMesh);
 
-    const woodMat = new THREE.MeshStandardMaterial({ color: 0x3d1e03, roughness: 0.5 });
+    // Wood Rails
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0x3d1e03, roughness: 0.4 });
     const borderThick = 1.2;
     const borderHeight = 0.8;
 
@@ -165,6 +171,7 @@ function createTable() {
     bottomRail.position.z = TABLE_LENGTH / 2 + borderThick / 2;
     scene.add(bottomRail);
 
+    // Pockets
     const pocketMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const pocketPositions = [
         [-TABLE_WIDTH/2 + 0.1, -TABLE_LENGTH/2 + 0.1], [TABLE_WIDTH/2 - 0.1, -TABLE_LENGTH/2 + 0.1],
@@ -183,8 +190,7 @@ function createTable() {
 function createBalls() {
     const ballGeo = new THREE.SphereGeometry(BALL_RADIUS, 32, 32);
 
-    // Low specular sheen to eliminate glare
-    const cueMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.65, metalness: 0.0 });
+    const cueMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 0.0 });
     cueBall = new THREE.Mesh(ballGeo, cueMat);
     cueBall.position.set(0, BALL_RADIUS, 7);
     cueBall.castShadow = true;
@@ -213,7 +219,7 @@ function createBalls() {
 
             const ballMat = new THREE.MeshStandardMaterial({
                 map: texture,
-                roughness: 0.65,
+                roughness: 0.5,
                 metalness: 0.0
             });
 
@@ -281,20 +287,19 @@ function rebuildCueStick() {
     createCueStick();
 }
 
-function createAimLine() {
-    const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -20)];
-    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+// Thick 5-Dash Directional Aim Trajectory
+function createAimDashes() {
+    dashesGroup = [];
+    const dashCount = 5;
+    const dashGeo = new THREE.BoxGeometry(0.12, 0.02, 1.2);
+    const dashMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
-    lineMaterial = new THREE.LineDashedMaterial({
-        color: 0x00ffff, // Bright Neon Cyan
-        dashSize: 0.5,
-        gapSize: 0.3,
-        linewidth: 3
-    });
-
-    aimLine = new THREE.Line(lineGeo, lineMaterial);
-    aimLine.computeLineDistances();
-    scene.add(aimLine);
+    for (let i = 0; i < dashCount; i++) {
+        const dash = new THREE.Mesh(dashGeo, dashMat);
+        dash.visible = false;
+        scene.add(dash);
+        dashesGroup.push(dash);
+    }
 }
 
 function setupModalUI() {
@@ -323,6 +328,21 @@ function setupModalUI() {
         document.getElementById('selection-modal').classList.add('hidden');
         document.getElementById('ui-container').classList.remove('hidden');
     });
+
+    // Pause Controls
+    document.getElementById('pause-btn').addEventListener('click', () => {
+        isPaused = true;
+        document.getElementById('pause-modal').classList.remove('hidden');
+    });
+
+    document.getElementById('resume-btn').addEventListener('click', () => {
+        isPaused = false;
+        document.getElementById('pause-modal').classList.add('hidden');
+    });
+
+    document.getElementById('restart-btn').addEventListener('click', () => {
+        location.reload();
+    });
 }
 
 function setupDialControls() {
@@ -350,7 +370,7 @@ function setupDialControls() {
     });
 
     const handlePointerMove = (e) => {
-        if (!isDraggingDial) return;
+        if (!isDraggingDial || isPaused) return;
         const rect = dialContainer.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -362,7 +382,7 @@ function setupDialControls() {
         updateAngleFromDeg(deg);
     };
 
-    dialContainer.addEventListener('mousedown', () => { isDraggingDial = true; });
+    dialContainer.addEventListener('mousedown', () => { if (!isPaused) isDraggingDial = true; });
     window.addEventListener('mouseup', () => { isDraggingDial = false; });
     window.addEventListener('mousemove', handlePointerMove);
 }
@@ -370,9 +390,9 @@ function setupDialControls() {
 function setupEvents() {
     const shootBtn = document.getElementById('shoot-btn');
 
-    const startCharge = () => { if (canShoot) isCharging = true; };
+    const startCharge = () => { if (canShoot && !isPaused) isCharging = true; };
     const releaseCharge = () => {
-        if (isCharging) {
+        if (isCharging && !isPaused) {
             shoot();
             isCharging = false;
         }
@@ -388,7 +408,6 @@ function setupEvents() {
         if (e.code === 'Space') releaseCharge();
     });
 
-    // Camera Toggle Button Handler
     const camBtn = document.getElementById('cam-toggle-btn');
     camBtn.addEventListener('click', () => {
         if (cameraMode === 'locked') {
@@ -417,65 +436,75 @@ function shoot() {
     document.getElementById('power-bar-fill').style.width = '0%';
 }
 
+// Sub-Stepped High-Precision Collision Physics Loop
 function updatePhysics() {
+    if (isPaused) return;
+
     let allStopped = true;
+    const dt = 1 / SUB_STEPS;
 
-    balls.forEach(ball => {
-        if (!ball.parent) return;
+    for (let step = 0; step < SUB_STEPS; step++) {
+        // Move balls
+        balls.forEach(ball => {
+            if (!ball.parent) return;
 
-        if (ball.velocity.lengthSq() > 0.00001) {
-            allStopped = false;
-            ball.position.add(ball.velocity);
+            if (ball.velocity.lengthSq() > 0.00001) {
+                allStopped = false;
+                
+                const stepVel = ball.velocity.clone().multiplyScalar(dt);
+                ball.position.add(stepVel);
 
-            ball.rotation.x += ball.velocity.z * 0.2;
-            ball.rotation.z -= ball.velocity.x * 0.2;
+                ball.rotation.x += stepVel.z * 0.2;
+                ball.rotation.z -= stepVel.x * 0.2;
 
-            ball.velocity.multiplyScalar(FRICTION);
+                ball.velocity.multiplyScalar(Math.pow(FRICTION, dt));
 
-            const minX = -TABLE_WIDTH / 2 + BALL_RADIUS;
-            const maxX = TABLE_WIDTH / 2 - BALL_RADIUS;
-            const minZ = -TABLE_LENGTH / 2 + BALL_RADIUS;
-            const maxZ = TABLE_LENGTH / 2 - BALL_RADIUS;
+                const minX = -TABLE_WIDTH / 2 + BALL_RADIUS;
+                const maxX = TABLE_WIDTH / 2 - BALL_RADIUS;
+                const minZ = -TABLE_LENGTH / 2 + BALL_RADIUS;
+                const maxZ = TABLE_LENGTH / 2 - BALL_RADIUS;
 
-            if (ball.position.x < minX || ball.position.x > maxX) {
-                ball.velocity.x *= -0.95;
-                ball.position.x = Math.max(minX, Math.min(maxX, ball.position.x));
+                if (ball.position.x < minX || ball.position.x > maxX) {
+                    ball.velocity.x *= -0.95;
+                    ball.position.x = Math.max(minX, Math.min(maxX, ball.position.x));
+                }
+                if (ball.position.z < minZ || ball.position.z > maxZ) {
+                    ball.velocity.z *= -0.95;
+                    ball.position.z = Math.max(minZ, Math.min(maxZ, ball.position.z));
+                }
+
+                checkPockets(ball);
+            } else {
+                ball.velocity.set(0, 0, 0);
             }
-            if (ball.position.z < minZ || ball.position.z > maxZ) {
-                ball.velocity.z *= -0.95;
-                ball.position.z = Math.max(minZ, Math.min(maxZ, ball.position.z));
-            }
+        });
 
-            checkPockets(ball);
-        } else {
-            ball.velocity.set(0, 0, 0);
-        }
-    });
+        // Resolve Ball-to-Ball Elastic Collisions
+        for (let i = 0; i < balls.length; i++) {
+            for (let j = i + 1; j < balls.length; j++) {
+                const b1 = balls[i];
+                const b2 = balls[j];
+                if (!b1.parent || !b2.parent) continue;
 
-    for (let i = 0; i < balls.length; i++) {
-        for (let j = i + 1; j < balls.length; j++) {
-            const b1 = balls[i];
-            const b2 = balls[j];
-            if (!b1.parent || !b2.parent) continue;
+                const distVec = new THREE.Vector3().subVectors(b2.position, b1.position);
+                distVec.y = 0;
+                const dist = distVec.length();
 
-            const distVec = new THREE.Vector3().subVectors(b2.position, b1.position);
-            distVec.y = 0;
-            const dist = distVec.length();
+                if (dist < BALL_RADIUS * 2) {
+                    const normal = distVec.clone().normalize();
+                    const overlap = (BALL_RADIUS * 2) - dist;
 
-            if (dist < BALL_RADIUS * 2) {
-                const normal = distVec.clone().normalize();
-                const overlap = (BALL_RADIUS * 2) - dist;
+                    b1.position.addScaledVector(normal, -overlap * 0.5);
+                    b2.position.addScaledVector(normal, overlap * 0.5);
 
-                b1.position.addScaledVector(normal, -overlap * 0.5);
-                b2.position.addScaledVector(normal, overlap * 0.5);
+                    const relativeVelocity = new THREE.Vector3().subVectors(b1.velocity, b2.velocity);
+                    const speed = relativeVelocity.dot(normal);
 
-                const relativeVelocity = new THREE.Vector3().subVectors(b1.velocity, b2.velocity);
-                const speed = relativeVelocity.dot(normal);
-
-                if (speed > 0) {
-                    const impulse = normal.multiplyScalar(speed * 0.98);
-                    b1.velocity.sub(impulse);
-                    b2.velocity.add(impulse);
+                    if (speed > 0) {
+                        const impulse = normal.multiplyScalar(speed * 0.98);
+                        b1.velocity.sub(impulse);
+                        b2.velocity.add(impulse);
+                    }
                 }
             }
         }
@@ -510,12 +539,11 @@ function checkPockets(ball) {
 function updateCameraAndAim() {
     if (!cueBall) return;
 
-    if (isCharging && canShoot) {
+    if (isCharging && canShoot && !isPaused) {
         power = Math.min(power + 1.2, 100);
         document.getElementById('power-bar-fill').style.width = power + '%';
     }
 
-    // Dynamic Camera View Selection
     if (cameraMode === 'locked') {
         const cameraDistance = 5.8;
         const cameraHeight = 2.8;
@@ -534,19 +562,23 @@ function updateCameraAndAim() {
         camera.lookAt(0, 0, 0);
     }
 
-    if (canShoot) {
-        aimLine.visible = true;
+    if (canShoot && !isPaused) {
         cueStickGroup.visible = true;
 
-        aimLine.position.copy(cueBall.position);
-        aimLine.position.y = 0.05;
-        aimLine.rotation.y = aimAngle;
+        // Render Clean 5 Directional Outward Dashes
+        const dirX = Math.sin(aimAngle);
+        const dirZ = -Math.cos(aimAngle);
 
-        // Flowing dynamic animated dashed line
-        lineMaterial.dashSize = 0.5;
-        lineMaterial.gapSize = 0.3;
-        aimLine.position.x += Math.sin(aimAngle) * ((Date.now() * 0.008) % 0.8);
-        aimLine.position.z -= Math.cos(aimAngle) * ((Date.now() * 0.008) % 0.8);
+        dashesGroup.forEach((dash, idx) => {
+            dash.visible = true;
+            const dist = 1.6 + (idx * 1.8);
+            dash.position.set(
+                cueBall.position.x + dirX * dist,
+                0.05,
+                cueBall.position.z + dirZ * dist
+            );
+            dash.rotation.y = aimAngle;
+        });
 
         cueStickGroup.position.copy(cueBall.position);
         cueStickGroup.rotation.y = aimAngle;
@@ -555,7 +587,7 @@ function updateCameraAndAim() {
         const cueLength = 12;
         cueStickMesh.position.z = (cueLength / 2) + BALL_RADIUS + 0.05 + pullBackOffset;
     } else {
-        aimLine.visible = false;
+        dashesGroup.forEach(dash => dash.visible = false);
         cueStickGroup.visible = false;
     }
 }
