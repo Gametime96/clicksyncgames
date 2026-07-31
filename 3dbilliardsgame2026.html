@@ -77,15 +77,36 @@
         </div>
     </div>
 
+    <!-- Pause Menu Modal -->
+    <div id="pause-modal" class="modal-overlay hidden">
+        <div class="modal-card pause-card">
+            <h2>GAME PAUSED</h2>
+            <p class="subtitle">Take a breather or restart match</p>
+            <div class="pause-actions">
+                <button id="resume-btn" class="primary-btn">RESUME GAME</button>
+                <button id="restart-btn" class="secondary-btn">RESTART MATCH</button>
+            </div>
+        </div>
+    </div>
+
     <!-- In-Game UI Overlay -->
     <div id="ui-container" class="hidden">
-        <div id="header">
-            <h1>3D Billiards Game 2026</h1>
-            <div id="status-text">Rotate Dial to Aim | Hold Space or Button to Charge & Hit</div>
+        <!-- Top Bar Header -->
+        <div id="top-bar">
+            <!-- Top-Left Navigation Button -->
+            <a href="index.html" id="return-btn">
+                <span>Return to</span>
+                <div class="logo-text">ClickSync<span>Games</span><sup class="tm-symbol">™</sup></div>
+            </a>
+
+            <!-- Center View Toggle -->
             <button id="cam-toggle-btn">CAM VIEW: LOCKED BEHIND CUE</button>
+
+            <!-- Top-Right Pause Button -->
+            <button id="pause-btn">PAUSE ❚❚</button>
         </div>
 
-        <!-- Dial Control Unit -->
+        <!-- Dial Control Unit (Bottom-Left) -->
         <div id="dial-panel">
             <div id="dial-title">PIVOT AIM DIAL</div>
             <div id="dial-container">
@@ -96,7 +117,7 @@
             <input type="range" id="aim-slider" min="0" max="360" value="180">
         </div>
 
-        <!-- Action & Power Bar -->
+        <!-- Action & Power Bar (Bottom-Right) -->
         <div id="action-panel">
             <div id="power-bar-wrapper">
                 <div id="power-bar-label">HIT POWER</div>
