@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Billiards Game 2026</title>
+    <link rel="stylesheet" href="3dbilliardsgame2026.css">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="game-container"></div>
+
+    <!-- Selection Overlay Modal -->
+    <div id="selection-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2>3D Billiards Game 2026</h2>
+            <p class="subtitle">Customize Your Match Settings</p>
+            
+            <div class="option-group">
+                <label>Table Felt Color Theme:</label>
+                <div class="theme-grid">
+                    <button class="theme-btn active" data-theme="green">
+                        <span class="color-swatch green"></span>
+                        Green (Default)
+                    </button>
+                    <button class="theme-btn" data-theme="grey">
+                        <span class="color-swatch grey"></span>
+                        Light Grey
+                    </button>
+                    <button class="theme-btn" data-theme="purple">
+                        <span class="color-swatch purple"></span>
+                        Dark Purple
+                    </button>
+                    <button class="theme-btn" data-theme="red">
+                        <span class="color-swatch red"></span>
+                        Blood Red
+                    </button>
+                    <button class="theme-btn" data-theme="blue">
+                        <span class="color-swatch blue"></span>
+                        Dark Blue
+                    </button>
+                </div>
+            </div>
+
+            <div class="option-group">
+                <label>Select Cue Stick:</label>
+                <div class="cue-grid">
+                    <div class="cue-card active" data-cue="default">
+                        <h3>Classic Wooden Cue</h3>
+                        <p class="cue-desc">Default Balance</p>
+                        <div class="stats">
+                            <div>Aim Precision: <span class="stat-val">Good</span></div>
+                            <div>Power / Speed: <span class="stat-val">Good</span></div>
+                        </div>
+                    </div>
+                    <div class="cue-card" data-cue="white">
+                        <h3>White / Black Stripes</h3>
+                        <p class="cue-desc">High Velocity</p>
+                        <div class="stats">
+                            <div>Aim Precision: <span class="stat-val">Good</span></div>
+                            <div>Power / Speed: <span class="stat-val highlight">Great (+25%)</span></div>
+                        </div>
+                    </div>
+                    <div class="cue-card" data-cue="black">
+                        <h3>Black / White Stripes</h3>
+                        <p class="cue-desc">Precision Control</p>
+                        <div class="stats">
+                            <div>Aim Precision: <span class="stat-val highlight">Great (Fine Sensitivity)</span></div>
+                            <div>Power / Speed: <span class="stat-val">Good</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="start-game-btn" class="primary-btn">START GAME</button>
+        </div>
+    </div>
+
+    <!-- In-Game UI Overlay -->
+    <div id="ui-container" class="hidden">
+        <div id="header">
+            <h1>3D Billiards Game 2026</h1>
+            <div id="status-text">Rotate Dial to Aim | Hold Space or Button to Charge & Hit</div>
+            <button id="cam-toggle-btn">CAM VIEW: LOCKED BEHIND CUE</button>
+        </div>
+
+        <!-- Dial Control Unit -->
+        <div id="dial-panel">
+            <div id="dial-title">PIVOT AIM DIAL</div>
+            <div id="dial-container">
+                <div id="dial-ring">
+                    <div id="dial-handle"></div>
+                </div>
+            </div>
+            <input type="range" id="aim-slider" min="0" max="360" value="180">
+        </div>
+
+        <!-- Action & Power Bar -->
+        <div id="action-panel">
+            <div id="power-bar-wrapper">
+                <div id="power-bar-label">HIT POWER</div>
+                <div id="power-bar-container">
+                    <div id="power-bar-fill"></div>
+                </div>
+            </div>
+            <button id="shoot-btn">HOLD TO CHARGE & RELEASE</button>
+        </div>
+    </div>
+
+    <script src="3dbilliardsgame2026.js"></script>
+</body>
+</html>
