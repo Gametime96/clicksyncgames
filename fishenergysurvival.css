@@ -1,0 +1,400 @@
+/* RESET & STRICT VIEWPORT CONTAINMENT */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #010a14;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+    color: #ffffff;
+}
+
+/* OVERLAY SCREENS */
+.overlay-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, #021a30 0%, #010a14 100%);
+    opacity: 1;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.overlay-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+#intro-screen {
+    cursor: pointer;
+}
+
+#intro-title {
+    font-size: clamp(2.2rem, 5vw, 4.2rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #00f0ff;
+    text-shadow: 0 0 25px rgba(0, 240, 255, 0.7);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+#intro-logo {
+    max-width: 290px;
+    max-height: 110px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.35));
+}
+
+/* TUTORIAL OVERLAY */
+#tutorial-3d-viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.3;
+}
+
+.tutorial-overlay-text {
+    position: absolute;
+    top: 6%;
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.04);
+    letter-spacing: 12px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.minimal-instructions {
+    position: relative;
+    z-index: 5;
+    background: rgba(2, 26, 48, 0.88);
+    padding: 2.2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    backdrop-filter: blur(12px);
+    max-width: 520px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+}
+
+.minimal-instructions h1 {
+    font-size: 2rem;
+    color: #00f0ff;
+    margin-bottom: 1.2rem;
+    letter-spacing: 1px;
+}
+
+.instructions-bullets p {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: #d0e8ff;
+    margin-bottom: 0.7rem;
+    text-align: left;
+}
+
+/* MODAL BOXES */
+.modal-box {
+    background: rgba(2, 26, 48, 0.94);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    padding: 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 460px;
+    width: 90%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+}
+
+.modal-box h1 {
+    font-size: 2.2rem;
+    color: #00f0ff;
+    margin-bottom: 1rem;
+}
+
+.modal-box p {
+    color: #c4e0ff;
+    margin-bottom: 1.5rem;
+    font-size: 1.08rem;
+}
+
+/* BUTTONS & BRANDING */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00f0ff, #0066ff);
+    color: #ffffff;
+    border: none;
+    padding: 14px 28px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 240, 255, 0.45);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.btn-return-csg img {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+}
+
+.brand-fallback {
+    color: #00f0ff;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.brand-return-wrapper {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* MAIN GAME LAYOUT */
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* HUD BAR */
+#hud {
+    height: 56px;
+    background: rgba(1, 10, 20, 0.95);
+    border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 10;
+}
+
+#hud-left-stats {
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #a8d5ff;
+}
+
+#hud-sharks-count {
+    color: #ff4757;
+    font-size: 1.25rem;
+}
+
+.btn-top-nav {
+    background: transparent;
+    border: none;
+    color: #a8d5ff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.btn-top-nav img {
+    height: 26px;
+}
+
+.hud-action-btn {
+    background: rgba(0, 240, 255, 0.12);
+    border: 1px solid #00f0ff;
+    color: #00f0ff;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.hud-action-btn:hover {
+    background: #00f0ff;
+    color: #010a14;
+}
+
+/* 3D CANVAS WRAPPER */
+#canvas-wrapper {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#webgl-container {
+    width: 100%;
+    height: 100%;
+}
+
+/* IN-GAME HUD OVERLAYS */
+#bottom-time-box {
+    position: absolute;
+    bottom: 16px;
+    left: 20px;
+    background: rgba(1, 10, 20, 0.75);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    backdrop-filter: blur(8px);
+    letter-spacing: 1px;
+    z-index: 10;
+    transition: border-color 0.3s, color 0.3s;
+}
+
+#bottom-time-box.urgent-warning {
+    border-color: #ff4757;
+    color: #ff4757;
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+#hud-time {
+    color: #00f0ff;
+    font-size: 1.35rem;
+}
+
+#energy-gauge-container {
+    position: absolute;
+    bottom: 16px;
+    right: 20px;
+    width: 210px;
+    background: rgba(1, 10, 20, 0.75);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    padding: 8px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+
+.gauge-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #a8d5ff;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.gauge-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#energy-bar-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff4757 0%, #ffa500 50%, #2ed573 100%);
+    transition: width 0.15s linear;
+}
+
+/* STRICT BOTTOM-CENTERED FLOATING D-PAD OVERLAY */
+#onscreen-dpad {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    pointer-events: auto;
+}
+
+.dpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 46px);
+    grid-template-rows: repeat(2, 40px);
+    gap: 6px;
+}
+
+.dpad-btn {
+    background: rgba(1, 20, 40, 0.7);
+    border: 1.5px solid rgba(0, 240, 255, 0.55);
+    color: #00f0ff;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 0 8px rgba(0, 240, 255, 0.18);
+    transition: background 0.1s, transform 0.1s, border-color 0.1s;
+}
+
+.dpad-btn:active, .dpad-btn.active {
+    background: rgba(0, 240, 255, 0.45);
+    border-color: #ffffff;
+    color: #ffffff;
+    transform: scale(0.92);
+}
+
+.btn-up { grid-column: 2; grid-row: 1; }
+.btn-left { grid-column: 1; grid-row: 2; }
+.btn-down { grid-column: 2; grid-row: 2; }
+.btn-right { grid-column: 3; grid-row: 2; }
+
+/* FIREWORKS CANVAS */
+#fireworks-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
