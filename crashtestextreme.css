@@ -1,0 +1,197 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #111;
+  color: #fff;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ClickSyncGames Classic HUD Style */
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 80%, transparent 100%);
+  z-index: 10;
+}
+
+.hud-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.hud-title {
+  font-size: 18px;
+  color: #ffcc00;
+  text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+}
+
+.hud-label {
+  color: #aaa;
+}
+
+.hud-divider {
+  color: #555;
+  margin: 0 4px;
+}
+
+.bar-container {
+  width: 130px;
+  height: 14px;
+  background: #333;
+  border-radius: 8px;
+  border: 1px solid #555;
+  overflow: hidden;
+}
+
+#health-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.2s ease, background 0.3s ease;
+}
+
+.game-btn {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.game-btn:hover {
+  background: #ffcc00;
+  color: #000;
+  border-color: #ffcc00;
+}
+
+/* Direction Bar Overlay */
+#directions-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 20px;
+  background: rgba(10, 10, 10, 0.85);
+  border-top: 2px solid #ffcc00;
+  font-size: 13px;
+  color: #ddd;
+  text-align: center;
+  z-index: 10;
+}
+
+#directions-bar code {
+  background: #222;
+  color: #ffcc00;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+/* Modals & Overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background: #181818;
+  border: 2px solid #333;
+  border-top: 6px solid #ffcc00;
+  border-radius: 8px;
+  padding: 32px 40px;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+.modal-card h1 {
+  font-size: 26px;
+  margin-bottom: 12px;
+  color: #ffcc00;
+  letter-spacing: 1.5px;
+}
+
+.modal-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.level-badge {
+  display: inline-block;
+  background: #222;
+  border: 1px solid #444;
+  color: #eee;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+}
+
+.cta-btn {
+  background: #ffcc00;
+  color: #111;
+  font-size: 15px;
+  font-weight: 800;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.cta-btn:hover {
+  background: #ffe066;
+  transform: translateY(-1px);
+}
