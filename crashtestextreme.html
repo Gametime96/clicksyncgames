@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crash Test Extreme - ClickSyncGames</title>
+  <link rel="stylesheet" href="crashtestextreme.css">
+  <!-- Three.js CDN for 3D Graphics -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div id="game-container">
+    <!-- 3D Canvas Mount -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top Navigation & HUD -->
+    <div id="hud">
+      <div class="hud-panel left">
+        <span class="hud-label">LEVEL:</span> <span id="level-display">1 / 9</span>
+        <span class="hud-divider">|</span>
+        <span class="hud-label">INTEGRITY:</span>
+        <div class="bar-container">
+          <div id="health-bar"></div>
+        </div>
+      </div>
+
+      <div class="hud-panel center">
+        <span class="hud-title">CRASH TEST EXTREME</span>
+      </div>
+
+      <div class="hud-panel right">
+        <span class="hud-label">SPEED:</span> <span id="speed-display">0 MPH</span>
+        <button id="pause-btn" class="game-btn">PAUSE</button>
+      </div>
+    </div>
+
+    <!-- Instructions / Objective Panel -->
+    <div id="directions-bar">
+      <strong>DIRECTIONS:</strong> Steer with <code>[A] / [D]</code> or <code>[Left] / [Right]</code>. Accelerate with <code>[W]</code> or <code>[Up]</code>. Brake/Reverse with <code>[S]</code> or <code>[Down]</code>. Reach the yellow sensor finish line while absorbing minimal impact damage to pass safety clearance!
+    </div>
+
+    <!-- Overlay Screen (Start / Pause / Level Clear / Game Over) -->
+    <div id="modal-overlay" class="overlay active">
+      <div class="modal-card">
+        <h1 id="modal-title">CRASH TEST EXTREME</h1>
+        <p id="modal-desc">
+          Welcome to the facility, Test Dummy #409. Your vehicle will be subjected to 9 rigorous barrier, projectile, and obstacle crash simulations. Keep vehicle integrity above critical failure limits to advance.
+        </p>
+
+        <div id="level-info" class="level-badge">LEVEL 1: Standard Frontal Impact</div>
+
+        <button id="modal-btn" class="cta-btn">START TEST</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="crashtestextreme.js"></script>
+</body>
+</html>
