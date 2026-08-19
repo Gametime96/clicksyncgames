@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Crash Test Extreme 2.0 - IIHS Crash Facility</title>
+    <link rel="stylesheet" href="crashtestextreme20.css">
+    <!-- Three.js 3D Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <h1>Crash Test <span>Extreme 2.0</span></h1>
+            <span class="level-indicator" id="levelDisplay">LEVEL 1 / 7</span>
+        </div>
+        <div class="header-controls">
+            <div id="phaseDisplay" class="hud-phase">COUNTDOWN PREPARATION</div>
+            <button id="btnPause" class="btn-icon" title="Pause Game (P)">⏸ Pause</button>
+        </div>
+    </header>
+
+    <div class="main-stage">
+        <div id="webgl-container"></div>
+        <div id="floatingLayer"></div>
+
+        <!-- 5-Second Focused Replay Banner -->
+        <div id="replayBanner" class="replay-banner">
+            <span id="replayTargetLabel">🔴 5-SEC INSTANT REPLAY: DRIVER</span>
+            <span id="replayClock">5.0s</span>
+        </div>
+
+        <!-- Virtual Orbit Joystick in Bottom Left -->
+        <div class="joystick-container" id="joyContainer">
+            <span class="joystick-label">Orbit View</span>
+            <div class="joystick-knob" id="joyKnob"></div>
+        </div>
+
+        <!-- Diagnostic & Telemetry Console -->
+        <aside class="telemetry-panel" id="telemetryPanel">
+            <div class="panel-heading">
+                <h2>Crash Diagnostic Unit 2.0</h2>
+                <div id="timerBadge" class="countdown-chip">10s</div>
+            </div>
+
+            <div class="card-group-title">Vehicle Structural Integrity</div>
+            <div class="vehicle-card">
+                <div class="status-line">
+                    <span id="carModelLabel">Sedan Chassis</span>
+                    <span id="carHpText" class="stat-green">100%</span>
+                </div>
+                <div class="meter-bar">
+                    <div id="carHpBar" class="meter-fill" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="card-group-title">Test Occupants (Select to Treat)</div>
+            <div id="dummyRack" class="dummy-cards-rack"></div>
+
+            <div class="control-grid">
+                <button id="btnSpawnDummy" class="btn-panel">➕ Add Dummy</button>
+                <button id="btnRepairCar" class="btn-panel">🧰 Repair Frame</button>
+                <button id="btnRepairDummy" class="btn-panel btn-heal">🩹 First Aid (Selected)</button>
+                <button id="btnTriggerTest" class="btn-panel btn-launch">🚀 Launch Impact</button>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Pause Overlay Modal -->
+    <div id="pauseModal" class="overlay-modal">
+        <div class="modal-card">
+            <h2>TEST PAUSED</h2>
+            <p>Press <strong>P</strong> or click Resume to continue simulation.</p>
+            <button id="btnResume" class="btn-panel btn-launch" style="width: 180px;">Resume</button>
+        </div>
+    </div>
+
+    <!-- Level Result Modal -->
+    <div id="resultModal" class="overlay-modal">
+        <div class="modal-card">
+            <h2 id="modalHeadline">LEVEL 1 COMPLETED</h2>
+            <p id="modalSubtext">Occupant survived impact testing.</p>
+            <button id="btnNextLevel" class="btn-panel btn-launch" style="width: 220px;">Proceed to Next Tier</button>
+        </div>
+    </div>
+
+    <script src="crashtestextreme20.js"></script>
+</body>
+</html>
