@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Crash Test Extreme 2.0 - IIHS Crash Facility</title>
     <link rel="stylesheet" href="crashtestextreme20.css">
     <!-- Three.js 3D Engine -->
@@ -13,10 +13,14 @@
     <header>
         <div class="brand">
             <h1>Crash Test <span>Extreme 2.0</span></h1>
-            <span class="level-indicator" id="levelDisplay">LEVEL 1 / 7</span>
+            <span class="level-indicator" id="levelDisplay">TIER 1 / 7</span>
+            <div class="points-badge" id="pointsDisplay">
+                <span class="coin-icon">🪙</span>
+                <span id="scoreText">0</span> <small>PTS</small>
+            </div>
         </div>
         <div class="header-controls">
-            <div id="phaseDisplay" class="hud-phase">COUNTDOWN PREPARATION</div>
+            <div id="phaseDisplay" class="hud-phase">COLLECT COINS & EVADE</div>
             <button id="btnPause" class="btn-icon" title="Pause Game (P)">⏸ Pause</button>
         </div>
     </header>
@@ -25,63 +29,109 @@
         <div id="webgl-container"></div>
         <div id="floatingLayer"></div>
 
-        <!-- 5-Second Focused Replay Banner -->
-        <div id="replayBanner" class="replay-banner">
-            <span id="replayTargetLabel">🔴 5-SEC INSTANT REPLAY: DRIVER</span>
-            <span id="replayClock">5.0s</span>
+        <!-- Flashing Impact Warning (!) -->
+        <div id="warningBeacon" class="warning-beacon">!</div>
+
+        <!-- Touch Controls Cluster (Bottom Left) -->
+        <div class="touch-controls-cluster">
+            <div class="joystick-container" id="joyContainer">
+                <span class="joystick-label">Orbit View</span>
+                <div class="joystick-knob" id="joyKnob"></div>
+            </div>
+            <button id="btnJump" class="btn-jump-action">🦘 JUMP (SPACE)</button>
         </div>
 
-        <!-- Virtual Orbit Joystick in Bottom Left -->
-        <div class="joystick-container" id="joyContainer">
-            <span class="joystick-label">Orbit View</span>
-            <div class="joystick-knob" id="joyKnob"></div>
+        <!-- On-Screen D-Pad (Driving) -->
+        <div class="drive-dpad" id="driveDpad">
+            <button class="dpad-btn btn-up" id="btnDriveFwd">▲</button>
+            <div class="dpad-mid-row">
+                <button class="dpad-btn btn-left" id="btnDriveLeft">◀</button>
+                <button class="dpad-btn btn-down" id="btnDriveRev">▼</button>
+                <button class="dpad-btn btn-right" id="btnDriveRight">▶</button>
+            </div>
         </div>
 
-        <!-- Diagnostic & Telemetry Console -->
+        <!-- Live Diagnostics HUD (Right Side) -->
         <aside class="telemetry-panel" id="telemetryPanel">
             <div class="panel-heading">
-                <h2>Crash Diagnostic Unit 2.0</h2>
-                <div id="timerBadge" class="countdown-chip">10s</div>
+                <h2>Telemetry Console</h2>
+                <div id="speedometerChip" class="speed-chip">0 MPH</div>
             </div>
 
-            <div class="card-group-title">Vehicle Structural Integrity</div>
+            <!-- Vehicle Integrity -->
+            <div class="card-group-title">Chassis Structural Integrity</div>
             <div class="vehicle-card">
                 <div class="status-line">
-                    <span id="carModelLabel">Sedan Chassis</span>
+                    <span id="carModelLabel">Sedan Specimen</span>
                     <span id="carHpText" class="stat-green">100%</span>
                 </div>
                 <div class="meter-bar">
                     <div id="carHpBar" class="meter-fill" style="width: 100%;"></div>
                 </div>
+                <div class="tire-status-grid" id="tireStatusGrid">
+                    <span class="tire-indicator intact" id="tireFL">FL: OK</span>
+                    <span class="tire-indicator intact" id="tireFR">FR: OK</span>
+                    <span class="tire-indicator intact" id="tireRL">RL: OK</span>
+                    <span class="tire-indicator intact" id="tireRR">RR: OK</span>
+                </div>
             </div>
 
-            <div class="card-group-title">Test Occupants (Select to Treat)</div>
+            <!-- Occupants Life -->
+            <div class="card-group-title">Cabin Occupants</div>
             <div id="dummyRack" class="dummy-cards-rack"></div>
 
-            <div class="control-grid">
-                <button id="btnSpawnDummy" class="btn-panel">➕ Add Dummy</button>
-                <button id="btnRepairCar" class="btn-panel">🧰 Repair Frame</button>
-                <button id="btnRepairDummy" class="btn-panel btn-heal">🩹 First Aid (Selected)</button>
-                <button id="btnTriggerTest" class="btn-panel btn-launch">🚀 Launch Impact</button>
+            <!-- Level Progression Timer -->
+            <div class="card-group-title">Survival Countdown</div>
+            <div class="survival-timer-box">
+                <span id="survivalTimerText">10.0s</span>
             </div>
         </aside>
     </div>
 
-    <!-- Pause Overlay Modal -->
+    <!-- Pause Modal -->
     <div id="pauseModal" class="overlay-modal">
         <div class="modal-card">
             <h2>TEST PAUSED</h2>
-            <p>Press <strong>P</strong> or click Resume to continue simulation.</p>
-            <button id="btnResume" class="btn-panel btn-launch" style="width: 180px;">Resume</button>
+            <p>Press <strong>P</strong> or tap Resume to continue simulation.</p>
+            <button id="btnResume" class="btn-panel btn-action" style="width: 180px;">Resume</button>
         </div>
     </div>
 
-    <!-- Level Result Modal -->
-    <div id="resultModal" class="overlay-modal">
+    <!-- Intermission / Workshop Modal -->
+    <div id="workshopModal" class="overlay-modal">
+        <div class="modal-card workshop-card">
+            <h2 id="workshopHeadline">TEST FACILITY INTERMISSION</h2>
+            <p class="workshop-subtext">Spend points to repair structural damage and treat occupants before the next trial.</p>
+            
+            <div class="workshop-balance">
+                <span>Available Funds:</span>
+                <strong id="shopPointsText">0 PTS</strong>
+            </div>
+
+            <div class="shop-grid">
+                <div class="shop-item">
+                    <div class="shop-info">
+                        <strong>🧰 Rebuild Vehicle & Glass</strong>
+                        <span>Restores 100% chassis and windows</span>
+                    </div>
+                    <button id="btnShopRepairCar" class="btn-shop">50 PTS</button>
+                </div>
+
+                <div class="shop-occupants-list" id="shopDummyList"></div>
+            </div>
+
+            <div class="workshop-actions">
+                <button id="btnStartNextTier" class="btn-panel btn-launch">Proceed to Next Tier ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="overlay-modal">
         <div class="modal-card">
-            <h2 id="modalHeadline">LEVEL 1 COMPLETED</h2>
-            <p id="modalSubtext">Occupant survived impact testing.</p>
-            <button id="btnNextLevel" class="btn-panel btn-launch" style="width: 220px;">Proceed to Next Tier</button>
+            <h2 style="color: #ef4444;">CRASH TEST TERMINATED</h2>
+            <p id="gameOverSubtext">The vehicle suffered catastrophic structural failure or all occupants were lost.</p>
+            <button id="btnRetryLevel" class="btn-panel btn-action" style="width: 200px;">Retry Level</button>
         </div>
     </div>
 
