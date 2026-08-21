@@ -3,20 +3,19 @@
 // ==========================================
 const container = document.getElementById('webgl-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xe2e8f0);
-scene.fog = new THREE.Fog(0xe2e8f0, 30, 95);
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-const CAMERA_DISTANCE = 14.0; 
-const CAMERA_HEIGHT = 6.2;
+const CAMERA_DISTANCE = 16.0;
+const CAMERA_HEIGHT = 7.8;
 let orbitTheta = 0;
 let joystickVelocity = 0;
 
 function updateCameraPosition() {
-    camera.position.x = Math.sin(orbitTheta) * CAMERA_DISTANCE;
-    camera.position.z = Math.cos(orbitTheta) * CAMERA_DISTANCE;
-    camera.position.y = CAMERA_HEIGHT;
-    camera.lookAt(0, 1.2, 0);
+    const focusTarget = vehicleRig.position.clone().add(new THREE.Vector3(0, 1.4, 0));
+    camera.position.x = focusTarget.x + Math.sin(orbitTheta) * CAMERA_DISTANCE;
+    camera.position.z = focusTarget.z + Math.cos(orbitTheta) * CAMERA_DISTANCE;
+    camera.position.y = focusTarget.y + CAMERA_HEIGHT;
+    camera.lookAt(focusTarget);
 }
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -25,64 +24,109 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 container.appendChild(renderer.domElement);
 
-// Facility Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.25);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
 scene.add(ambientLight);
 
-[[-12, 16, -10], [12, 16, -10], [-12, 16, 10], [12, 16, 10], [0, 18, 0]].forEach(pos => {
-    const spot = new THREE.DirectionalLight(0xffffff, 0.75);
-    spot.position.set(pos[0], pos[1], pos[2]);
-    spot.castShadow = true;
-    spot.shadow.mapSize.width = 1024;
-    spot.shadow.mapSize.height = 1024;
-    spot.shadow.bias = -0.0001;
-    scene.add(spot);
-});
+const mainSpot = new THREE.DirectionalLight(0xffffff, 1.35);
+mainSpot.position.set(20, 30, 20);
+mainSpot.castShadow = true;
+mainSpot.shadow.mapSize.width = 2048;
+mainSpot.shadow.mapSize.height = 2048;
+mainSpot.shadow.bias = -0.0001;
+scene.add(mainSpot);
 
-// Facility Geometry (Light Gray Floor, Light Gray Walls, White Ceiling)
-const wallMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.5 });
-const ceilingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
-const floorMat = new THREE.MeshStandardMaterial({ color: 0xe5e7eb, roughness: 0.25, metalness: 0.1 });
-
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), floorMat);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-scene.add(floor);
-
-const backWall = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), wallMat);
-backWall.position.set(0, 10, -50);
-scene.add(backWall);
-
-const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), wallMat);
-leftWall.position.set(-50, 10, 0);
-leftWall.rotation.y = Math.PI / 2;
-scene.add(leftWall);
-
-const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(100, 20), wallMat);
-rightWall.position.set(50, 10, 0);
-rightWall.rotation.y = -Math.PI / 2;
-scene.add(rightWall);
-
-const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), ceilingMat);
-ceiling.position.set(0, 20, 0);
-ceiling.rotation.x = Math.PI / 2;
-scene.add(ceiling);
-
-// Dark Yellow Floor Markers
-const darkYellowCircleMat = new THREE.MeshBasicMaterial({ color: 0xb45309 });
-[[-8, 4], [10, -6], [-14, -12], [7, 15], [16, 8], [-6, -18]].forEach(pos => {
-    const circle = new THREE.Mesh(new THREE.CircleGeometry(0.85, 24), darkYellowCircleMat);
-    circle.rotation.x = -Math.PI / 2;
-    circle.position.set(pos[0], 0.015, pos[1]);
-    scene.add(circle);
-});
+const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.55);
+fillLight.position.set(-20, 20, -20);
+scene.add(fillLight);
 
 // ==========================================
-// PROCEDURAL TEXTURE GENERATION
+// PROCEDURAL TEXTURES (FRACTURED GLASS, FLOOR, MARKERS)
 // ==========================================
-function createCrashTargetTexture() {
+function createFracturedGlassTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'rgba(235, 248, 255, 0.82)';
+    ctx.fillRect(0, 0, 512, 512);
+
+    const cx = 256, cy = 256;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.lineWidth = 3;
+
+    for (let r = 20; r < 240; r += 28) {
+        ctx.beginPath();
+        for (let a = 0; a <= Math.PI * 2; a += 0.3) {
+            const jitter = (Math.random() - 0.5) * 12;
+            const x = cx + Math.cos(a) * (r + jitter);
+            const y = cy + Math.sin(a) * (r + jitter);
+            if (a === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+    }
+
+    ctx.strokeStyle = 'rgba(203, 213, 225, 0.9)';
+    ctx.lineWidth = 2.5;
+    for (let i = 0; i < 22; i++) {
+        const angle = (i / 22) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        let currX = cx, currY = cy;
+        for (let step = 0; step < 6; step++) {
+            const dist = 45 * (step + 1);
+            currX = cx + Math.cos(angle) * dist + (Math.random() - 0.5) * 14;
+            currY = cy + Math.sin(angle) * dist + (Math.random() - 0.5) * 14;
+            ctx.lineTo(currX, currY);
+        }
+        ctx.stroke();
+    }
+
+    return new THREE.CanvasTexture(canvas);
+}
+
+function createPavedFloorTexture(isDark = false) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = isDark ? '#1e293b' : '#cbd5e1';
+    ctx.fillRect(0, 0, 512, 512);
+
+    ctx.strokeStyle = isDark ? '#334155' : '#94a3b8';
+    ctx.lineWidth = 4;
+    for (let i = 0; i <= 512; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(10, 10);
+    return tex;
+}
+
+function createHazardStripeTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#eab308'; // Bright Safety Yellow
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.fillStyle = '#0f172a'; // Black hazard stripes
+    ctx.lineWidth = 14;
+    for (let i = -100; i < 356; i += 28) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 32, 64); ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 1);
+    return tex;
+}
+
+function createCrashDecalTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 256;
     const ctx = canvas.getContext('2d');
@@ -93,31 +137,82 @@ function createCrashTargetTexture() {
     return new THREE.CanvasTexture(canvas);
 }
 
-function createCautionDiagonalTexture() {
+function createRedCautionTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#facc15'; ctx.fillRect(0, 0, 256, 64);
-    ctx.fillStyle = '#000000'; ctx.lineWidth = 14;
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 256, 64);
+    ctx.fillStyle = '#dc2626'; ctx.lineWidth = 16;
     for (let i = -100; i < 356; i += 32) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 40, 64); ctx.stroke();
     }
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(2, 1);
+    tex.repeat.set(3, 1);
     return tex;
 }
 
-const targetTexture = createCrashTargetTexture();
-const cautionTexture = createCautionDiagonalTexture();
+function createTireXTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 18;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(20, 20); ctx.lineTo(108, 108);
+    ctx.moveTo(108, 20); ctx.lineTo(20, 108);
+    ctx.stroke();
+    return new THREE.CanvasTexture(canvas);
+}
+
+const targetDecalTex = createCrashDecalTexture();
+const redCautionTex = createRedCautionTexture();
+const tireXTex = createTireXTexture();
+const fracturedGlassTex = createFracturedGlassTexture();
+const hazardStripeTex = createHazardStripeTexture();
+
+// Arena Floor & Walls
+const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), new THREE.MeshStandardMaterial());
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.receiveShadow = true;
+scene.add(floorMesh);
+
+const arenaWalls = new THREE.Group();
+scene.add(arenaWalls);
+const wallMat = new THREE.MeshStandardMaterial({ roughness: 0.6 });
+
+const backWall = new THREE.Mesh(new THREE.PlaneGeometry(140, 26), wallMat);
+backWall.position.set(0, 13, -70);
+arenaWalls.add(backWall);
+
+const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(140, 26), wallMat);
+leftWall.position.set(-70, 13, 0);
+leftWall.rotation.y = Math.PI / 2;
+arenaWalls.add(leftWall);
+
+const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(140, 26), wallMat);
+rightWall.position.set(70, 13, 0);
+rightWall.rotation.y = -Math.PI / 2;
+arenaWalls.add(rightWall);
+
+const tireXGroup = new THREE.Group();
+scene.add(tireXGroup);
+const tireXMat = new THREE.MeshBasicMaterial({ map: tireXTex, transparent: true });
+[[-2.1, 2.3], [2.1, 2.3], [-2.1, -2.3], [2.1, -2.3]].forEach(p => {
+    const marker = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), tireXMat);
+    marker.rotation.x = -Math.PI / 2;
+    marker.position.set(p[0], 0.015, p[1]);
+    tireXGroup.add(marker);
+});
 
 // ==========================================
-// 3D MODELS: DUMMY & HELMETED CHICKEN
+// 3D DUMMY AVATARS
 // ==========================================
 const dummySkinMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.35 });
 const jointMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.5 });
-const targetDecalMat = new THREE.MeshStandardMaterial({ map: targetTexture, roughness: 0.3 });
-const seatbeltMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+const targetDecalMat = new THREE.MeshStandardMaterial({ map: targetDecalTex, roughness: 0.3 });
+const seatbeltMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
 
 function build3DDummy() {
     const group = new THREE.Group();
@@ -130,11 +225,6 @@ function build3DDummy() {
         thigh.rotation.x = Math.PI / 2;
         thigh.position.set(xOffset, 0.45, 0.35);
         group.add(thigh);
-
-        const thighTarget = new THREE.Mesh(new THREE.CircleGeometry(0.1, 16), targetDecalMat);
-        thighTarget.rotation.y = xOffset > 0 ? Math.PI / 2 : -Math.PI / 2;
-        thighTarget.position.set(xOffset > 0 ? xOffset + 0.15 : xOffset - 0.15, 0.45, 0.35);
-        group.add(thighTarget);
 
         const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.65, 16), dummySkinMat);
         shin.position.set(xOffset, 0.1, 0.7);
@@ -154,11 +244,6 @@ function build3DDummy() {
         arm.position.set(xOffset, 1.05, 0.1);
         arm.rotation.x = 0.35;
         group.add(arm);
-
-        const armTarget = new THREE.Mesh(new THREE.CircleGeometry(0.08, 16), targetDecalMat);
-        armTarget.rotation.y = xOffset > 0 ? Math.PI / 2 : -Math.PI / 2;
-        armTarget.position.set(xOffset > 0 ? xOffset + 0.11 : xOffset - 0.11, 1.15, 0.08);
-        group.add(armTarget);
     });
 
     const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.2, 16), jointMat);
@@ -179,177 +264,127 @@ function build3DDummy() {
     rightTarget.position.set(0.29, 1.9, 0);
     group.add(rightTarget);
 
-    // 3-Point Belt
     const diagBelt = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.1, 0.04), seatbeltMat);
     diagBelt.position.set(0, 1.1, 0.22);
     diagBelt.rotation.z = -0.45;
     group.add(diagBelt);
 
-    const lapBelt = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.1, 0.04), seatbeltMat);
-    lapBelt.position.set(0, 0.52, 0.32);
-    group.add(lapBelt);
-
-    return group;
-}
-
-function buildHelmetedChicken() {
-    const group = new THREE.Group();
-    const featherMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.6 });
-    const beakMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.4 });
-    const helmetMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, metalness: 0.4, roughness: 0.2 });
-    const cageMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.1 });
-
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), featherMat);
-    body.position.y = 0.65;
-    body.scale.set(0.9, 1.0, 1.2);
-    group.add(body);
-
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), featherMat);
-    head.position.set(0, 1.1, 0.28);
-    group.add(head);
-
-    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.22, 12), beakMat);
-    beak.rotation.x = Math.PI / 2;
-    beak.position.set(0, 1.08, 0.58);
-    group.add(beak);
-
-    const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.32, 20, 20, 0, Math.PI * 2, 0, Math.PI * 0.75), helmetMat);
-    helmet.position.set(0, 1.16, 0.26);
-    group.add(helmet);
-
-    const mask = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.02, 8, 16, Math.PI), cageMat);
-    mask.position.set(0, 1.05, 0.48);
-    mask.rotation.x = -Math.PI / 4;
-    group.add(mask);
-
-    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, 0.04), seatbeltMat);
-    belt.position.set(0, 0.65, 0.35);
-    group.add(belt);
-
     return group;
 }
 
 // ==========================================
-// 3D VEHICLE: SOLID 4-DOOR SEDAN WITH CLEAR GLASS
+// 3D VEHICLE (WITH PROCEDURAL WINDOWS & DENTS)
 // ==========================================
+const vehicleRig = new THREE.Group();
+scene.add(vehicleRig);
+
 const targetVehicleGroup = new THREE.Group();
-scene.add(targetVehicleGroup);
+vehicleRig.add(targetVehicleGroup);
 
-const solidSedanMat = new THREE.MeshStandardMaterial({
-    color: 0x1e3a8a,
-    metalness: 0.6,
-    roughness: 0.25
-});
-
+const carPaintMat = new THREE.MeshStandardMaterial({ roughness: 0.25, metalness: 0.65 });
 const trimMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
-const wheelMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
 const rimMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 });
 const seatMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
 
-const clearGlassMat = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.2,
-    roughness: 0.05,
-    metalness: 0.1,
-    transmission: 0.95,
-    ior: 1.5
-});
+function createClearGlassMaterial() {
+    return new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.25,
+        roughness: 0.05,
+        metalness: 0.1,
+        transmission: 0.95,
+        ior: 1.5
+    });
+}
 
-// Sedan Chassis
+function createShatteredGlassMaterial() {
+    return new THREE.MeshStandardMaterial({
+        map: fracturedGlassTex,
+        transparent: true,
+        opacity: 0.88,
+        roughness: 0.45,
+        metalness: 0.2
+    });
+}
+
 const chassis = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.4, 7.6), trimMat);
 chassis.position.y = 0.5;
 targetVehicleGroup.add(chassis);
 
-// Wheels
-[[-2.1, 0.6, 2.3], [2.1, 0.6, 2.3], [-2.1, 0.6, -2.3], [2.1, 0.6, -2.3]].forEach(pos => {
+const wheelRigMap = {};
+[
+    { key: 'FL', pos: [-2.1, 0.6, 2.3] },
+    { key: 'FR', pos: [2.1, 0.6, 2.3] },
+    { key: 'RL', pos: [-2.1, 0.6, -2.3] },
+    { key: 'RR', pos: [2.1, 0.6, -2.3] }
+].forEach(wInfo => {
+    const wheelGroup = new THREE.Group();
+    wheelGroup.position.set(wInfo.pos[0], wInfo.pos[1], wInfo.pos[2]);
+
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.45, 24), wheelMat);
     w.rotation.z = Math.PI / 2;
-    w.position.set(pos[0], pos[1], pos[2]);
-    targetVehicleGroup.add(w);
+    wheelGroup.add(w);
 
     const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.46, 16), rimMat);
     rim.rotation.z = Math.PI / 2;
-    rim.position.set(pos[0], pos[1], pos[2]);
-    targetVehicleGroup.add(rim);
+    wheelGroup.add(rim);
+
+    targetVehicleGroup.add(wheelGroup);
+    wheelRigMap[wInfo.key] = { group: wheelGroup, popped: false, mesh: w };
 });
 
-// Lower Solid Body
-const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.0, 7.4), solidSedanMat);
+const lowerBodyGeo = new THREE.BoxGeometry(4.0, 1.0, 7.4, 10, 6, 14);
+const lowerBody = new THREE.Mesh(lowerBodyGeo, carPaintMat);
 lowerBody.position.set(0, 1.1, 0);
 targetVehicleGroup.add(lowerBody);
 
-// Solid Trunk
-const trunk = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.8, 1.8), solidSedanMat);
+const trunk = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.8, 1.8), carPaintMat);
 trunk.position.set(0, 1.4, -2.7);
 targetVehicleGroup.add(trunk);
 
-// Solid Hood
-const hood = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.8, 2.0), solidSedanMat);
+const hood = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.8, 2.0), carPaintMat);
 hood.position.set(0, 1.4, 2.6);
 targetVehicleGroup.add(hood);
 
-// Solid Roof Shell
-const roof = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 3.4), solidSedanMat);
-roof.position.set(0, 2.65, -0.1);
+// Raised Roof & Pillars
+const roof = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 3.4), carPaintMat);
+roof.position.set(0, 3.15, -0.1);
 targetVehicleGroup.add(roof);
 
-// Pillars
-[[-1.8, 2.1, 1.5], [1.8, 2.1, 1.5], [-1.8, 2.1, -1.7], [1.8, 2.1, -1.7]].forEach(pos => {
-    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.1, 0.18), solidSedanMat);
+[[-1.8, 2.3, 1.5], [1.8, 2.3, 1.5], [-1.8, 2.3, -1.7], [1.8, 2.3, -1.7]].forEach(pos => {
+    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.7, 0.18), carPaintMat);
     pillar.position.set(pos[0], pos[1], pos[2]);
     targetVehicleGroup.add(pillar);
 });
 
-// Clear Windows
-const windshield = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.1, 0.06), clearGlassMat);
-windshield.position.set(0, 2.1, 1.5);
-windshield.rotation.x = -0.4;
-targetVehicleGroup.add(windshield);
+// Segmented Windows with Shatter Capability
+const windowMap = {
+    front: new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.5, 0.06), createClearGlassMaterial()),
+    rear: new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.5, 0.06), createClearGlassMaterial()),
+    left: new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.4, 3.2), createClearGlassMaterial()),
+    right: new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.4, 3.2), createClearGlassMaterial())
+};
 
-const rearWindow = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.1, 0.06), clearGlassMat);
-rearWindow.position.set(0, 2.1, -1.7);
-rearWindow.rotation.x = 0.4;
-targetVehicleGroup.add(rearWindow);
+windowMap.front.position.set(0, 2.3, 1.5);
+windowMap.front.rotation.x = -0.32;
+targetVehicleGroup.add(windowMap.front);
 
-const leftSideGlass = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 3.2), clearGlassMat);
-leftSideGlass.position.set(-1.85, 2.1, -0.1);
-targetVehicleGroup.add(leftSideGlass);
+windowMap.rear.position.set(0, 2.3, -1.7);
+windowMap.rear.rotation.x = 0.32;
+targetVehicleGroup.add(windowMap.rear);
 
-const rightSideGlass = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.0, 3.2), clearGlassMat);
-rightSideGlass.position.set(1.85, 2.1, -0.1);
-targetVehicleGroup.add(rightSideGlass);
+windowMap.left.position.set(-1.85, 2.3, -0.1);
+targetVehicleGroup.add(windowMap.left);
 
-// Airbags
-const airbagMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.65 });
-const driverAirbag = new THREE.Mesh(new THREE.SphereGeometry(0.36, 24, 24), airbagMat);
-driverAirbag.scale.set(1.2, 1.2, 0.7);
-driverAirbag.position.set(-1.1, 1.6, 1.25);
-driverAirbag.visible = false;
-targetVehicleGroup.add(driverAirbag);
+windowMap.right.position.set(1.85, 2.3, -0.1);
+targetVehicleGroup.add(windowMap.right);
 
-const passAirbag = new THREE.Mesh(new THREE.SphereGeometry(0.42, 24, 24), airbagMat);
-passAirbag.scale.set(1.3, 1.1, 0.8);
-passAirbag.position.set(1.1, 1.65, 1.35);
-passAirbag.visible = false;
-targetVehicleGroup.add(passAirbag);
-
-const leftCurtainAirbag = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.0, 3.2), airbagMat);
-leftCurtainAirbag.position.set(-1.75, 2.1, -0.1);
-leftCurtainAirbag.visible = false;
-targetVehicleGroup.add(leftCurtainAirbag);
-
-const rightCurtainAirbag = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.0, 3.2), airbagMat);
-rightCurtainAirbag.position.set(1.75, 2.1, -0.1);
-rightCurtainAirbag.visible = false;
-targetVehicleGroup.add(rightCurtainAirbag);
-
-// 4 Seats
+// Occupants
 const seatData = {
-    FL: { label: 'Driver', type: 'human', localPos: new THREE.Vector3(-1.1, 0.7, 0.9), occupant: null },
-    FR: { label: 'Front Pass', type: 'human', localPos: new THREE.Vector3(1.1, 0.7, 0.9), occupant: null },
-    BL: { label: 'Rear Driver', type: 'chicken', localPos: new THREE.Vector3(-1.1, 0.7, -1.1), occupant: null },
-    BR: { label: 'Rear Pass', type: 'human', localPos: new THREE.Vector3(1.1, 0.7, -1.1), occupant: null }
+    FL: { label: 'Driver', localPos: new THREE.Vector3(-1.1, 0.7, 0.9), occupant: null },
+    FR: { label: 'Front Passenger', localPos: new THREE.Vector3(1.1, 0.7, 0.9), occupant: null }
 };
 
 for (let key in seatData) {
@@ -364,235 +399,414 @@ for (let key in seatData) {
 }
 
 // ==========================================
-// 3D IIHS MOVING CRASH CART
+// 3D HAZARD PURSUIT CRASH CART
 // ==========================================
 const crashCart = new THREE.Group();
 scene.add(crashCart);
 
-const cartFrame = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.35, 6.0), trimMat);
+const cartFrame = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.35, 6.0), trimMat);
 cartFrame.position.y = 0.5;
 crashCart.add(cartFrame);
 
-[[-1.9, 0.6, 1.8], [1.9, 0.6, 1.8], [-1.9, 0.6, -1.8], [1.9, 0.6, -1.8]].forEach(pos => {
-    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.4, 20), wheelMat);
-    w.rotation.z = Math.PI / 2;
-    w.position.set(pos[0], pos[1], pos[2]);
-    crashCart.add(w);
-});
-
 const crushBarrier = new THREE.Mesh(
-    new THREE.BoxGeometry(3.6, 1.3, 1.4),
-    new THREE.MeshStandardMaterial({ color: 0xd8e2dc, metalness: 0.85, roughness: 0.25 })
+    new THREE.BoxGeometry(3.8, 1.4, 1.4),
+    new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 })
 );
-crushBarrier.position.set(0, 1.15, 3.6);
+crushBarrier.position.set(0, 1.2, 3.6);
 crashCart.add(crushBarrier);
 
-const cautionBand = new THREE.Mesh(
-    new THREE.BoxGeometry(3.64, 0.35, 0.1),
-    new THREE.MeshBasicMaterial({ map: cautionTexture })
+const cautionStripe = new THREE.Mesh(
+    new THREE.BoxGeometry(3.82, 0.4, 0.1),
+    new THREE.MeshBasicMaterial({ map: redCautionTex })
 );
-cautionBand.position.set(0, 1.15, 4.32);
-crashCart.add(cautionBand);
+cautionStripe.position.set(0, 1.2, 4.32);
+crashCart.add(cautionStripe);
 
 // ==========================================
-// GAME STATE MANAGEMENT (7 LEVELS)
+// TWO-TONE ROTATING COINS & REFERENCE SPIKE STRIP
+// ==========================================
+const coinsGroup = new THREE.Group();
+scene.add(coinsGroup);
+const obstaclesGroup = new THREE.Group();
+scene.add(obstaclesGroup);
+
+let coinObjects = [];
+let spikeStripObjects = [];
+let speedBumpObjects = [];
+let brickWallObjects = [];
+
+const coinInnerMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.25, metalness: 0.75 });
+const coinRingMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.2, metalness: 0.85 });
+
+function buildTwoToneCoin() {
+    const coinGroup = new THREE.Group();
+    const core = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.14, 24), coinInnerMat);
+    core.rotation.x = Math.PI / 2;
+    coinGroup.add(core);
+
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.08, 12, 24), coinRingMat);
+    coinGroup.add(rim);
+    return coinGroup;
+}
+
+// Procedural Spike Barrier matching reference image
+const spikeBaseMat = new THREE.MeshStandardMaterial({ map: hazardStripeTex, roughness: 0.4, metalness: 0.2 });
+const spikeNeedleMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.8, roughness: 0.25 }); // Sharp Red
+
+function buildReferenceSpikeStrip() {
+    const stripGroup = new THREE.Group();
+
+    // 1. Trapezoidal Beveled Hazard Base
+    const baseShape = new THREE.Shape();
+    baseShape.moveTo(-0.65, 0);
+    baseShape.lineTo(-0.38, 0.22);
+    baseShape.lineTo(0.38, 0.22);
+    baseShape.lineTo(0.65, 0);
+    baseShape.closePath();
+
+    const extrudeSettings = { depth: 6.8, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 };
+    const baseGeo = new THREE.ExtrudeGeometry(baseShape, extrudeSettings);
+    const baseMesh = new THREE.Mesh(baseGeo, spikeBaseMat);
+    baseMesh.rotation.y = Math.PI / 2;
+    baseMesh.position.set(-3.4, 0, 0);
+    stripGroup.add(baseMesh);
+
+    // 2. Upward-Pointed Red Needle Spikes Row
+    const needleGeo = new THREE.ConeGeometry(0.045, 0.55, 8);
+    const numNeedles = 24;
+    for (let i = 0; i < numNeedles; i++) {
+        const needle = new THREE.Mesh(needleGeo, spikeNeedleMat);
+        const zOffset = -3.1 + (i / (numNeedles - 1)) * 6.2;
+        needle.position.set(0, 0.42, zOffset);
+        needle.rotation.x = (Math.random() - 0.5) * 0.15; // Realistic slight angular tilt
+        needle.rotation.z = -0.22; // Angled forward-slanted spike
+        stripGroup.add(needle);
+    }
+
+    return stripGroup;
+}
+
+function getScatteredPositions(count, minRadius, maxRadius) {
+    const positions = [];
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = minRadius + Math.random() * (maxRadius - minRadius);
+        const x = Math.cos(angle) * radius + (Math.random() - 0.5) * 6;
+        const z = Math.sin(angle) * radius + (Math.random() - 0.5) * 6;
+        positions.push({ x: THREE.MathUtils.clamp(x, -55, 55), z: THREE.MathUtils.clamp(z, -55, 55) });
+    }
+    return positions;
+}
+
+function spawnCoins(count = 20) {
+    coinObjects.forEach(c => coinsGroup.remove(c.mesh));
+    coinObjects = [];
+
+    const positions = getScatteredPositions(count, 8, 52);
+    positions.forEach(p => {
+        const coinMesh = buildTwoToneCoin();
+        coinMesh.position.set(p.x, 1.0, p.z);
+        coinsGroup.add(coinMesh);
+        coinObjects.push({ mesh: coinMesh, collected: false });
+    });
+}
+
+function spawnObstaclesForLevel(lvl) {
+    while (obstaclesGroup.children.length > 0) {
+        obstaclesGroup.remove(obstaclesGroup.children[0]);
+    }
+    spikeStripObjects = [];
+    speedBumpObjects = [];
+    brickWallObjects = [];
+
+    // 1. Reference Spike Strips
+    const spikeCount = lvl === 1 ? 6 : 11;
+    const spikePositions = getScatteredPositions(spikeCount, 12, 54);
+
+    spikePositions.forEach(p => {
+        const strip = buildReferenceSpikeStrip();
+        strip.position.set(p.x, 0.01, p.z);
+        strip.rotation.y = Math.random() * Math.PI;
+        obstaclesGroup.add(strip);
+        spikeStripObjects.push(strip);
+    });
+
+    // 2. Speed Bumps
+    const bumpGeo = new THREE.CylinderGeometry(0.9, 0.9, 7.5, 16, 1, false, 0, Math.PI);
+    const bumpMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
+    const bumpCount = lvl === 1 ? 6 : 9;
+    const bumpPositions = getScatteredPositions(bumpCount, 10, 50);
+
+    bumpPositions.forEach(p => {
+        const m = new THREE.Mesh(bumpGeo, bumpMat);
+        m.rotation.z = Math.PI / 2;
+        m.rotation.y = Math.random() * Math.PI;
+        m.position.set(p.x, 0.15, p.z);
+        obstaclesGroup.add(m);
+        speedBumpObjects.push(m);
+    });
+
+    // 3. Brick Walls (Level 2)
+    if (lvl >= 2) {
+        const brickGeo = new THREE.BoxGeometry(5.5, 2.2, 1.2);
+        const brickMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.8 });
+        const wallPositions = getScatteredPositions(8, 14, 48);
+
+        wallPositions.forEach(p => {
+            const m = new THREE.Mesh(brickGeo, brickMat);
+            m.position.set(p.x, 1.1, p.z);
+            m.rotation.y = Math.random() * Math.PI;
+            obstaclesGroup.add(m);
+            brickWallObjects.push(m);
+        });
+    }
+}
+
+// ==========================================
+// GAME STATE & INITIALIZATION
 // ==========================================
 let currentLevel = 1;
-const TOTAL_LEVELS = 7;
+let totalPoints = 0;
 let isPaused = false;
-let gameState = 'PREP';
-let countdownTimer = 10.0;
+let gameState = 'DRIVE';
 let vehicleHealth = 100;
-let selectedSeatKey = 'FL';
-let attackSide = 'LEFT';
+let survivalTimer = 10.0;
 let activeFloatingTexts = [];
-let joltAnimTimer = 0;
-let isJolting = false;
-let replayClock = 5.0;
-let focusedReplaySeat = 'FL';
 
-function createOccupantData(name, isChicken = false) {
-    return {
-        name: name,
-        health: 100,
-        isAxed: false,
-        isChicken: isChicken,
-        mesh: isChicken ? buildHelmetedChicken() : build3DDummy()
-    };
-}
+// Upgraded Driving Dynamics (Faster Top Speed & Responsive Acceleration)
+const keysPressed = {};
+let carVelocity = 0;
+let carAngle = 0;
+let carYVelocity = 0;
+let carYPos = 0;
+const BASE_MAX_SPEED = 28.0; // Upgraded top speed
+const ACCEL = 54.0;          // Upgraded fast throttle
+const FRICTION = 16.0;
+const STEER_SPEED = 3.2;
+const GRAVITY = 42.0;
+const JUMP_IMPULSE = 15.0;
 
-function installOccupant(seatKey, name, isChicken = false) {
-    const seat = seatData[seatKey];
-    if (seat.occupant) return;
-    const occ = createOccupantData(name, isChicken);
-    occ.mesh.position.set(seat.localPos.x, seat.localPos.y + 0.1, seat.localPos.z);
-    targetVehicleGroup.add(occ.mesh);
-    seat.occupant = occ;
-}
+// Angular Roll / Restitution
+let carRoll = 0;
+let rollVelocity = 0;
+let cartAngle = 0;
 
-function initLevel(level) {
-    currentLevel = level;
-    gameState = 'PREP';
-    isPaused = false;
-    countdownTimer = 10.0;
-    vehicleHealth = 100;
-    isJolting = false;
-    replayClock = 5.0;
+// Hazard State & 2-Second Recoil Delay
+let hazardStunTimer = 0;
+let hazardRecoilSpeed = 0;
 
-    orbitTheta = 0;
-    updateCameraPosition();
+// Solid Hull Radii (Strict non-penetration)
+const MIN_COLLISION_DISTANCE = 6.4; 
 
-    document.getElementById('levelDisplay').textContent = `LEVEL ${currentLevel} / ${TOTAL_LEVELS}`;
-    document.getElementById('replayBanner').style.display = 'none';
-    document.getElementById('resultModal').style.display = 'none';
-    document.getElementById('pauseModal').style.display = 'none';
-    document.getElementById('telemetryPanel').style.display = 'flex';
-    document.getElementById('joyContainer').style.display = 'flex';
-
-    targetVehicleGroup.position.set(0, 0, 0);
-    targetVehicleGroup.rotation.set(0, 0, 0);
-    leftSideGlass.visible = true;
-    rightSideGlass.visible = true;
-    driverAirbag.visible = false;
-    passAirbag.visible = false;
-    leftCurtainAirbag.visible = false;
-    rightCurtainAirbag.visible = false;
-
-    attackSide = Math.random() < 0.5 ? 'LEFT' : 'RIGHT';
-    if (attackSide === 'LEFT') {
-        crashCart.position.set(-22, 0, 0);
-        crashCart.rotation.y = Math.PI / 2;
-    } else {
-        crashCart.position.set(22, 0, 0);
-        crashCart.rotation.y = -Math.PI / 2;
-    }
-
+function installOccupants() {
     for (let key in seatData) {
-        if (seatData[key].occupant && seatData[key].occupant.mesh) {
-            targetVehicleGroup.remove(seatData[key].occupant.mesh);
-        }
-        seatData[key].occupant = null;
+        const s = seatData[key];
+        if (s.occupant && s.occupant.mesh) targetVehicleGroup.remove(s.occupant.mesh);
+        const occMesh = build3DDummy();
+        occMesh.position.set(s.localPos.x, s.localPos.y + 0.1, s.localPos.z);
+        targetVehicleGroup.add(occMesh);
+        s.occupant = {
+            health: 100,
+            isAxed: false,
+            mesh: occMesh
+        };
     }
-
-    installOccupant('FL', 'Driver');
-    installOccupant('FR', 'Co-Pilot');
-
-    if (currentLevel >= 2) {
-        installOccupant('BL', 'Cluck Norris', true);
-    }
-    selectedSeatKey = 'FL';
-
-    document.getElementById('phaseDisplay').textContent = 'COUNTDOWN PREPARATION';
-    document.getElementById('phaseDisplay').style.borderColor = '#d97706';
-    document.getElementById('phaseDisplay').style.color = '#d97706';
-    updateUI();
 }
 
-function triggerImpactSequence() {
-    vehicleHealth = Math.max(0, vehicleHealth - 30);
-    isJolting = true;
-    joltAnimTimer = 0;
+function initLevel(lvl) {
+    currentLevel = lvl;
+    gameState = 'DRIVE';
+    isPaused = false;
+    vehicleHealth = 100;
+    survivalTimer = (lvl === 1) ? 10.0 : 15.0;
+    carVelocity = 0;
+    carAngle = 0;
+    carYVelocity = 0;
+    carYPos = 0;
+    carRoll = 0;
+    rollVelocity = 0;
+    hazardStunTimer = 0;
+    hazardRecoilSpeed = 0;
 
-    if (attackSide === 'LEFT') {
-        leftSideGlass.visible = false;
-        leftCurtainAirbag.visible = true;
-    } else {
-        rightSideGlass.visible = false;
-        rightCurtainAirbag.visible = true;
+    // Reset Tires
+    for (let k in wheelRigMap) {
+        wheelRigMap[k].popped = false;
+        wheelRigMap[k].mesh.scale.set(1, 1, 1);
+        document.getElementById(`tire${k}`).className = 'tire-indicator intact';
+        document.getElementById(`tire${k}`).textContent = `${k}: OK`;
     }
 
-    if (seatData.FL.occupant) driverAirbag.visible = true;
-    if (seatData.FR.occupant) passAirbag.visible = true;
+    // Reset Glass to Pristine Clear State
+    for (let winKey in windowMap) {
+        windowMap[winKey].material = createClearGlassMaterial();
+    }
+
+    // Reset Environment & Vehicle Palette
+    if (lvl === 1) {
+        scene.background = new THREE.Color(0xe2e8f0);
+        scene.fog = new THREE.Fog(0xe2e8f0, 30, 110);
+        floorMesh.material.map = createPavedFloorTexture(false);
+        floorMesh.material.needsUpdate = true;
+        wallMat.color.setHex(0xd1d5db);
+        carPaintMat.color.setHex(0x1e3a8a);
+    } else {
+        scene.background = new THREE.Color(0x0f172a);
+        scene.fog = new THREE.Fog(0x0f172a, 30, 110);
+        floorMesh.material.map = createPavedFloorTexture(true);
+        floorMesh.material.needsUpdate = true;
+        wallMat.color.setHex(0x1e293b);
+        carPaintMat.color.setHex(0xf8fafc);
+    }
+
+    vehicleRig.position.set(0, 0, 0);
+    vehicleRig.rotation.set(0, 0, 0);
+    targetVehicleGroup.rotation.set(0, 0, 0);
+
+    // Reset Dented Vertices
+    const posAttr = lowerBodyGeo.attributes.position;
+    const baseGeo = new THREE.BoxGeometry(4.0, 1.0, 7.4, 10, 6, 14);
+    for (let i = 0; i < posAttr.count; i++) {
+        posAttr.setXYZ(i, baseGeo.attributes.position.getX(i), baseGeo.attributes.position.getY(i), baseGeo.attributes.position.getZ(i));
+    }
+    posAttr.needsUpdate = true;
+    lowerBodyGeo.computeVertexNormals();
+
+    // Position Hazard Safely Away
+    crashCart.position.set(38, 0, 38);
+
+    document.getElementById('levelDisplay').textContent = `TIER ${currentLevel} / 7`;
+    document.getElementById('warningBeacon').style.display = 'none';
+    document.getElementById('workshopModal').style.display = 'none';
+    document.getElementById('gameOverModal').style.display = 'none';
+    document.getElementById('pauseModal').style.display = 'none';
+    document.getElementById('phaseDisplay').textContent = 'COLLECT COINS & EVADE';
+    document.getElementById('phaseDisplay').style.color = '#2563eb';
+    document.getElementById('phaseDisplay').style.borderColor = '#2563eb';
+
+    spawnCoins(20);
+    spawnObstaclesForLevel(lvl);
+    installOccupants();
+    updateUI();
+    updateCameraPosition();
+}
+
+// ==========================================
+// PROCEDURAL MESH DENTING & GLASS FRACTURE
+// ==========================================
+function applyLocalizedDentAndGlassFracture(localHitPoint) {
+    const posAttr = lowerBodyGeo.attributes.position;
+    const v = new THREE.Vector3();
+    const forceRadius = 2.5;
+    const maxIndent = 0.6;
+
+    for (let i = 0; i < posAttr.count; i++) {
+        v.fromBufferAttribute(posAttr, i);
+        const dist = v.distanceTo(localHitPoint);
+        if (dist < forceRadius) {
+            const factor = (1 - dist / forceRadius) * maxIndent;
+            if (Math.abs(localHitPoint.x) > Math.abs(localHitPoint.z)) {
+                v.x += (localHitPoint.x > 0 ? -factor : factor);
+            } else {
+                v.z += (localHitPoint.z > 0 ? -factor : factor);
+            }
+            posAttr.setXYZ(i, v.x, v.y, v.z);
+        }
+    }
+    posAttr.needsUpdate = true;
+    lowerBodyGeo.computeVertexNormals();
+
+    if (Math.abs(localHitPoint.x) > Math.abs(localHitPoint.z)) {
+        if (localHitPoint.x < 0) windowMap.left.material = createShatteredGlassMaterial();
+        else windowMap.right.material = createShatteredGlassMaterial();
+    } else {
+        if (localHitPoint.z > 0) windowMap.front.material = createShatteredGlassMaterial();
+        else windowMap.rear.material = createShatteredGlassMaterial();
+    }
+}
+
+// ==========================================
+// ZERO-INTERCEPTION HARD IMPACT SOLVER
+// ==========================================
+function triggerZeroInterceptionImpact(contactNormal) {
+    if (hazardStunTimer > 0) return;
+
+    // 1. Calculate Local Hit Point on Player Vehicle
+    const invRot = vehicleRig.quaternion.clone().invert();
+    const localHitPoint = crashCart.position.clone().sub(vehicleRig.position).applyQuaternion(invRot);
+
+    // 2. Dent chassis & shatter closest window
+    applyLocalizedDentAndGlassFracture(localHitPoint);
+
+    // 3. Elastic Double Recoil Momentum & 2-Second Stun Delay
+    const playerBounceForce = 18.0;
+    vehicleRig.position.addScaledVector(contactNormal, 1.2);
+    carVelocity = contactNormal.dot(new THREE.Vector3(Math.sin(carAngle), 0, Math.cos(carAngle))) * playerBounceForce;
+
+    hazardStunTimer = 2.0;
+    hazardRecoilSpeed = 16.0;
+
+    rollVelocity = (Math.random() < 0.5 ? -1 : 1) * 7.5;
+
+    // 4. Vehicle Structural Wear & Passenger Damage
+    vehicleHealth = Math.max(0, vehicleHealth - 12);
 
     for (let key in seatData) {
         const s = seatData[key];
         if (s.occupant && !s.occupant.isAxed) {
-            const isDirectSide = (attackSide === 'LEFT' && key.endsWith('L')) || (attackSide === 'RIGHT' && key.endsWith('R'));
-            const damageAmount = isDirectSide ? 40 : 20;
-
-            s.occupant.health = Math.max(0, s.occupant.health - damageAmount);
+            const dmg = 8;
+            s.occupant.health = Math.max(0, s.occupant.health - dmg);
             if (s.occupant.health === 0) s.occupant.isAxed = true;
-
-            spawnLevitatingDamage(s.localPos, `-${damageAmount}%`);
+            spawnLevitatingDamage(s.localPos.clone().add(vehicleRig.position), `-${dmg}%`);
         }
     }
 
     updateUI();
+    checkGameOver();
+}
+
+function checkGameOver() {
+    const allAxed = Object.values(seatData).every(s => !s.occupant || s.occupant.isAxed);
+    if (vehicleHealth <= 0 || allAxed) {
+        gameState = 'RESOLVED';
+        document.getElementById('gameOverModal').style.display = 'flex';
+    }
+}
+
+// ==========================================
+// FLOATING POINT ANIMATION
+// ==========================================
+function triggerCoinCollection(worldPos) {
+    totalPoints += 10;
+    document.getElementById('scoreText').textContent = totalPoints;
+
+    const el = document.createElement('div');
+    el.className = 'floating-coin-point';
+    el.textContent = '+10 PTS';
+    document.getElementById('floatingLayer').appendChild(el);
+
+    const screenPos = worldPos.clone().project(camera);
+    const startX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+    const startY = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+    el.style.left = `${startX}px`;
+    el.style.top = `${startY}px`;
+
+    const pointsBadge = document.getElementById('pointsDisplay');
+    const badgeRect = pointsBadge.getBoundingClientRect();
+    const targetX = badgeRect.left + badgeRect.width / 2;
+    const targetY = badgeRect.top + badgeRect.height / 2;
+
+    requestAnimationFrame(() => {
+        el.style.left = `${targetX}px`;
+        el.style.top = `${targetY}px`;
+        el.style.opacity = '0.1';
+    });
 
     setTimeout(() => {
-        startFocusedReplay();
-    }, 800);
+        el.remove();
+    }, 1000);
 }
 
-function startFocusedReplay() {
-    gameState = 'REPLAY';
-    replayClock = 5.0;
-
-    const installedKeys = Object.keys(seatData).filter(k => seatData[k].occupant !== null);
-    focusedReplaySeat = installedKeys[Math.floor(Math.random() * installedKeys.length)] || 'FL';
-
-    for (let key in seatData) {
-        if (seatData[key].occupant && seatData[key].occupant.mesh) {
-            seatData[key].occupant.mesh.visible = (key === focusedReplaySeat);
-        }
-    }
-
-    const occ = seatData[focusedReplaySeat].occupant;
-    document.getElementById('replayTargetLabel').textContent = `🔴 5-SEC REPLAY: ${seatData[focusedReplaySeat].label.toUpperCase()} (${occ.name})`;
-    document.getElementById('replayBanner').style.display = 'flex';
-    document.getElementById('telemetryPanel').style.display = 'none';
-    document.getElementById('joyContainer').style.display = 'none';
-
-    const targetPos = seatData[focusedReplaySeat].localPos;
-    if (focusedReplaySeat.endsWith('L')) {
-        camera.position.set(2.4, 2.1, 1.8);
-    } else {
-        camera.position.set(-2.4, 2.1, 1.8);
-    }
-    camera.lookAt(targetPos.x, targetPos.y + 0.8, targetPos.z);
-}
-
-function finishLevel() {
-    gameState = 'RESOLVED';
-    document.getElementById('replayBanner').style.display = 'none';
-
-    for (let key in seatData) {
-        if (seatData[key].occupant && seatData[key].occupant.mesh) {
-            seatData[key].occupant.mesh.visible = true;
-        }
-    }
-
-    const hasSurvivor = Object.values(seatData).some(s => s.occupant && !s.occupant.isAxed);
-    const modal = document.getElementById('resultModal');
-    const headline = document.getElementById('modalHeadline');
-    const subtext = document.getElementById('modalSubtext');
-    const nextBtn = document.getElementById('btnNextLevel');
-
-    modal.style.display = 'flex';
-    if (hasSurvivor && vehicleHealth > 0) {
-        if (currentLevel < TOTAL_LEVELS) {
-            headline.textContent = `LEVEL ${currentLevel} PASSED`;
-            headline.style.color = '#10b981';
-            subtext.textContent = 'At least one occupant survived the impact! Ready for next test tier.';
-            nextBtn.textContent = `Proceed to Level ${currentLevel + 1}`;
-        } else {
-            headline.textContent = `CRASH TEST EXTREME 2.0 CHAMPION!`;
-            headline.style.color = '#10b981';
-            subtext.textContent = 'All 7 crash testing tiers completed with valid passenger survival rates!';
-            nextBtn.textContent = 'Restart Level 1';
-        }
-    } else {
-        headline.textContent = 'TEST FAILED: 0 SURVIVORS';
-        headline.style.color = '#ef4444';
-        subtext.textContent = 'All occupants were axed or the sedan cab suffered structural collapse.';
-        nextBtn.textContent = `Retry Level ${currentLevel}`;
-    }
-}
-
-function spawnLevitatingDamage(localPos, text) {
-    const worldPos = localPos.clone();
-    worldPos.y += 2.0;
-
+function spawnLevitatingDamage(worldPos, text) {
     const el = document.createElement('div');
     el.className = 'levitating-damage';
     el.textContent = text;
@@ -600,10 +814,107 @@ function spawnLevitatingDamage(localPos, text) {
 
     activeFloatingTexts.push({
         element: el,
-        worldPos: worldPos,
-        life: 2.0,
-        maxLife: 2.0
+        worldPos: worldPos.clone().add(new THREE.Vector3(0, 1.8, 0)),
+        life: 1.5,
+        maxLife: 1.5
     });
+}
+
+// ==========================================
+// WORKSHOP INTERMISSION
+// ==========================================
+function openWorkshop() {
+    gameState = 'RESOLVED';
+    document.getElementById('shopPointsText').textContent = `${totalPoints} PTS`;
+
+    const dummyList = document.getElementById('shopDummyList');
+    dummyList.innerHTML = '';
+
+    for (let key in seatData) {
+        const s = seatData[key];
+        if (s.occupant) {
+            const row = document.createElement('div');
+            row.className = 'shop-item';
+            row.innerHTML = `
+                <div class="shop-info">
+                    <strong>🩹 First Aid: ${s.label}</strong>
+                    <span>Health: ${s.occupant.health}% ${s.occupant.isAxed ? '(INCAPACITATED)' : ''}</span>
+                </div>
+                <button class="btn-shop" id="btnHeal_${key}">20 PTS</button>
+            `;
+            dummyList.appendChild(row);
+
+            const btn = row.querySelector(`#btnHeal_${key}`);
+            btn.disabled = totalPoints < 20 || s.occupant.health >= 100;
+            btn.onclick = () => {
+                if (totalPoints >= 20 && s.occupant.health < 100) {
+                    totalPoints -= 20;
+                    s.occupant.health = 100;
+                    s.occupant.isAxed = false;
+                    document.getElementById('scoreText').textContent = totalPoints;
+                    openWorkshop();
+                    updateUI();
+                }
+            };
+        }
+    }
+
+    const btnCar = document.getElementById('btnShopRepairCar');
+    btnCar.disabled = totalPoints < 50 || (vehicleHealth >= 100 && Object.values(windowMap).every(w => !w.material.map));
+    btnCar.onclick = () => {
+        if (totalPoints >= 50) {
+            totalPoints -= 50;
+            vehicleHealth = 100;
+            for (let winKey in windowMap) {
+                windowMap[winKey].material = createClearGlassMaterial();
+            }
+            document.getElementById('scoreText').textContent = totalPoints;
+            openWorkshop();
+            updateUI();
+        }
+    };
+
+    document.getElementById('workshopModal').style.display = 'flex';
+}
+
+document.getElementById('btnStartNextTier').onclick = () => {
+    if (currentLevel < 2) initLevel(2);
+    else initLevel(1);
+};
+
+document.getElementById('btnRetryLevel').onclick = () => {
+    initLevel(currentLevel);
+};
+
+// ==========================================
+// UI UPDATE DISPATCHER
+// ==========================================
+function updateUI() {
+    document.getElementById('carHpText').textContent = vehicleHealth + '%';
+    document.getElementById('carHpBar').style.width = vehicleHealth + '%';
+    document.getElementById('carHpBar').style.backgroundColor = vehicleHealth > 40 ? '#10b981' : '#ef4444';
+    document.getElementById('speedometerChip').textContent = `${Math.abs(Math.round(carVelocity * 2.2))} MPH`;
+
+    const rack = document.getElementById('dummyRack');
+    rack.innerHTML = '';
+
+    for (let key in seatData) {
+        const s = seatData[key];
+        if (s.occupant) {
+            const card = document.createElement('div');
+            card.className = `dummy-card ${s.occupant.isAxed ? 'axed' : ''}`;
+            card.innerHTML = `
+                <div class="status-line">
+                    <strong>👤 ${s.label}</strong>
+                    <span class="${s.occupant.isAxed ? 'stat-red' : 'stat-green'}">${s.occupant.isAxed ? '0%' : s.occupant.health + '%'}</span>
+                </div>
+                <div class="meter-bar">
+                    <div class="meter-fill" style="width: ${s.occupant.health}%; background-color: ${s.occupant.health > 40 ? '#10b981' : '#ef4444'}"></div>
+                </div>
+            `;
+            rack.appendChild(card);
+        }
+    }
 }
 
 function togglePause() {
@@ -614,113 +925,57 @@ function togglePause() {
 }
 
 // ==========================================
-// UI & EVENT LISTENERS
+// CONTROLS & BINDINGS (RELIABLE 4-WAY DRIVING)
 // ==========================================
-function updateUI() {
-    document.getElementById('carHpText').textContent = vehicleHealth + '%';
-    document.getElementById('carHpBar').style.width = vehicleHealth + '%';
-    document.getElementById('carHpBar').style.backgroundColor = vehicleHealth > 40 ? '#10b981' : '#ef4444';
-
-    const rack = document.getElementById('dummyRack');
-    rack.innerHTML = '';
-
-    for (let key in seatData) {
-        const s = seatData[key];
-        if (s.occupant) {
-            const card = document.createElement('div');
-            card.className = `dummy-card ${s.occupant.isAxed ? 'axed' : ''} ${selectedSeatKey === key ? 'selected' : ''}`;
-            card.onclick = () => {
-                if (!s.occupant.isAxed) {
-                    selectedSeatKey = key;
-                    updateUI();
-                }
-            };
-
-            const icon = s.occupant.isChicken ? '🐔' : '👤';
-            card.innerHTML = `
-                <div class="status-line">
-                    <strong>${icon} ${s.label} (${s.occupant.name})</strong>
-                    <span class="${s.occupant.isAxed ? 'stat-red' : 'stat-blue'}">${s.occupant.isAxed ? 'AXED (0%)' : s.occupant.health + '%'}</span>
-                </div>
-                <div class="meter-bar">
-                    <div class="meter-fill" style="width: ${s.occupant.health}%; background-color: ${s.occupant.health > 40 ? '#10b981' : '#ef4444'}"></div>
-                </div>
-            `;
-            rack.appendChild(card);
-        }
-    }
-
-    const inPrep = gameState === 'PREP';
-    document.getElementById('btnSpawnDummy').disabled = !inPrep;
-    document.getElementById('btnRepairCar').disabled = !inPrep;
-    document.getElementById('btnRepairDummy').disabled = !inPrep || !selectedSeatKey || !seatData[selectedSeatKey]?.occupant || seatData[selectedSeatKey].occupant.isAxed;
-}
-
-// Button Attachments
-document.getElementById('btnPause').onclick = togglePause;
-document.getElementById('btnResume').onclick = togglePause;
-
 window.addEventListener('keydown', (e) => {
-    if (e.key === 'p' || e.key === 'P') {
-        togglePause();
+    if (e.key === 'p' || e.key === 'P') togglePause();
+    
+    const k = e.key.toLowerCase();
+    keysPressed[k] = true;
+    keysPressed[e.code] = true;
+
+    if (e.key === ' ' && carYPos === 0) {
+        e.preventDefault();
+        carYVelocity = JUMP_IMPULSE;
     }
 });
 
-document.getElementById('btnSpawnDummy').onclick = () => {
-    if (gameState !== 'PREP') return;
-    const emptyKey = Object.keys(seatData).find(k => seatData[k].occupant === null);
-    if (emptyKey) {
-        installOccupant(emptyKey, 'Reinforcement');
-        selectedSeatKey = emptyKey;
-        updateUI();
+window.addEventListener('keyup', (e) => {
+    const k = e.key.toLowerCase();
+    keysPressed[k] = false;
+    keysPressed[e.code] = false;
+});
+
+document.getElementById('btnJump').onclick = () => {
+    if (carYPos === 0 && !isPaused && gameState === 'DRIVE') {
+        carYVelocity = JUMP_IMPULSE;
     }
 };
 
-document.getElementById('btnRepairCar').onclick = () => {
-    if (gameState !== 'PREP') return;
-    vehicleHealth = Math.min(100, vehicleHealth + 20);
-    updateUI();
-};
+function bindDpad(btnId, keyName) {
+    const el = document.getElementById(btnId);
+    const on = (e) => { e.preventDefault(); keysPressed[keyName] = true; };
+    const off = (e) => { e.preventDefault(); keysPressed[keyName] = false; };
+    el.addEventListener('pointerdown', on);
+    el.addEventListener('pointerup', off);
+    el.addEventListener('pointerleave', off);
+    el.addEventListener('pointercancel', off);
+}
+bindDpad('btnDriveFwd', 'w');
+bindDpad('btnDriveRev', 's');
+bindDpad('btnDriveLeft', 'a');
+bindDpad('btnDriveRight', 'd');
 
-document.getElementById('btnRepairDummy').onclick = () => {
-    if (gameState !== 'PREP' || !selectedSeatKey) return;
-    const target = seatData[selectedSeatKey]?.occupant;
-    if (target && !target.isAxed) {
-        target.health = Math.min(100, target.health + 20);
-        updateUI();
-    }
-};
-
-document.getElementById('btnTriggerTest').onclick = () => {
-    countdownTimer = 0;
-};
-
-document.getElementById('btnNextLevel').onclick = () => {
-    const hasSurvivor = Object.values(seatData).some(s => s.occupant && !s.occupant.isAxed);
-    if (hasSurvivor && vehicleHealth > 0) {
-        if (currentLevel < TOTAL_LEVELS) {
-            initLevel(currentLevel + 1);
-        } else {
-            initLevel(1);
-        }
-    } else {
-        initLevel(currentLevel);
-    }
-};
-
-// ==========================================
-// VIRTUAL JOYSTICK
-// ==========================================
+// Virtual Joystick
 const joyContainer = document.getElementById('joyContainer');
 const joyKnob = document.getElementById('joyKnob');
 let joyActive = false;
-let joyTouchId = null;
 
-function handleJoystickMove(clientX, clientY) {
+function handleJoy(clientX, clientY) {
     const rect = joyContainer.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const maxRadius = rect.width / 2 - 10;
+    const maxRadius = rect.width / 2 - 8;
 
     let dx = clientX - centerX;
     let dy = clientY - centerY;
@@ -730,139 +985,256 @@ function handleJoystickMove(clientX, clientY) {
         dx = (dx / dist) * maxRadius;
         dy = (dy / dist) * maxRadius;
     }
-
     joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
     joystickVelocity = (dx / maxRadius) * 2.5;
 }
 
-function resetJoystick() {
+joyContainer.addEventListener('pointerdown', (e) => {
+    joyActive = true;
+    joyContainer.setPointerCapture(e.pointerId);
+    handleJoy(e.clientX, e.clientY);
+});
+joyContainer.addEventListener('pointermove', (e) => {
+    if (joyActive) handleJoy(e.clientX, e.clientY);
+});
+const endJoy = () => {
     joyActive = false;
-    joyTouchId = null;
     joystickVelocity = 0;
     joyKnob.style.transform = `translate(0px, 0px)`;
-}
+};
+joyContainer.addEventListener('pointerup', endJoy);
+joyContainer.addEventListener('pointercancel', endJoy);
 
-joyContainer.addEventListener('touchstart', (e) => {
-    joyActive = true;
-    joyTouchId = e.changedTouches[0].identifier;
-    handleJoystickMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-}, { passive: false });
-
-window.addEventListener('touchmove', (e) => {
-    if (!joyActive) return;
-    for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === joyTouchId) {
-            handleJoystickMove(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-            break;
-        }
-    }
-}, { passive: false });
-
-window.addEventListener('touchend', resetJoystick);
-window.addEventListener('touchcancel', resetJoystick);
-
-joyContainer.addEventListener('mousedown', (e) => {
-    joyActive = true;
-    handleJoystickMove(e.clientX, e.clientY);
-});
-
-window.addEventListener('mousemove', (e) => {
-    if (joyActive) handleJoystickMove(e.clientX, e.clientY);
-});
-
-window.addEventListener('mouseup', () => {
-    if (joyActive) resetJoystick();
-});
+document.getElementById('btnPause').onclick = togglePause;
+document.getElementById('btnResume').onclick = togglePause;
 
 // ==========================================
-// MAIN ANIMATION LOOP
+// MAIN SIMULATION & ANIMATION LOOP
 // ==========================================
 const clock = new THREE.Clock();
 
 function animate() {
     requestAnimationFrame(animate);
-    const delta = clock.getDelta();
+    const delta = Math.min(clock.getDelta(), 0.1);
 
     if (isPaused) {
         renderer.render(scene, camera);
         return;
     }
 
-    if (gameState !== 'REPLAY' && Math.abs(joystickVelocity) > 0.001) {
+    if (Math.abs(joystickVelocity) > 0.001) {
         orbitTheta -= joystickVelocity * delta;
-        updateCameraPosition();
     }
+    updateCameraPosition();
 
-    if (gameState === 'PREP') {
-        countdownTimer -= delta;
-        document.getElementById('timerBadge').textContent = Math.max(0, Math.ceil(countdownTimer)) + 's';
-        if (countdownTimer <= 0) {
-            gameState = 'ATTACK';
-            document.getElementById('phaseDisplay').textContent = 'IMPACT IN PROGRESS';
-            document.getElementById('phaseDisplay').style.borderColor = '#dc2626';
-            document.getElementById('phaseDisplay').style.color = '#dc2626';
-            updateUI();
+    // Slow Circular Coin Rotation
+    coinObjects.forEach(c => {
+        if (!c.collected) c.mesh.rotation.y += 1.8 * delta;
+    });
+
+    if (gameState === 'DRIVE') {
+        survivalTimer -= delta;
+        document.getElementById('survivalTimerText').textContent = `${Math.max(0, survivalTimer).toFixed(1)}s`;
+        if (survivalTimer <= 0) {
+            openWorkshop();
+            return;
         }
-    } else if (gameState === 'ATTACK') {
-        const speed = (28.0 + currentLevel * 2) * delta;
-        if (attackSide === 'LEFT') {
-            if (crashCart.position.x < -3.4) {
-                crashCart.position.x += speed;
-                if (crashCart.position.x >= -3.4) {
-                    crashCart.position.x = -3.4;
-                    triggerImpactSequence();
-                }
-            }
+
+        // ==========================================
+        // PLAYER DRIVING & STEERING ENGINE
+        // ==========================================
+        let fwdInput = 0;
+        let steerInput = 0;
+
+        if (keysPressed['w'] || keysPressed['arrowup'] || keysPressed['KeyW'] || keysPressed['ArrowUp']) fwdInput += 1;
+        if (keysPressed['s'] || keysPressed['arrowdown'] || keysPressed['KeyS'] || keysPressed['ArrowDown']) fwdInput -= 1;
+        if (keysPressed['a'] || keysPressed['arrowleft'] || keysPressed['KeyA'] || keysPressed['ArrowLeft']) steerInput += 1;
+        if (keysPressed['d'] || keysPressed['arrowright'] || keysPressed['KeyD'] || keysPressed['ArrowRight']) steerInput -= 1;
+
+        let poppedCount = Object.values(wheelRigMap).filter(w => w.popped).length;
+        const currentMaxSpeed = BASE_MAX_SPEED * (1.0 - poppedCount * 0.18);
+
+        // Steering
+        if (steerInput !== 0) {
+            const steerDir = (carVelocity < -0.2) ? -1 : 1;
+            carAngle += steerInput * STEER_SPEED * steerDir * delta;
+            vehicleRig.rotation.y = carAngle;
+        }
+
+        // Acceleration & Braking/Reverse
+        if (fwdInput !== 0) {
+            carVelocity += fwdInput * ACCEL * delta;
+            carVelocity = THREE.MathUtils.clamp(carVelocity, -currentMaxSpeed * 0.6, currentMaxSpeed);
         } else {
-            if (crashCart.position.x > 3.4) {
-                crashCart.position.x -= speed;
-                if (crashCart.position.x <= 3.4) {
-                    crashCart.position.x = 3.4;
-                    triggerImpactSequence();
+            if (carVelocity > 0) carVelocity = Math.max(0, carVelocity - FRICTION * delta);
+            else if (carVelocity < 0) carVelocity = Math.min(0, carVelocity + FRICTION * delta);
+        }
+
+        const fwdX = Math.sin(carAngle);
+        const fwdZ = Math.cos(carAngle);
+        vehicleRig.position.x += fwdX * carVelocity * delta;
+        vehicleRig.position.z += fwdZ * carVelocity * delta;
+
+        // Jump & Gravity
+        if (carYPos > 0 || carYVelocity !== 0) {
+            carYVelocity -= GRAVITY * delta;
+            carYPos += carYVelocity * delta;
+            if (carYPos <= 0) {
+                carYPos = 0;
+                carYVelocity = 0;
+            }
+            vehicleRig.position.y = carYPos;
+        }
+
+        // Suspension Bounce & Restitution
+        if (Math.abs(rollVelocity) > 0.01 || Math.abs(carRoll) > 0.01) {
+            carRoll += rollVelocity * delta;
+            rollVelocity -= carRoll * 20.0 * delta;
+            rollVelocity *= 0.92;
+            targetVehicleGroup.rotation.z = carRoll;
+        }
+
+        // Facility Bounds
+        vehicleRig.position.x = THREE.MathUtils.clamp(vehicleRig.position.x, -58, 58);
+        vehicleRig.position.z = THREE.MathUtils.clamp(vehicleRig.position.z, -58, 58);
+
+        // 1. Coins Collection (Player Only)
+        coinObjects.forEach(c => {
+            if (!c.collected && vehicleRig.position.distanceTo(c.mesh.position) < 2.5) {
+                c.collected = true;
+                c.mesh.visible = false;
+                triggerCoinCollection(c.mesh.position);
+            }
+        });
+
+        // 2. Reference Spike Strips (Pops Player Tires)
+        if (carYPos < 0.4) {
+            spikeStripObjects.forEach(spike => {
+                if (vehicleRig.position.distanceTo(spike.position) < 3.4) {
+                    for (let k in wheelRigMap) {
+                        if (!wheelRigMap[k].popped && Math.random() < 0.25) {
+                            wheelRigMap[k].popped = true;
+                            wheelRigMap[k].mesh.scale.set(1, 0.4, 1);
+                            document.getElementById(`tire${k}`).className = 'tire-indicator popped';
+                            document.getElementById(`tire${k}`).textContent = `${k}: POPPED`;
+                        }
+                    }
                 }
+            });
+        }
+
+        // 3. Speed Bumps
+        if (carYPos < 0.3) {
+            speedBumpObjects.forEach(bump => {
+                if (vehicleRig.position.distanceTo(bump.position) < 2.8) {
+                    if (Math.abs(carVelocity) > 10.0 && carYPos === 0) {
+                        carYVelocity = 6.5;
+                    }
+                }
+            });
+        }
+
+        // 4. Brick Walls
+        brickWallObjects.forEach(wall => {
+            if (vehicleRig.position.distanceTo(wall.position) < 3.8) {
+                carVelocity = -carVelocity * 0.5;
+                vehicleHealth = Math.max(0, vehicleHealth - 5);
+                updateUI();
+                checkGameOver();
+            }
+        });
+
+        // =========================================================
+        // HAZARD PURSUIT AI, WALL BOUNDS & OBSTACLE AVOIDANCE
+        // =========================================================
+        const currentDiff = vehicleRig.position.clone().sub(crashCart.position);
+        const currentDist = currentDiff.length();
+
+        // 1. Flashing Warning Beacon
+        const beacon = document.getElementById('warningBeacon');
+        if (currentDist < 22.0 && hazardStunTimer <= 0) {
+            beacon.style.display = 'block';
+            const screenPos = crashCart.position.clone().add(new THREE.Vector3(0, 2.5, 0)).project(camera);
+            const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+            beacon.style.left = `${x}px`;
+            beacon.style.top = `${y}px`;
+        } else {
+            beacon.style.display = 'none';
+        }
+
+        if (hazardStunTimer > 0) {
+            // Recoil and recovery
+            hazardStunTimer -= delta;
+            hazardRecoilSpeed = Math.max(0, hazardRecoilSpeed - 8.0 * delta);
+            const recoilDir = new THREE.Vector3(Math.sin(cartAngle), 0, Math.cos(cartAngle)).negate();
+            crashCart.position.addScaledVector(recoilDir, hazardRecoilSpeed * delta);
+        } else {
+            let targetDirection = new THREE.Vector3(currentDiff.x, 0, currentDiff.z).normalize();
+
+            // Avoid Brick Walls
+            brickWallObjects.forEach(wall => {
+                const toWall = wall.position.clone().sub(crashCart.position);
+                const wallDist = toWall.length();
+                if (wallDist < 9.0) {
+                    const avoidNormal = crashCart.position.clone().sub(wall.position).normalize();
+                    targetDirection.addScaledVector(avoidNormal, (9.0 - wallDist) * 0.8);
+                }
+            });
+
+            // Avoid Spike Strips
+            spikeStripObjects.forEach(spike => {
+                const toSpike = spike.position.clone().sub(crashCart.position);
+                const spikeDist = toSpike.length();
+                if (spikeDist < 7.0) {
+                    const avoidNormal = crashCart.position.clone().sub(spike.position).normalize();
+                    targetDirection.addScaledVector(avoidNormal, (7.0 - spikeDist) * 0.5);
+                }
+            });
+
+            targetDirection.normalize();
+            cartAngle = Math.atan2(targetDirection.x, targetDirection.z);
+            crashCart.rotation.y = cartAngle;
+
+            const cartSpeed = (BASE_MAX_SPEED + 2.0) * delta;
+            const intendedMovement = new THREE.Vector3(Math.sin(cartAngle), 0, Math.cos(cartAngle)).multiplyScalar(cartSpeed);
+            const nextCartPos = crashCart.position.clone().add(intendedMovement);
+            const nextDist = vehicleRig.position.distanceTo(nextCartPos);
+
+            if (nextDist <= MIN_COLLISION_DISTANCE) {
+                const contactNormal = currentDiff.clone().normalize();
+                crashCart.position.copy(vehicleRig.position).sub(contactNormal.clone().multiplyScalar(MIN_COLLISION_DISTANCE));
+                triggerZeroInterceptionImpact(contactNormal);
+            } else {
+                crashCart.position.copy(nextCartPos);
             }
         }
-    } else if (gameState === 'REPLAY') {
-        replayClock -= delta;
-        document.getElementById('replayClock').textContent = Math.max(0, replayClock).toFixed(1) + 's';
 
-        const targetPos = seatData[focusedReplaySeat].localPos;
-        const camXOffset = focusedReplaySeat.endsWith('L') ? 2.4 : -2.4;
-        camera.position.x = camXOffset + Math.sin(replayClock * 2) * 0.1;
-        camera.position.y = 2.1 + Math.cos(replayClock * 2) * 0.05;
-        camera.lookAt(targetPos.x, targetPos.y + 0.8, targetPos.z);
+        // Room Bounds for Hazard Cart
+        crashCart.position.x = THREE.MathUtils.clamp(crashCart.position.x, -58, 58);
+        crashCart.position.z = THREE.MathUtils.clamp(crashCart.position.z, -58, 58);
 
-        const occ = seatData[focusedReplaySeat]?.occupant;
-        if (occ && occ.mesh) {
-            const directionSign = attackSide === 'LEFT' ? 1 : -1;
-            occ.mesh.rotation.z = directionSign * (Math.sin(replayClock * 4.5) * 0.35 + 0.15);
-            occ.mesh.rotation.x = Math.cos(replayClock * 4.5) * 0.2;
-        }
-
-        if (replayClock <= 0) {
-            finishLevel();
-        }
-    }
-
-    if (isJolting && gameState !== 'REPLAY') {
-        joltAnimTimer += delta;
-        const joltIntensity = Math.sin(joltAnimTimer * 25) * Math.max(0, (1.0 - joltAnimTimer * 1.5));
-        const directionSign = attackSide === 'LEFT' ? 1 : -1;
-
-        targetVehicleGroup.rotation.z = directionSign * joltIntensity * 0.12;
-        targetVehicleGroup.position.x = directionSign * joltIntensity * 0.25;
-
-        for (let key in seatData) {
-            const occ = seatData[key].occupant;
-            if (occ && occ.mesh) {
-                occ.mesh.rotation.z = directionSign * joltIntensity * 0.35;
-                occ.mesh.rotation.x = joltIntensity * 0.2;
+        // Brick Wall Collisions for Hazard Cart
+        brickWallObjects.forEach(wall => {
+            const distToWall = crashCart.position.distanceTo(wall.position);
+            if (distToWall < 4.0) {
+                const pushOut = crashCart.position.clone().sub(wall.position).normalize();
+                crashCart.position.copy(wall.position).add(pushOut.multiplyScalar(4.0));
             }
+        });
+
+        // Strict Separation Enforcement
+        const postDiff = vehicleRig.position.clone().sub(crashCart.position);
+        const postDist = postDiff.length();
+        if (postDist < MIN_COLLISION_DISTANCE) {
+            const pushDir = postDiff.clone().normalize();
+            crashCart.position.copy(vehicleRig.position).sub(pushDir.multiplyScalar(MIN_COLLISION_DISTANCE));
         }
 
-        if (joltAnimTimer > 1.0) isJolting = false;
+        updateUI();
     }
 
+    // Floating Damage Text Fade
     for (let i = activeFloatingTexts.length - 1; i >= 0; i--) {
         const ft = activeFloatingTexts[i];
         ft.life -= delta;
@@ -891,6 +1263,6 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Start Level 1
+// Initialize Level 1
 initLevel(1);
 animate();
