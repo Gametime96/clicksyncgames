@@ -535,6 +535,14 @@
                 desc: "Test your patience and precision to sink your shots in exactly twelve strokes or fewer!"
             },
             {
+                href: "icebergboatbattle.html",
+                category: "action adventure racing simulation strategy",
+                imgSrc: "icebergboatbattle.jpeg",
+                thumbClass: "",
+                title: "Iceberg Boat Battle",
+                desc: "Navigate icy waters, choose your vessel, dodge drifting icebergs, and collect all gold coins before time expires!"
+            },
+            {
                 href: "icebreaksurvival2026.html",
                 category: "action adventure racing simulation strategy",
                 imgSrc: "icebreaksurvival2026.JPEG",
@@ -634,29 +642,33 @@
         const categoryBtns = document.querySelectorAll('.category-btn');
 
         // Layout Event Attachments
-        searchInput.addEventListener('input', () => {
-            currentSearchTerm = searchInput.value.toLowerCase().trim();
-            currentPage = 1; 
-            filterAndRender();
-        });
+        searchBarEvents();
 
-        categoryBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const clickedCategory = this.textContent.toLowerCase().trim();
-                
-                if (activeCategory === clickedCategory) {
-                    activeCategory = '';
-                    this.classList.remove('active-filter');
-                } else {
-                    categoryBtns.forEach(b => b.classList.remove('active-filter'));
-                    activeCategory = clickedCategory;
-                    this.classList.add('active-filter');
-                }
-
+        function searchBarEvents() {
+            searchInput.addEventListener('input', () => {
+                currentSearchTerm = searchInput.value.toLowerCase().trim();
                 currentPage = 1; 
                 filterAndRender();
             });
-        });
+
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const clickedCategory = this.textContent.toLowerCase().trim();
+                    
+                    if (activeCategory === clickedCategory) {
+                        activeCategory = '';
+                        this.classList.remove('active-filter');
+                    } else {
+                        categoryBtns.forEach(b => b.classList.remove('active-filter'));
+                        activeCategory = clickedCategory;
+                        this.classList.add('active-filter');
+                    }
+
+                    currentPage = 1; 
+                    filterAndRender();
+                });
+            });
+        }
 
         function filterAndRender() {
             // 1. Process Filtering Matrices Across Categories and Input Strings
