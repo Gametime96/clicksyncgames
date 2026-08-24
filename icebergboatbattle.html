@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Iceberg Boat Battle - ClickSyncGames</title>
+  <link rel="stylesheet" href="icebergboatbattle.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <!-- Top Navigation & Stats Bar -->
+    <header id="top-bar">
+      <a href="https://clicksyncgames.com" class="nav-back-link" title="Return to ClickSyncGames">
+        <span>&larr; Return to</span>
+        <span class="brand-text">Click<span class="brand-sync">Sync</span>Games</span>
+      </a>
+
+      <div class="hud-stats">
+        <div class="hud-item">
+          <span class="hud-label">Level:</span>
+          <span id="level-display" class="hud-val">1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Time:</span>
+          <span id="timer-display" class="hud-val">60s</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Coins:</span>
+          <span id="coins-display" class="hud-val">0/3</span>
+        </div>
+        <div class="hud-item lives-item">
+          <span class="hud-label">Lives:</span>
+          <span class="hud-val"><span id="lives-left">3</span>/3</span>
+        </div>
+        <button id="pause-btn" class="hud-btn" title="Pause Game (P)">❚❚ Pause</button>
+      </div>
+    </header>
+
+    <!-- Main Game Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="gameCanvas" width="960" height="600"></canvas>
+
+      <!-- Bottom-Left On-Screen Directional D-Pad -->
+      <div id="touch-controls">
+        <div class="dpad-row">
+          <button class="dpad-btn" id="btn-up" aria-label="Thrust Forward">
+            <svg viewBox="0 0 24 24" class="arrow-svg"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+          </button>
+        </div>
+        <div class="dpad-row dpad-middle">
+          <button class="dpad-btn" id="btn-left" aria-label="Rotate Left">
+            <svg viewBox="0 0 24 24" class="arrow-svg"><path d="M4 12l8-8v5h8v6h-8v5z"/></svg>
+          </button>
+          <button class="dpad-btn" id="btn-down" aria-label="Reverse / Brake">
+            <svg viewBox="0 0 24 24" class="arrow-svg"><path d="M12 20l8-8h-5V4h-6v8H4z"/></svg>
+          </button>
+          <button class="dpad-btn" id="btn-right" aria-label="Rotate Right">
+            <svg viewBox="0 0 24 24" class="arrow-svg"><path d="M20 12l-8 8v-5H4v-6h8V4z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Boat Selection Modal (2x2 Grid) -->
+      <div id="boat-select-modal" class="modal-overlay">
+        <div class="modal-card">
+          <h2>Select Your Vessel</h2>
+          <p class="modal-subtitle">Choose your boat configuration before Level <span id="select-level-num">1</span> begins.</p>
+          
+          <div class="boat-grid">
+            <!-- Boat 1 -->
+            <div class="boat-card" data-boat="speedBoat">
+              <div class="canvas-preview-box">
+                <canvas id="preview-speedBoat" width="160" height="70"></canvas>
+              </div>
+              <h3>Red &amp; White Speed Boat</h3>
+              <div class="stat-bar-group">
+                <div class="stat-row">
+                  <span>Speed</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 80%;"></div></div>
+                  <span class="rating-text">8/10</span>
+                </div>
+                <div class="stat-row">
+                  <span>Durability</span>
+                  <div class="bar-container"><div class="bar-fill durability-fill" style="width: 60%;"></div></div>
+                  <span class="rating-text">6/10</span>
+                </div>
+              </div>
+              <button class="select-btn">Launch Vessel</button>
+            </div>
+
+            <!-- Boat 2 -->
+            <div class="boat-card" data-boat="pontoon">
+              <div class="canvas-preview-box">
+                <canvas id="preview-pontoon" width="160" height="70"></canvas>
+              </div>
+              <h3>Silver Pontoon Boat</h3>
+              <div class="stat-bar-group">
+                <div class="stat-row">
+                  <span>Speed</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 60%;"></div></div>
+                  <span class="rating-text">6/10</span>
+                </div>
+                <div class="stat-row">
+                  <span>Durability</span>
+                  <div class="bar-container"><div class="bar-fill durability-fill" style="width: 70%;"></div></div>
+                  <span class="rating-text">7/10</span>
+                </div>
+              </div>
+              <button class="select-btn">Launch Vessel</button>
+            </div>
+
+            <!-- Boat 3 -->
+            <div class="boat-card" data-boat="cruiseShip">
+              <div class="canvas-preview-box">
+                <canvas id="preview-cruiseShip" width="160" height="70"></canvas>
+              </div>
+              <h3>Small Cruise Ship</h3>
+              <div class="stat-bar-group">
+                <div class="stat-row">
+                  <span>Speed</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 50%;"></div></div>
+                  <span class="rating-text">5/10</span>
+                </div>
+                <div class="stat-row">
+                  <span>Durability</span>
+                  <div class="bar-container"><div class="bar-fill durability-fill" style="width: 80%;"></div></div>
+                  <span class="rating-text">8/10</span>
+                </div>
+              </div>
+              <button class="select-btn">Launch Vessel</button>
+            </div>
+
+            <!-- Boat 4 -->
+            <div class="boat-card" data-boat="doubleDeck">
+              <div class="canvas-preview-box">
+                <canvas id="preview-doubleDeck" width="160" height="70"></canvas>
+              </div>
+              <h3>Double Deck Boat</h3>
+              <div class="stat-bar-group">
+                <div class="stat-row">
+                  <span>Speed</span>
+                  <div class="bar-container"><div class="bar-fill" style="width: 60%;"></div></div>
+                  <span class="rating-text">6/10</span>
+                </div>
+                <div class="stat-row">
+                  <span>Durability</span>
+                  <div class="bar-container"><div class="bar-fill durability-fill" style="width: 70%;"></div></div>
+                  <span class="rating-text">7/10</span>
+                </div>
+              </div>
+              <button class="select-btn">Launch Vessel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause Modal -->
+      <div id="pause-modal" class="modal-overlay hidden">
+        <div class="status-card">
+          <h2 style="color: #00d9ff; margin-bottom: 12px;">Game Paused</h2>
+          <p style="font-size: 18px; color: #ffffff; margin-bottom: 24px;">Want to continue?</p>
+          <button id="resume-btn" class="primary-action-btn">Resume</button>
+        </div>
+      </div>
+
+      <!-- Status Modal (Failures, Wins, Game Over) -->
+      <div id="status-modal" class="modal-overlay hidden">
+        <div class="status-card">
+          <h2 id="status-title">Collision!</h2>
+          <p id="status-message">Your vessel collided with an iceberg.</p>
+          <button id="status-btn" class="primary-action-btn">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Helper Footer -->
+    <footer id="controls-footer">
+      <span><strong>Controls:</strong> Arrow Keys / WASD / On-Screen Buttons &bull; <strong>P</strong> to Pause</span>
+    </footer>
+  </div>
+
+  <script src="icebergboatbattle.js"></script>
+</body>
+</html>
