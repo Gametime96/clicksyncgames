@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Field Goal 101 Madness - ClickSyncGames</title>
+  <link rel="stylesheet" href="fieldgoal101madness.css">
+</head>
+<body>
+  <div id="game-wrapper">
+    <!-- Top Header / HUD Bar -->
+    <header id="top-bar">
+      <a href="https://clicksyncgames.com" class="nav-back-link" title="Return to ClickSyncGames">
+        <span>&larr; Return to</span>
+        <span class="brand-text">Click<span class="brand-sync">Sync</span>Games</span>
+      </a>
+
+      <div class="hud-stats">
+        <div class="hud-item">
+          <span class="hud-label">Arena:</span>
+          <span id="arena-display" class="hud-val">Northern Stadium</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Level:</span>
+          <span id="level-display" class="hud-val">1/5</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Distance:</span>
+          <span id="yard-display" class="hud-val">30 YDS</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Wind:</span>
+          <span id="wind-display" class="hud-val">2 mph &rarr;</span>
+        </div>
+        <div class="hud-item attempts-item">
+          <span class="hud-label">Chances:</span>
+          <span id="attempts-display" class="hud-val">3/3</span>
+        </div>
+        <button id="pause-btn" class="hud-btn" title="Pause Game (P)">❚❚ Pause</button>
+      </div>
+    </header>
+
+    <!-- Main Game Arena Canvas Container -->
+    <div id="canvas-container">
+      <canvas id="gameCanvas" width="960" height="600"></canvas>
+
+      <!-- Bottom Interactive Aiming & Power HUD Overlays -->
+      <div id="kicking-controls-overlay">
+        <!-- Step 1: Direction Angle Gauge -->
+        <div id="aim-gauge-container" class="control-gauge">
+          <div class="gauge-label">STEP 1: LOCK AIM DIRECTION</div>
+          <div class="aim-track">
+            <div class="aim-center-notch"></div>
+            <div id="aim-needle" class="aim-needle"></div>
+          </div>
+          <button id="lock-aim-btn" class="kick-action-btn">LOCK AIM (TAP / SPACE)</button>
+        </div>
+
+        <!-- Step 2: Power Meter Gauge -->
+        <div id="power-gauge-container" class="control-gauge hidden">
+          <div class="gauge-label">STEP 2: SET KICK POWER</div>
+          <div class="power-meter-bar">
+            <div id="power-indicator" class="power-indicator"></div>
+            <div class="sweet-spot"></div>
+          </div>
+          <button id="lock-power-btn" class="kick-action-btn kick-power-btn">KICK BALL! (TAP / SPACE)</button>
+        </div>
+      </div>
+
+      <!-- Arena Selection Modal (2x2 Grid) -->
+      <div id="arena-select-modal" class="modal-overlay">
+        <div class="modal-card">
+          <h2>Select Your Arena</h2>
+          <p class="modal-subtitle">Choose your stadium or dome conditions for Level <span id="select-level-num">1</span>.</p>
+          
+          <div class="arena-grid">
+            <!-- Option 1: Northern Stadium -->
+            <div class="arena-card" data-arena="northernStadium">
+              <div class="arena-preview-box">
+                <canvas id="preview-northernStadium" width="160" height="90"></canvas>
+              </div>
+              <div class="arena-badge snow-badge">&#10052; Snowing</div>
+              <h3>Northern Stadium</h3>
+              <div class="arena-specs">
+                <p><strong>Ball Location:</strong> 30 Yard Line</p>
+                <p><strong>Wind Factor:</strong> 2 MPH Right (&rarr;)</p>
+                <p><strong>Conditions:</strong> Heavy Arctic Flurries</p>
+              </div>
+              <button class="select-btn">Select Stadium</button>
+            </div>
+
+            <!-- Option 2: Southern Stadium -->
+            <div class="arena-card" data-arena="southernStadium">
+              <div class="arena-preview-box">
+                <canvas id="preview-southernStadium" width="160" height="90"></canvas>
+              </div>
+              <div class="arena-badge sun-badge">&#9728; Open Skies</div>
+              <h3>Southern Stadium</h3>
+              <div class="arena-specs">
+                <p><strong>Ball Location:</strong> 25 Yard Line</p>
+                <p><strong>Wind Factor:</strong> 10 MPH Left (&larr;)</p>
+                <p><strong>Conditions:</strong> Sunny &amp; Strong Crosswind</p>
+              </div>
+              <button class="select-btn">Select Stadium</button>
+            </div>
+
+            <!-- Option 3: Northern Dome -->
+            <div class="arena-card" data-arena="northernDome">
+              <div class="arena-preview-box">
+                <canvas id="preview-northernDome" width="160" height="90"></canvas>
+              </div>
+              <div class="arena-badge dome-badge">&#9881; Climate Controlled</div>
+              <h3>Northern Dome</h3>
+              <div class="arena-specs">
+                <p><strong>Ball Location:</strong> 40 Yard Line</p>
+                <p><strong>Wind Factor:</strong> 0 MPH (Calm)</p>
+                <p><strong>Conditions:</strong> Long Range Indoor Kick</p>
+              </div>
+              <button class="select-btn">Select Stadium</button>
+            </div>
+
+            <!-- Option 4: Southern Dome -->
+            <div class="arena-card" data-arena="southernDome">
+              <div class="arena-preview-box">
+                <canvas id="preview-southernDome" width="160" height="90"></canvas>
+              </div>
+              <div class="arena-badge dome-badge">&#9881; Climate Controlled</div>
+              <h3>Southern Dome</h3>
+              <div class="arena-specs">
+                <p><strong>Ball Location:</strong> 35 Yard Line</p>
+                <p><strong>Wind Factor:</strong> 0 MPH (Calm)</p>
+                <p><strong>Conditions:</strong> Mid-Range Indoor Kick</p>
+              </div>
+              <button class="select-btn">Select Stadium</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause Modal -->
+      <div id="pause-modal" class="modal-overlay hidden">
+        <div class="status-card">
+          <h2 style="color: #22c55e; margin-bottom: 12px;">Game Paused</h2>
+          <p style="font-size: 18px; color: #ffffff; margin-bottom: 24px;">Continue?</p>
+          <button id="continue-game-btn" class="primary-action-btn">Continue Game</button>
+        </div>
+      </div>
+
+      <!-- Outcome / Status Modal -->
+      <div id="status-modal" class="modal-overlay hidden">
+        <div class="status-card">
+          <h2 id="status-title">IT'S GOOD!</h2>
+          <p id="status-message">Ball cleanly passed through the ring and uprights.</p>
+          <button id="status-btn" class="primary-action-btn">Next Level</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Helper Footer -->
+    <footer id="controls-footer">
+      <span><strong>Kicking:</strong> Tap Button / <strong>SPACE</strong> to lock Direction, then Power &bull; <strong>P</strong> to Pause</span>
+    </footer>
+  </div>
+
+  <script src="fieldgoal101madness.js"></script>
+</body>
+</html>
