@@ -8,52 +8,69 @@
     --accent-green: #10b981;
     --text-main: #0f172a;
     --text-muted: #64748b;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
 }
 
 * {
     box-sizing: border-box;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
-body {
+html, body {
     margin: 0;
     padding: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
     background-color: var(--bg-lab);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
+    position: fixed;
+}
+
+body {
     display: flex;
     flex-direction: column;
-    height: 100vh;
 }
 
 header {
     width: 100%;
-    height: 62px;
+    min-height: 54px;
     background: rgba(255, 255, 255, 0.94);
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid #e2e8f0;
-    padding: 0 24px;
+    padding: max(6px, var(--safe-top)) max(12px, var(--safe-right)) 6px max(12px, var(--safe-left));
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 20;
+    z-index: 30;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    flex-wrap: nowrap;
+    gap: 8px;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
+    flex-shrink: 1;
+    overflow: hidden;
 }
 
 header h1 {
     margin: 0;
-    font-size: 19px;
+    font-size: clamp(14px, 3.2vw, 19px);
     letter-spacing: -0.5px;
     font-weight: 800;
     color: var(--text-main);
+    white-space: nowrap;
 }
 
 header h1 span {
@@ -64,10 +81,11 @@ header h1 span {
     background: #e2e8f0;
     color: #334155;
     font-weight: 800;
-    font-size: 11px;
-    padding: 4px 10px;
+    font-size: 10px;
+    padding: 3px 8px;
     border-radius: 6px;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .points-badge {
@@ -75,42 +93,46 @@ header h1 span {
     border: 1.5px solid #f59e0b;
     color: #92400e;
     font-weight: 800;
-    font-size: 13px;
-    padding: 4px 12px;
-    border-radius: 20px;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+    gap: 4px;
+    white-space: nowrap;
 }
 
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .hud-phase {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.5px;
-    padding: 6px 14px;
-    border-radius: 20px;
+    letter-spacing: 0.4px;
+    padding: 4px 10px;
+    border-radius: 16px;
     background: rgba(37, 99, 235, 0.1);
     border: 1px solid var(--accent-blue);
     color: var(--accent-blue);
+    white-space: nowrap;
 }
 
 .btn-icon {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #334155;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 7px 14px;
+    padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
+    touch-action: manipulation;
     transition: 0.15s ease;
+    white-space: nowrap;
 }
 
 .btn-icon:hover {
@@ -118,10 +140,16 @@ header h1 span {
     border-color: #94a3b8;
 }
 
+.btn-hud-toggle {
+    display: none;
+}
+
 .main-stage {
     flex: 1;
     position: relative;
-    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 #webgl-container {
@@ -143,16 +171,16 @@ header h1 span {
     z-index: 15;
 }
 
-/* Flashing Impact Warning (!) */
+/* Flashing Impact Warning */
 .warning-beacon {
     position: absolute;
     display: none;
     color: #ffffff;
     font-family: Impact, "Arial Black", sans-serif;
-    font-size: 72px;
+    font-size: 64px;
     font-weight: 900;
     line-height: 1;
-    -webkit-text-stroke: 4px #000000;
+    -webkit-text-stroke: 3px #000000;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.95);
     transform: translate(-50%, -50%);
     pointer-events: none;
@@ -161,91 +189,21 @@ header h1 span {
 }
 
 @keyframes flashImpact {
-    0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.18); }
+    0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
     50% { opacity: 0.05; transform: translate(-50%, -50%) scale(0.92); }
 }
 
-/* Touch Controls */
-.touch-controls-cluster {
-    position: absolute;
-    bottom: 24px;
-    left: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    z-index: 20;
-}
-
-.joystick-container {
-    width: 110px;
-    height: 110px;
-    background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(8px);
-    border: 2px solid rgba(203, 213, 225, 0.85);
-    border-radius: 50%;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    touch-action: none;
-}
-
-.joystick-knob {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
-    position: absolute;
-    transform: translate(0px, 0px);
-}
-
-.joystick-label {
-    position: absolute;
-    top: -18px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    font-weight: 800;
-    color: #ffffff;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.btn-jump-action {
-    width: 110px;
-    padding: 11px;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
-    border: 2px solid #ffffff;
-    font-size: 12px;
-    font-weight: 800;
-    border-radius: 20px;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
-    touch-action: manipulation;
-}
-
-.btn-jump-action:active {
-    transform: scale(0.95);
-    background: #b45309;
-}
-
-/* D-Pad */
+/* On-Screen D-Pad (Driving - Left Side) */
 .drive-dpad {
     position: absolute;
-    bottom: 24px;
-    left: 155px;
+    bottom: calc(14px + var(--safe-bottom));
+    left: calc(14px + var(--safe-left));
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    z-index: 20;
+    z-index: 25;
+    touch-action: none;
 }
 
 .dpad-mid-row {
@@ -256,44 +214,124 @@ header h1 span {
 .dpad-btn {
     width: 48px;
     height: 48px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(8px);
-    border: 1.5px solid #cbd5e1;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #1e293b;
+    -webkit-backdrop-filter: blur(8px);
+    border: 1.5px solid #94a3b8;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #0f172a;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    touch-action: manipulation;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.dpad-btn:active {
+.dpad-btn:active, .dpad-btn.active {
     background: #2563eb;
     color: #ffffff;
     border-color: #1d4ed8;
+    transform: scale(0.94);
 }
 
-/* Telemetry Panel */
+/* Touch Controls (Right Side - Orbit & Jump) */
+.touch-controls-cluster {
+    position: absolute;
+    bottom: calc(14px + var(--safe-bottom));
+    right: calc(14px + var(--safe-right));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 25;
+    touch-action: none;
+}
+
+.joystick-container {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px solid rgba(203, 213, 225, 0.9);
+    border-radius: 50%;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    touch-action: none;
+}
+
+.joystick-knob {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.5);
+    position: absolute;
+    transform: translate(0px, 0px);
+    pointer-events: none;
+}
+
+.joystick-label {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.btn-jump-action {
+    width: 90px;
+    padding: 10px 6px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    border-radius: 18px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(217, 119, 6, 0.4);
+    touch-action: manipulation;
+    text-align: center;
+}
+
+.btn-jump-action:active {
+    transform: scale(0.94);
+    background: #b45309;
+}
+
+/* Telemetry Panel (Desktop Default) */
 .telemetry-panel {
     position: absolute;
-    right: 24px;
-    top: 24px;
-    bottom: 24px;
-    width: 320px;
+    right: calc(18px + var(--safe-right));
+    top: 18px;
+    width: 290px;
+    max-height: calc(100% - 36px);
     background: var(--panel-bg);
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--panel-border);
-    border-radius: 16px;
+    border-radius: 14px;
     z-index: 20;
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    gap: 12px;
+    padding: 14px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
+    gap: 10px;
+    overflow-y: auto;
 }
 
 .panel-heading {
@@ -301,12 +339,12 @@ header h1 span {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 10px;
+    padding-bottom: 8px;
 }
 
 .panel-heading h2 {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     color: #1e293b;
     font-weight: 800;
 }
@@ -315,13 +353,13 @@ header h1 span {
     background-color: var(--accent-blue);
     color: white;
     font-weight: 800;
-    font-size: 12px;
-    padding: 4px 8px;
+    font-size: 11px;
+    padding: 3px 7px;
     border-radius: 6px;
 }
 
 .card-group-title {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     color: var(--text-muted);
     letter-spacing: 0.5px;
@@ -331,16 +369,16 @@ header h1 span {
 .vehicle-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 8px;
+    padding: 8px 10px;
 }
 
 .status-line {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
 }
 
 .stat-green { color: var(--accent-green); }
@@ -348,9 +386,9 @@ header h1 span {
 
 .meter-bar {
     width: 100%;
-    height: 7px;
+    height: 6px;
     background: #e2e8f0;
-    border-radius: 4px;
+    border-radius: 3px;
     overflow: hidden;
 }
 
@@ -364,13 +402,13 @@ header h1 span {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
-    margin-top: 8px;
+    margin-top: 6px;
 }
 
 .tire-indicator {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
-    padding: 3px 6px;
+    padding: 2px 4px;
     border-radius: 4px;
     text-align: center;
 }
@@ -397,15 +435,15 @@ header h1 span {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    max-height: 140px;
     overflow-y: auto;
-    max-height: 180px;
 }
 
 .dummy-card {
     background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 8px;
 }
 
 .dummy-card.axed {
@@ -416,10 +454,10 @@ header h1 span {
 .survival-timer-box {
     background: #1e293b;
     color: #f8fafc;
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 8px;
+    padding: 8px;
     text-align: center;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 900;
     letter-spacing: 1px;
     font-family: monospace;
@@ -429,19 +467,19 @@ header h1 span {
     position: absolute;
     color: #10b981;
     font-weight: 900;
-    font-size: 22px;
+    font-size: 20px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 10px rgba(16,185,129,0.8);
     pointer-events: none;
     transform: translate(-50%, -50%);
     z-index: 30;
-    transition: left 1.0s cubic-bezier(0.1, 0.9, 0.2, 1), top 1.0s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 1.0s;
+    transition: left 0.8s cubic-bezier(0.1, 0.9, 0.2, 1), top 0.8s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.8s;
 }
 
 .levitating-damage {
     position: absolute;
     color: #ef4444;
     font-weight: 900;
-    font-size: 24px;
+    font-size: 20px;
     text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     pointer-events: none;
     transform: translate(-50%, -50%);
@@ -452,43 +490,47 @@ header h1 span {
 .overlay-modal {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15, 23, 42, 0.65);
+    background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     z-index: 40;
     display: none;
     justify-content: center;
     align-items: center;
+    padding: 16px;
 }
 
 .modal-card {
     background: #ffffff;
     border-radius: 16px;
-    padding: 28px;
+    padding: 22px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-    max-width: 420px;
-    width: 90%;
+    max-width: 400px;
+    width: 100%;
     text-align: center;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .workshop-card {
-    max-width: 460px;
+    max-width: 440px;
     text-align: left;
 }
 
 .workshop-card h2 {
     margin: 0;
-    font-size: 20px;
+    font-size: 18px;
     color: #1e293b;
     font-weight: 800;
 }
 
 .workshop-subtext {
     margin: 0;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
 }
 
@@ -496,11 +538,12 @@ header h1 span {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: #fef3c7;
     border: 1px solid #fde68a;
-    border-radius: 10px;
+    border-radius: 8px;
     font-weight: 700;
+    font-size: 13px;
     color: #92400e;
 }
 
@@ -508,7 +551,7 @@ header h1 span {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .shop-item {
@@ -517,18 +560,19 @@ header h1 span {
     align-items: center;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    padding: 10px 14px;
-    border-radius: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    gap: 8px;
 }
 
 .shop-info {
     display: flex;
     flex-direction: column;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .shop-info strong {
-    font-size: 13px;
+    font-size: 12px;
     color: #1e293b;
 }
 
@@ -540,16 +584,12 @@ header h1 span {
     background: #2563eb;
     color: #ffffff;
     border: none;
-    padding: 8px 14px;
+    padding: 7px 12px;
     font-weight: 800;
-    font-size: 12px;
+    font-size: 11px;
     border-radius: 6px;
     cursor: pointer;
-    transition: 0.1s;
-}
-
-.btn-shop:hover:not(:disabled) {
-    background: #1d4ed8;
+    flex-shrink: 0;
 }
 
 .btn-shop:disabled {
@@ -559,7 +599,7 @@ header h1 span {
 
 .workshop-actions {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 6px;
 }
 
 .btn-panel {
@@ -567,8 +607,8 @@ header h1 span {
     background: #2563eb;
     color: #ffffff;
     border: none;
-    padding: 12px;
-    font-size: 14px;
+    padding: 11px;
+    font-size: 13px;
     font-weight: 800;
     border-radius: 8px;
     cursor: pointer;
@@ -578,20 +618,143 @@ header h1 span {
     background: linear-gradient(135deg, #10b981, #059669);
 }
 
-.btn-launch:hover {
-    background: #047857;
+/* =========================================================
+   RESPONSIVE ADAPTATIONS: MOBILE PORTRAIT & LANDSCAPE
+   ========================================================= */
+
+/* Mobile Portrait or Small Screens */
+@media (max-width: 860px) {
+    .btn-hud-toggle {
+        display: inline-block;
+    }
+
+    .hud-phase {
+        display: none;
+    }
+
+    .telemetry-panel {
+        top: 10px;
+        right: max(10px, var(--safe-right));
+        width: 220px;
+        padding: 10px;
+        gap: 8px;
+        max-height: 48vh;
+        display: none; /* Toggled via HUD button on mobile */
+    }
+
+    .telemetry-panel.mobile-visible {
+        display: flex;
+    }
+
+    .dummy-cards-rack {
+        max-height: 100px;
+    }
+
+    .drive-dpad {
+        bottom: calc(10px + var(--safe-bottom));
+        left: calc(10px + var(--safe-left));
+        gap: 4px;
+    }
+
+    .dpad-mid-row {
+        gap: 4px;
+    }
+
+    .dpad-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .touch-controls-cluster {
+        bottom: calc(10px + var(--safe-bottom));
+        right: calc(10px + var(--safe-right));
+        gap: 6px;
+    }
+
+    .joystick-container {
+        width: 78px;
+        height: 78px;
+    }
+
+    .joystick-knob {
+        width: 32px;
+        height: 32px;
+    }
+
+    .btn-jump-action {
+        width: 78px;
+        padding: 8px 4px;
+        font-size: 10px;
+    }
 }
 
-@media (max-width: 860px) {
-    .telemetry-panel {
-        top: auto;
-        bottom: 12px;
-        right: 12px;
-        width: 220px;
-        max-height: 260px;
-        padding: 10px;
+/* Mobile Landscape (Short height, wide width) */
+@media (max-height: 520px) and (orientation: landscape) {
+    header {
+        min-height: 42px;
+        padding-top: max(3px, var(--safe-top));
+        padding-bottom: 3px;
     }
-    .survival-timer-box { font-size: 18px; padding: 6px; }
-    .touch-controls-cluster { bottom: 12px; left: 12px; }
-    .drive-dpad { left: 130px; bottom: 12px; }
+
+    header h1 {
+        font-size: 13px;
+    }
+
+    .level-indicator, .points-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .drive-dpad {
+        bottom: calc(6px + var(--safe-bottom));
+        left: calc(8px + var(--safe-left));
+        gap: 3px;
+    }
+
+    .dpad-mid-row {
+        gap: 3px;
+    }
+
+    .dpad-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+
+    .touch-controls-cluster {
+        bottom: calc(6px + var(--safe-bottom));
+        right: calc(8px + var(--safe-right));
+        gap: 4px;
+    }
+
+    .joystick-container {
+        width: 66px;
+        height: 66px;
+    }
+
+    .joystick-knob {
+        width: 28px;
+        height: 28px;
+    }
+
+    .joystick-label {
+        display: none;
+    }
+
+    .btn-jump-action {
+        width: 66px;
+        padding: 6px 2px;
+        font-size: 9px;
+    }
+
+    .telemetry-panel {
+        top: 6px;
+        right: calc(85px + var(--safe-right));
+        width: 180px;
+        max-height: 80vh;
+        padding: 8px;
+    }
 }
