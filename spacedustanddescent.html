@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Space Dust and Descent</title>
+    <link rel="stylesheet" href="spacedustanddescent.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <div id="canvas-wrapper"></div>
+
+        <header id="top-bar">
+            <a href="https://clicksyncgames.com" id="return-link" title="Return to ClickSyncGames">
+                <span class="return-text">Return to</span>
+                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" class="csg-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                <span class="logo-fallback" style="display:none; font-weight:bold; color:#00ffcc;">ClickSyncGames</span>
+            </a>
+
+            <button id="pause-btn" class="hud-btn" aria-label="Pause Game">PAUSE (P)</button>
+        </header>
+
+        <div id="hud">
+            <div class="hud-panel">
+                <div class="hud-row"><span class="label">LEVEL:</span> <span id="tele-level">1 - Earth to Moon</span></div>
+                <div class="hud-row"><span class="label">ALTITUDE:</span> <span id="tele-alt">3000</span> m</div>
+                <div class="hud-row"><span class="label">SPEED:</span> <span id="tele-speed">0.0</span> m/s</div>
+                <div class="hud-row"><span class="label">FUEL:</span> <span id="tele-fuel">100</span>%</div>
+                <div class="hud-row"><span class="label">RINGS:</span> <span id="tele-rings">0 / 5</span></div>
+            </div>
+        </div>
+
+        <div id="touch-controls">
+            <div class="dpad-group">
+                <button class="ctrl-btn up" id="btn-up" aria-label="Pitch Down">&#9650;</button>
+                <div class="dpad-middle">
+                    <button class="ctrl-btn left" id="btn-left" aria-label="Roll Left">&#9664;</button>
+                    <button class="ctrl-btn down" id="btn-down" aria-label="Pitch Up">&#9660;</button>
+                    <button class="ctrl-btn right" id="btn-right" aria-label="Roll Right">&#9654;</button>
+                </div>
+            </div>
+
+            <div class="action-group">
+                <button class="ctrl-btn thrust-btn" id="btn-thrust" aria-label="Forward Thrust">THRUST</button>
+                <button class="ctrl-btn brake-btn" id="btn-brake" aria-label="Reverse Thrusters">REVERSE</button>
+            </div>
+        </div>
+
+        <div id="modal-overlay" class="modal-hidden">
+            <div class="modal-card">
+                <h2 id="modal-title">MISSION PAUSED</h2>
+                <p id="modal-msg">Descent paused. Press P or tap below to resume.</p>
+                <button id="modal-action-btn" class="ui-action-btn">RESUME</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="spacedustanddescent.js"></script>
+</body>
+</html>
