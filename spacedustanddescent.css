@@ -1,0 +1,324 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+    font-family: 'Courier New', Courier, monospace;
+    color: #00ffcc;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#canvas-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* --- Top Bar & Return Link --- */
+#top-bar {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 15;
+    pointer-events: none;
+}
+
+#return-link {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 15, 25, 0.85);
+    border: 1px solid #00ffcc;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+#return-link:hover {
+    background: rgba(0, 40, 60, 0.95);
+    box-shadow: 0 0 12px #00ffcc;
+}
+
+.csg-logo {
+    height: 24px;
+    width: auto;
+    max-width: 130px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+.hud-btn {
+    pointer-events: auto;
+    background: rgba(0, 20, 30, 0.85);
+    color: #00ffcc;
+    border: 1px solid #00ffcc;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
+    transition: background 0.2s, color 0.2s;
+}
+
+.hud-btn:hover, .hud-btn:active {
+    background: #00ffcc;
+    color: #000;
+}
+
+/* --- Telemetry HUD --- */
+#hud {
+    position: absolute;
+    top: 56px;
+    left: 12px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.hud-panel {
+    background: rgba(0, 20, 30, 0.8);
+    border: 1px solid #00ffcc;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.15);
+    text-shadow: 0 0 4px #00ffcc;
+}
+
+.hud-row .label {
+    color: #88ffff;
+    font-weight: bold;
+}
+
+/* --- Touch Controls (Enlarged & Responsive) --- */
+#touch-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 12;
+    pointer-events: none;
+}
+
+.dpad-group, .action-group {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dpad-middle {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.action-group {
+    gap: 12px;
+}
+
+.ctrl-btn {
+    background: rgba(0, 25, 40, 0.85);
+    border: 2px solid #00ffcc;
+    color: #00ffcc;
+    font-size: 20px;
+    font-weight: bold;
+    width: 58px;
+    height: 58px;
+    border-radius: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.2);
+    transition: transform 0.05s, background 0.1s;
+}
+
+.ctrl-btn:active, .ctrl-btn.active {
+    background: rgba(0, 255, 204, 0.5);
+    transform: scale(0.92);
+}
+
+/* Enlarged Action Buttons with generous margins */
+.thrust-btn, .brake-btn {
+    width: 105px;
+    height: 54px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    padding: 6px;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.thrust-btn {
+    border-color: #00ffcc;
+    color: #00ffcc;
+}
+
+.brake-btn {
+    border-color: #ffaa00;
+    color: #ffaa00;
+    box-shadow: 0 0 8px rgba(255, 170, 0, 0.2);
+}
+
+.brake-btn:active, .brake-btn.active {
+    background: rgba(255, 170, 0, 0.5);
+}
+
+/* --- Modals & Overlays --- */
+#modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 5, 10, 0.88);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 30;
+    backdrop-filter: blur(5px);
+}
+
+.modal-hidden {
+    display: none !important;
+}
+
+.modal-card {
+    background: #021420;
+    border: 2px solid #00ffcc;
+    border-radius: 12px;
+    padding: 28px 24px;
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.35);
+}
+
+.modal-card h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    letter-spacing: 1.5px;
+}
+
+.modal-card p {
+    font-size: 14px;
+    color: #c9f4fb;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    white-space: pre-line;
+}
+
+.ui-action-btn {
+    background: #00ffcc;
+    color: #000;
+    border: none;
+    padding: 14px 20px;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    letter-spacing: 1px;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.ui-action-btn:hover {
+    background: #77ffee;
+    box-shadow: 0 0 15px #00ffcc;
+}
+
+/* --- Orientation & Mobile Screen Adjustments --- */
+@media (max-width: 600px) {
+    .return-text {
+        font-size: 11px;
+    }
+    .csg-logo {
+        height: 20px;
+    }
+    .hud-panel {
+        font-size: 11px;
+        padding: 6px 10px;
+    }
+    .ctrl-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+    }
+    .thrust-btn, .brake-btn {
+        width: 90px;
+        height: 48px;
+        font-size: 11px;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #top-bar {
+        top: 6px;
+        left: 8px;
+        right: 8px;
+    }
+    #hud {
+        top: 42px;
+        left: 8px;
+    }
+    .hud-panel {
+        flex-direction: row;
+        gap: 12px;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    #touch-controls {
+        bottom: 8px;
+        left: 10px;
+        right: 10px;
+    }
+    .ctrl-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 15px;
+    }
+    .thrust-btn, .brake-btn {
+        width: 82px;
+        height: 38px;
+        font-size: 10px;
+    }
+}
