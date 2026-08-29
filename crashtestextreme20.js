@@ -113,9 +113,9 @@ function createHazardStripeTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 256; canvas.height = 64;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#eab308'; // Bright Safety Yellow
+    ctx.fillStyle = '#eab308';
     ctx.fillRect(0, 0, 256, 64);
-    ctx.fillStyle = '#0f172a'; // Black hazard stripes
+    ctx.fillStyle = '#0f172a';
     ctx.lineWidth = 14;
     for (let i = -100; i < 356; i += 28) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 32, 64); ctx.stroke();
@@ -273,7 +273,7 @@ function build3DDummy() {
 }
 
 // ==========================================
-// 3D VEHICLE (WITH PROCEDURAL WINDOWS & DENTS)
+// 3D VEHICLE
 // ==========================================
 const vehicleRig = new THREE.Group();
 scene.add(vehicleRig);
@@ -348,7 +348,6 @@ const hood = new THREE.Mesh(new THREE.BoxGeometry(3.9, 0.8, 2.0), carPaintMat);
 hood.position.set(0, 1.4, 2.6);
 targetVehicleGroup.add(hood);
 
-// Raised Roof & Pillars
 const roof = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.12, 3.4), carPaintMat);
 roof.position.set(0, 3.15, -0.1);
 targetVehicleGroup.add(roof);
@@ -359,7 +358,6 @@ targetVehicleGroup.add(roof);
     targetVehicleGroup.add(pillar);
 });
 
-// Segmented Windows with Shatter Capability
 const windowMap = {
     front: new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.5, 0.06), createClearGlassMaterial()),
     rear: new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.5, 0.06), createClearGlassMaterial()),
@@ -381,7 +379,6 @@ targetVehicleGroup.add(windowMap.left);
 windowMap.right.position.set(1.85, 2.3, -0.1);
 targetVehicleGroup.add(windowMap.right);
 
-// Occupants
 const seatData = {
     FL: { label: 'Driver', localPos: new THREE.Vector3(-1.1, 0.7, 0.9), occupant: null },
     FR: { label: 'Front Passenger', localPos: new THREE.Vector3(1.1, 0.7, 0.9), occupant: null }
@@ -449,14 +446,12 @@ function buildTwoToneCoin() {
     return coinGroup;
 }
 
-// Procedural Spike Barrier matching reference image
 const spikeBaseMat = new THREE.MeshStandardMaterial({ map: hazardStripeTex, roughness: 0.4, metalness: 0.2 });
-const spikeNeedleMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.8, roughness: 0.25 }); // Sharp Red
+const spikeNeedleMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, metalness: 0.8, roughness: 0.25 });
 
 function buildReferenceSpikeStrip() {
     const stripGroup = new THREE.Group();
 
-    // 1. Trapezoidal Beveled Hazard Base
     const baseShape = new THREE.Shape();
     baseShape.moveTo(-0.65, 0);
     baseShape.lineTo(-0.38, 0.22);
@@ -471,15 +466,14 @@ function buildReferenceSpikeStrip() {
     baseMesh.position.set(-3.4, 0, 0);
     stripGroup.add(baseMesh);
 
-    // 2. Upward-Pointed Red Needle Spikes Row
     const needleGeo = new THREE.ConeGeometry(0.045, 0.55, 8);
     const numNeedles = 24;
     for (let i = 0; i < numNeedles; i++) {
         const needle = new THREE.Mesh(needleGeo, spikeNeedleMat);
         const zOffset = -3.1 + (i / (numNeedles - 1)) * 6.2;
         needle.position.set(0, 0.42, zOffset);
-        needle.rotation.x = (Math.random() - 0.5) * 0.15; // Realistic slight angular tilt
-        needle.rotation.z = -0.22; // Angled forward-slanted spike
+        needle.rotation.x = (Math.random() - 0.5) * 0.15;
+        needle.rotation.z = -0.22;
         stripGroup.add(needle);
     }
 
@@ -519,7 +513,6 @@ function spawnObstaclesForLevel(lvl) {
     speedBumpObjects = [];
     brickWallObjects = [];
 
-    // 1. Reference Spike Strips
     const spikeCount = lvl === 1 ? 6 : 11;
     const spikePositions = getScatteredPositions(spikeCount, 12, 54);
 
@@ -531,7 +524,6 @@ function spawnObstaclesForLevel(lvl) {
         spikeStripObjects.push(strip);
     });
 
-    // 2. Speed Bumps
     const bumpGeo = new THREE.CylinderGeometry(0.9, 0.9, 7.5, 16, 1, false, 0, Math.PI);
     const bumpMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.4 });
     const bumpCount = lvl === 1 ? 6 : 9;
@@ -546,7 +538,6 @@ function spawnObstaclesForLevel(lvl) {
         speedBumpObjects.push(m);
     });
 
-    // 3. Brick Walls (Level 2)
     if (lvl >= 2) {
         const brickGeo = new THREE.BoxGeometry(5.5, 2.2, 1.2);
         const brickMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.8 });
@@ -563,7 +554,7 @@ function spawnObstaclesForLevel(lvl) {
 }
 
 // ==========================================
-// GAME STATE & INITIALIZATION
+// GAME STATE & DRIVING ENGINE
 // ==========================================
 let currentLevel = 1;
 let totalPoints = 0;
@@ -573,30 +564,25 @@ let vehicleHealth = 100;
 let survivalTimer = 10.0;
 let activeFloatingTexts = [];
 
-// Upgraded Driving Dynamics (Faster Top Speed & Responsive Acceleration)
 const keysPressed = {};
 let carVelocity = 0;
 let carAngle = 0;
 let carYVelocity = 0;
 let carYPos = 0;
-const BASE_MAX_SPEED = 28.0; // Upgraded top speed
-const ACCEL = 54.0;          // Upgraded fast throttle
+const BASE_MAX_SPEED = 28.0;
+const ACCEL = 54.0;
 const FRICTION = 16.0;
 const STEER_SPEED = 3.2;
 const GRAVITY = 42.0;
 const JUMP_IMPULSE = 15.0;
 
-// Angular Roll / Restitution
 let carRoll = 0;
 let rollVelocity = 0;
 let cartAngle = 0;
 
-// Hazard State & 2-Second Recoil Delay
 let hazardStunTimer = 0;
 let hazardRecoilSpeed = 0;
-
-// Solid Hull Radii (Strict non-penetration)
-const MIN_COLLISION_DISTANCE = 6.4; 
+const MIN_COLLISION_DISTANCE = 6.4;
 
 function installOccupants() {
     for (let key in seatData) {
@@ -628,7 +614,6 @@ function initLevel(lvl) {
     hazardStunTimer = 0;
     hazardRecoilSpeed = 0;
 
-    // Reset Tires
     for (let k in wheelRigMap) {
         wheelRigMap[k].popped = false;
         wheelRigMap[k].mesh.scale.set(1, 1, 1);
@@ -636,12 +621,10 @@ function initLevel(lvl) {
         document.getElementById(`tire${k}`).textContent = `${k}: OK`;
     }
 
-    // Reset Glass to Pristine Clear State
     for (let winKey in windowMap) {
         windowMap[winKey].material = createClearGlassMaterial();
     }
 
-    // Reset Environment & Vehicle Palette
     if (lvl === 1) {
         scene.background = new THREE.Color(0xe2e8f0);
         scene.fog = new THREE.Fog(0xe2e8f0, 30, 110);
@@ -662,7 +645,6 @@ function initLevel(lvl) {
     vehicleRig.rotation.set(0, 0, 0);
     targetVehicleGroup.rotation.set(0, 0, 0);
 
-    // Reset Dented Vertices
     const posAttr = lowerBodyGeo.attributes.position;
     const baseGeo = new THREE.BoxGeometry(4.0, 1.0, 7.4, 10, 6, 14);
     for (let i = 0; i < posAttr.count; i++) {
@@ -671,7 +653,6 @@ function initLevel(lvl) {
     posAttr.needsUpdate = true;
     lowerBodyGeo.computeVertexNormals();
 
-    // Position Hazard Safely Away
     crashCart.position.set(38, 0, 38);
 
     document.getElementById('levelDisplay').textContent = `TIER ${currentLevel} / 7`;
@@ -680,8 +661,6 @@ function initLevel(lvl) {
     document.getElementById('gameOverModal').style.display = 'none';
     document.getElementById('pauseModal').style.display = 'none';
     document.getElementById('phaseDisplay').textContent = 'COLLECT COINS & EVADE';
-    document.getElementById('phaseDisplay').style.color = '#2563eb';
-    document.getElementById('phaseDisplay').style.borderColor = '#2563eb';
 
     spawnCoins(20);
     spawnObstaclesForLevel(lvl);
@@ -690,9 +669,6 @@ function initLevel(lvl) {
     updateCameraPosition();
 }
 
-// ==========================================
-// PROCEDURAL MESH DENTING & GLASS FRACTURE
-// ==========================================
 function applyLocalizedDentAndGlassFracture(localHitPoint) {
     const posAttr = lowerBodyGeo.attributes.position;
     const v = new THREE.Vector3();
@@ -724,30 +700,22 @@ function applyLocalizedDentAndGlassFracture(localHitPoint) {
     }
 }
 
-// ==========================================
-// ZERO-INTERCEPTION HARD IMPACT SOLVER
-// ==========================================
 function triggerZeroInterceptionImpact(contactNormal) {
     if (hazardStunTimer > 0) return;
 
-    // 1. Calculate Local Hit Point on Player Vehicle
     const invRot = vehicleRig.quaternion.clone().invert();
     const localHitPoint = crashCart.position.clone().sub(vehicleRig.position).applyQuaternion(invRot);
 
-    // 2. Dent chassis & shatter closest window
     applyLocalizedDentAndGlassFracture(localHitPoint);
 
-    // 3. Elastic Double Recoil Momentum & 2-Second Stun Delay
     const playerBounceForce = 18.0;
     vehicleRig.position.addScaledVector(contactNormal, 1.2);
     carVelocity = contactNormal.dot(new THREE.Vector3(Math.sin(carAngle), 0, Math.cos(carAngle))) * playerBounceForce;
 
     hazardStunTimer = 2.0;
     hazardRecoilSpeed = 16.0;
-
     rollVelocity = (Math.random() < 0.5 ? -1 : 1) * 7.5;
 
-    // 4. Vehicle Structural Wear & Passenger Damage
     vehicleHealth = Math.max(0, vehicleHealth - 12);
 
     for (let key in seatData) {
@@ -772,9 +740,6 @@ function checkGameOver() {
     }
 }
 
-// ==========================================
-// FLOATING POINT ANIMATION
-// ==========================================
 function triggerCoinCollection(worldPos) {
     totalPoints += 10;
     document.getElementById('scoreText').textContent = totalPoints;
@@ -803,7 +768,7 @@ function triggerCoinCollection(worldPos) {
 
     setTimeout(() => {
         el.remove();
-    }, 1000);
+    }, 800);
 }
 
 function spawnLevitatingDamage(worldPos, text) {
@@ -820,9 +785,6 @@ function spawnLevitatingDamage(worldPos, text) {
     });
 }
 
-// ==========================================
-// WORKSHOP INTERMISSION
-// ==========================================
 function openWorkshop() {
     gameState = 'RESOLVED';
     document.getElementById('shopPointsText').textContent = `${totalPoints} PTS`;
@@ -886,9 +848,6 @@ document.getElementById('btnRetryLevel').onclick = () => {
     initLevel(currentLevel);
 };
 
-// ==========================================
-// UI UPDATE DISPATCHER
-// ==========================================
 function updateUI() {
     document.getElementById('carHpText').textContent = vehicleHealth + '%';
     document.getElementById('carHpBar').style.width = vehicleHealth + '%';
@@ -924,8 +883,16 @@ function togglePause() {
     document.getElementById('btnPause').textContent = isPaused ? '▶ Resume' : '⏸ Pause';
 }
 
+// Telemetry Panel Toggle on Mobile
+const btnToggleTelemetry = document.getElementById('btnToggleTelemetry');
+const telemetryPanel = document.getElementById('telemetryPanel');
+
+btnToggleTelemetry.onclick = () => {
+    telemetryPanel.classList.toggle('mobile-visible');
+};
+
 // ==========================================
-// CONTROLS & BINDINGS (RELIABLE 4-WAY DRIVING)
+// CONTROLS & BINDINGS (RELIABLE MULTI-TOUCH)
 // ==========================================
 window.addEventListener('keydown', (e) => {
     if (e.key === 'p' || e.key === 'P') togglePause();
@@ -946,16 +913,27 @@ window.addEventListener('keyup', (e) => {
     keysPressed[e.code] = false;
 });
 
-document.getElementById('btnJump').onclick = () => {
+document.getElementById('btnJump').addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     if (carYPos === 0 && !isPaused && gameState === 'DRIVE') {
         carYVelocity = JUMP_IMPULSE;
     }
-};
+});
 
 function bindDpad(btnId, keyName) {
     const el = document.getElementById(btnId);
-    const on = (e) => { e.preventDefault(); keysPressed[keyName] = true; };
-    const off = (e) => { e.preventDefault(); keysPressed[keyName] = false; };
+    
+    const on = (e) => { 
+        e.preventDefault(); 
+        keysPressed[keyName] = true;
+        el.classList.add('active');
+    };
+    const off = (e) => { 
+        e.preventDefault(); 
+        keysPressed[keyName] = false; 
+        el.classList.remove('active');
+    };
+
     el.addEventListener('pointerdown', on);
     el.addEventListener('pointerup', off);
     el.addEventListener('pointerleave', off);
@@ -966,7 +944,7 @@ bindDpad('btnDriveRev', 's');
 bindDpad('btnDriveLeft', 'a');
 bindDpad('btnDriveRight', 'd');
 
-// Virtual Joystick
+// Virtual Joystick (Orbit View)
 const joyContainer = document.getElementById('joyContainer');
 const joyKnob = document.getElementById('joyKnob');
 let joyActive = false;
@@ -975,7 +953,7 @@ function handleJoy(clientX, clientY) {
     const rect = joyContainer.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const maxRadius = rect.width / 2 - 8;
+    const maxRadius = rect.width / 2 - 6;
 
     let dx = clientX - centerX;
     let dy = clientY - centerY;
@@ -990,17 +968,23 @@ function handleJoy(clientX, clientY) {
 }
 
 joyContainer.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     joyActive = true;
     joyContainer.setPointerCapture(e.pointerId);
     handleJoy(e.clientX, e.clientY);
 });
 joyContainer.addEventListener('pointermove', (e) => {
-    if (joyActive) handleJoy(e.clientX, e.clientY);
+    if (joyActive) {
+        e.preventDefault();
+        handleJoy(e.clientX, e.clientY);
+    }
 });
-const endJoy = () => {
-    joyActive = false;
-    joystickVelocity = 0;
-    joyKnob.style.transform = `translate(0px, 0px)`;
+const endJoy = (e) => {
+    if (joyActive) {
+        joyActive = false;
+        joystickVelocity = 0;
+        joyKnob.style.transform = `translate(0px, 0px)`;
+    }
 };
 joyContainer.addEventListener('pointerup', endJoy);
 joyContainer.addEventListener('pointercancel', endJoy);
@@ -1027,7 +1011,6 @@ function animate() {
     }
     updateCameraPosition();
 
-    // Slow Circular Coin Rotation
     coinObjects.forEach(c => {
         if (!c.collected) c.mesh.rotation.y += 1.8 * delta;
     });
@@ -1040,9 +1023,6 @@ function animate() {
             return;
         }
 
-        // ==========================================
-        // PLAYER DRIVING & STEERING ENGINE
-        // ==========================================
         let fwdInput = 0;
         let steerInput = 0;
 
@@ -1054,14 +1034,12 @@ function animate() {
         let poppedCount = Object.values(wheelRigMap).filter(w => w.popped).length;
         const currentMaxSpeed = BASE_MAX_SPEED * (1.0 - poppedCount * 0.18);
 
-        // Steering
         if (steerInput !== 0) {
             const steerDir = (carVelocity < -0.2) ? -1 : 1;
             carAngle += steerInput * STEER_SPEED * steerDir * delta;
             vehicleRig.rotation.y = carAngle;
         }
 
-        // Acceleration & Braking/Reverse
         if (fwdInput !== 0) {
             carVelocity += fwdInput * ACCEL * delta;
             carVelocity = THREE.MathUtils.clamp(carVelocity, -currentMaxSpeed * 0.6, currentMaxSpeed);
@@ -1075,7 +1053,6 @@ function animate() {
         vehicleRig.position.x += fwdX * carVelocity * delta;
         vehicleRig.position.z += fwdZ * carVelocity * delta;
 
-        // Jump & Gravity
         if (carYPos > 0 || carYVelocity !== 0) {
             carYVelocity -= GRAVITY * delta;
             carYPos += carYVelocity * delta;
@@ -1086,7 +1063,6 @@ function animate() {
             vehicleRig.position.y = carYPos;
         }
 
-        // Suspension Bounce & Restitution
         if (Math.abs(rollVelocity) > 0.01 || Math.abs(carRoll) > 0.01) {
             carRoll += rollVelocity * delta;
             rollVelocity -= carRoll * 20.0 * delta;
@@ -1094,11 +1070,10 @@ function animate() {
             targetVehicleGroup.rotation.z = carRoll;
         }
 
-        // Facility Bounds
         vehicleRig.position.x = THREE.MathUtils.clamp(vehicleRig.position.x, -58, 58);
         vehicleRig.position.z = THREE.MathUtils.clamp(vehicleRig.position.z, -58, 58);
 
-        // 1. Coins Collection (Player Only)
+        // 1. Coins Collection
         coinObjects.forEach(c => {
             if (!c.collected && vehicleRig.position.distanceTo(c.mesh.position) < 2.5) {
                 c.collected = true;
@@ -1107,7 +1082,7 @@ function animate() {
             }
         });
 
-        // 2. Reference Spike Strips (Pops Player Tires)
+        // 2. Spike Strips
         if (carYPos < 0.4) {
             spikeStripObjects.forEach(spike => {
                 if (vehicleRig.position.distanceTo(spike.position) < 3.4) {
@@ -1144,13 +1119,10 @@ function animate() {
             }
         });
 
-        // =========================================================
-        // HAZARD PURSUIT AI, WALL BOUNDS & OBSTACLE AVOIDANCE
-        // =========================================================
+        // Hazard Pursuit Cart AI
         const currentDiff = vehicleRig.position.clone().sub(crashCart.position);
         const currentDist = currentDiff.length();
 
-        // 1. Flashing Warning Beacon
         const beacon = document.getElementById('warningBeacon');
         if (currentDist < 22.0 && hazardStunTimer <= 0) {
             beacon.style.display = 'block';
@@ -1164,7 +1136,6 @@ function animate() {
         }
 
         if (hazardStunTimer > 0) {
-            // Recoil and recovery
             hazardStunTimer -= delta;
             hazardRecoilSpeed = Math.max(0, hazardRecoilSpeed - 8.0 * delta);
             const recoilDir = new THREE.Vector3(Math.sin(cartAngle), 0, Math.cos(cartAngle)).negate();
@@ -1172,7 +1143,6 @@ function animate() {
         } else {
             let targetDirection = new THREE.Vector3(currentDiff.x, 0, currentDiff.z).normalize();
 
-            // Avoid Brick Walls
             brickWallObjects.forEach(wall => {
                 const toWall = wall.position.clone().sub(crashCart.position);
                 const wallDist = toWall.length();
@@ -1182,7 +1152,6 @@ function animate() {
                 }
             });
 
-            // Avoid Spike Strips
             spikeStripObjects.forEach(spike => {
                 const toSpike = spike.position.clone().sub(crashCart.position);
                 const spikeDist = toSpike.length();
@@ -1210,11 +1179,9 @@ function animate() {
             }
         }
 
-        // Room Bounds for Hazard Cart
         crashCart.position.x = THREE.MathUtils.clamp(crashCart.position.x, -58, 58);
         crashCart.position.z = THREE.MathUtils.clamp(crashCart.position.z, -58, 58);
 
-        // Brick Wall Collisions for Hazard Cart
         brickWallObjects.forEach(wall => {
             const distToWall = crashCart.position.distanceTo(wall.position);
             if (distToWall < 4.0) {
@@ -1223,7 +1190,6 @@ function animate() {
             }
         });
 
-        // Strict Separation Enforcement
         const postDiff = vehicleRig.position.clone().sub(crashCart.position);
         const postDist = postDiff.length();
         if (postDist < MIN_COLLISION_DISTANCE) {
@@ -1234,7 +1200,6 @@ function animate() {
         updateUI();
     }
 
-    // Floating Damage Text Fade
     for (let i = activeFloatingTexts.length - 1; i >= 0; i--) {
         const ft = activeFloatingTexts[i];
         ft.life -= delta;
@@ -1257,10 +1222,16 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-window.addEventListener('resize', () => {
+function handleResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+}
+
+window.addEventListener('resize', handleResize);
+window.addEventListener('orientationchange', () => {
+    setTimeout(handleResize, 150);
 });
 
 // Initialize Level 1
