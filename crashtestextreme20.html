@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Crash Test Extreme 2.0 - IIHS Crash Facility</title>
     <link rel="stylesheet" href="crashtestextreme20.css">
     <!-- Three.js 3D Engine -->
@@ -21,6 +21,7 @@
         </div>
         <div class="header-controls">
             <div id="phaseDisplay" class="hud-phase">COLLECT COINS & EVADE</div>
+            <button id="btnToggleTelemetry" class="btn-icon btn-hud-toggle" title="Toggle HUD">📊 HUD</button>
             <button id="btnPause" class="btn-icon" title="Pause Game (P)">⏸ Pause</button>
         </div>
     </header>
@@ -32,26 +33,26 @@
         <!-- Flashing Impact Warning (!) -->
         <div id="warningBeacon" class="warning-beacon">!</div>
 
-        <!-- Touch Controls Cluster (Bottom Left) -->
-        <div class="touch-controls-cluster">
+        <!-- Touch Controls: Left Side (Drive D-Pad) -->
+        <div class="drive-dpad" id="driveDpad">
+            <button class="dpad-btn btn-up" id="btnDriveFwd" aria-label="Drive Forward">▲</button>
+            <div class="dpad-mid-row">
+                <button class="dpad-btn btn-left" id="btnDriveLeft" aria-label="Steer Left">◀</button>
+                <button class="dpad-btn btn-down" id="btnDriveRev" aria-label="Reverse">▼</button>
+                <button class="dpad-btn btn-right" id="btnDriveRight" aria-label="Steer Right">▶</button>
+            </div>
+        </div>
+
+        <!-- Touch Controls: Right Side (Joystick Orbit & Jump) -->
+        <div class="touch-controls-cluster" id="touchControlsCluster">
             <div class="joystick-container" id="joyContainer">
                 <span class="joystick-label">Orbit View</span>
                 <div class="joystick-knob" id="joyKnob"></div>
             </div>
-            <button id="btnJump" class="btn-jump-action">🦘 JUMP (SPACE)</button>
+            <button id="btnJump" class="btn-jump-action">🦘 JUMP</button>
         </div>
 
-        <!-- On-Screen D-Pad (Driving) -->
-        <div class="drive-dpad" id="driveDpad">
-            <button class="dpad-btn btn-up" id="btnDriveFwd">▲</button>
-            <div class="dpad-mid-row">
-                <button class="dpad-btn btn-left" id="btnDriveLeft">◀</button>
-                <button class="dpad-btn btn-down" id="btnDriveRev">▼</button>
-                <button class="dpad-btn btn-right" id="btnDriveRight">▶</button>
-            </div>
-        </div>
-
-        <!-- Live Diagnostics HUD (Right Side) -->
+        <!-- Live Diagnostics HUD -->
         <aside class="telemetry-panel" id="telemetryPanel">
             <div class="panel-heading">
                 <h2>Telemetry Console</h2>
