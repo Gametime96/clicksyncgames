@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>Quantum Gridlock | ClickSyncGames</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #030712;
+      color: #e2e8f0;
+      font-family: 'Rajdhani', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+    .font-arcade {
+      font-family: 'Orbitron', monospace;
+    }
+    .neon-text-cyan {
+      text-shadow: 0 0 8px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .neon-text-magenta {
+      text-shadow: 0 0 8px rgba(236, 72, 153, 0.8), 0 0 20px rgba(236, 72, 153, 0.4);
+    }
+    .neon-border {
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(56, 189, 248, 0.1);
+    }
+    .btn-neon {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(217, 70, 239, 0.25));
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.35);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-neon:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: #38bdf8;
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.65), 0 0 35px rgba(236, 72, 153, 0.35);
+    }
+    .btn-neon:active {
+      transform: translateY(1px) scale(0.98);
+    }
+    .btn-pause-header {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #00f3ff;
+      background: rgba(0, 243, 255, 0.1);
+      border: 1px solid #00f3ff;
+      box-shadow: 0 0 10px rgba(0, 243, 255, 0.25);
+      transition: all 0.2s ease;
+    }
+    .btn-pause-header:hover {
+      background: #00f3ff;
+      color: #030712;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.7);
+      transform: translateY(-1px);
+    }
+    .btn-pause-header:active {
+      transform: translateY(1px);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="relative flex flex-col justify-between select-none">
+  <!-- Top Navigation & HUD Bar -->
+  <header class="absolute top-0 left-0 w-full z-20 px-3 py-2 sm:px-6 sm:py-3 flex items-center justify-between pointer-events-none bg-gradient-to-b from-gray-950/95 via-gray-950/70 to-transparent border-b border-cyan-500/20">
+    <!-- Top-Left Brand & Return Link -->
+    <div class="flex items-center gap-3 sm:gap-4 pointer-events-auto">
+      <a href="index.html" class="flex items-center gap-2 group transition-transform hover:-translate-y-0.5" title="Return to ClickSyncGames Homepage">
+        <span class="font-arcade text-xs sm:text-sm font-bold text-gray-400 group-hover:text-cyan-400 transition-colors uppercase tracking-wider">Return to</span>
+        <img 
+          src="clicksyncgameslogo.jpeg" 
+          alt="ClickSyncGames Logo" 
+          class="h-7 sm:h-9 w-auto max-w-[120px] object-contain rounded border border-cyan-500/30 group-hover:border-cyan-400 group-hover:shadow-[0_0_10px_rgba(0,243,255,0.5)] transition" 
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';"
+        >
+        <span class="hidden font-arcade text-xs sm:text-sm font-black text-cyan-400 tracking-wider">ClickSyncGames</span>
+      </a>
+
+      <!-- Sector Indicator -->
+      <div class="hidden md:flex px-2.5 py-1 rounded-md bg-cyan-950/50 border border-cyan-500/40 text-xs font-bold text-cyan-300">
+        SECTOR <span id="hud-level" class="text-pink-400 font-arcade text-xs sm:text-sm ml-1">01</span>
+      </div>
+    </div>
+
+    <!-- Center Live Stats -->
+    <div class="flex items-center gap-2 sm:gap-5 pointer-events-auto">
+      <!-- Conduits sync track -->
+      <div class="flex flex-col items-center">
+        <span class="text-[9px] sm:text-[11px] text-gray-400 uppercase tracking-wider font-semibold">Conduits</span>
+        <div id="hud-conduits" class="flex gap-1 items-center mt-0.5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Combo Multiplier -->
+      <div class="flex flex-col items-center">
+        <span class="text-[9px] sm:text-[11px] text-amber-400 uppercase tracking-wider font-semibold">Combo</span>
+        <span id="hud-combo" class="text-xs sm:text-base font-black font-arcade text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">1.0x</span>
+      </div>
+
+      <!-- Live Score -->
+      <div class="flex flex-col items-end">
+        <span class="text-[9px] sm:text-[11px] text-cyan-400 uppercase tracking-wider font-semibold">Score</span>
+        <span id="hud-score" class="text-sm sm:text-xl font-black font-arcade text-white tracking-widest">000000</span>
+      </div>
+
+      <!-- Top-Right Sound & All-Caps PAUSE button -->
+      <div class="flex items-center gap-1.5 ml-1 sm:ml-3">
+        <button id="btn-sound" class="p-1.5 sm:p-2 rounded-lg bg-gray-900/80 border border-gray-700/60 hover:border-cyan-400 text-cyan-400 transition focus:outline-none" title="Toggle Sound">
+          <svg id="icon-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+          <svg id="icon-sound-off" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path></svg>
+        </button>
+        <button id="btn-pause-main" class="btn-pause-header px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-lg focus:outline-none">
+          PAUSE
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Game Canvas Container -->
+  <main id="canvas-container" class="relative w-full h-full flex-1 overflow-hidden bg-[#030712] cursor-crosshair">
+    <canvas id="gameCanvas"></canvas>
+  </main>
+
+  <!-- Bottom Interactive Status Bar -->
+  <footer class="absolute bottom-2 left-0 w-full z-20 px-4 flex justify-between items-end pointer-events-none text-xs text-gray-500 font-semibold tracking-wider">
+    <div class="bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-cyan-500/20 text-cyan-400/90 pointer-events-auto shadow-lg">
+      <span class="text-pink-400 font-bold">NAVIGATE:</span> Mouse / Touch &bull; <span class="text-pink-400 font-bold">TAP/SPACE:</span> Drop Anchor Conduit &bull; <span class="text-pink-400 font-bold">[P]:</span> Pause
+    </div>
+    <div class="bg-gray-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-purple-500/20 text-purple-300 pointer-events-auto">
+      HIGH SCORE: <span id="hud-highscore" class="font-arcade text-pink-400 font-bold">0</span>
+    </div>
+  </footer>
+
+  <!-- Modals & Overlays -->
+  <div id="modal-overlay" class="absolute inset-0 z-30 flex items-center justify-center bg-black/85 backdrop-blur-md transition-opacity duration-300 px-4">
+    <div class="relative max-w-md w-full bg-gray-900/90 border border-cyan-500/50 rounded-2xl p-6 sm:p-8 text-center shadow-[0_0_50px_rgba(6,182,212,0.25)]">
+      <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-10 bg-cyan-500/30 blur-2xl rounded-full"></div>
+
+      <!-- Start Sequence Modal -->
+      <div id="view-start" class="flex flex-col items-center">
+        <div class="w-16 h-16 mb-3 rounded-2xl bg-cyan-950 border border-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+          <svg class="w-9 h-9 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black font-arcade text-white tracking-widest uppercase mb-1">Quantum <span class="text-pink-500">Gridlock</span></h2>
+        <p class="text-xs sm:text-sm text-cyan-300/80 mb-4 font-semibold">ClickSync Hyper-Arcade Protocol</p>
+        
+        <div class="text-left text-xs sm:text-sm text-gray-300 bg-gray-950/60 p-4 rounded-xl border border-gray-800 space-y-2 mb-5 w-full leading-relaxed">
+          <p class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-400 inline-block shadow-[0_0_5px_#22d3ee]"></span> <strong class="text-cyan-300">Navigate:</strong> Guide your core via touch or mouse.</p>
+          <p class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-pink-500 inline-block shadow-[0_0_5px_#ec4899]"></span> <strong class="text-pink-400">Anchor Conduits:</strong> Tap/Click or press Space to drop sync nodes.</p>
+          <p class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_5px_#fbbf24]"></span> <strong class="text-amber-300">Enclose Sectors:</strong> Form loops or laser fences to vaporize rogue anomalies!</p>
+          <p class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-purple-400 inline-block shadow-[0_0_5px_#c084fc]"></span> <strong class="text-purple-300">Collect Crystals:</strong> Gather energy crystals to boost score multipliers.</p>
+        </div>
+
+        <button id="btn-play-game" class="btn-neon w-full py-3.5 px-6 rounded-xl font-arcade font-bold text-base sm:text-lg text-white uppercase tracking-wider flex items-center justify-center gap-2">
+          <span>INITIATE SEQUENCE</span>
+          <svg class="w-5 h-5 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </button>
+      </div>
+
+      <!-- Game Over Modal -->
+      <div id="view-gameover" class="hidden flex-col items-center">
+        <div class="w-14 h-14 mb-2 rounded-2xl bg-red-950/80 border border-red-500/70 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+          <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black font-arcade text-red-500 tracking-wider uppercase mb-1">CORE OVERLOAD</h2>
+        <p class="text-xs text-gray-400 mb-4 font-medium">Neural containment ruptured by hostile anomaly</p>
+
+        <div class="grid grid-cols-2 gap-3 w-full mb-5">
+          <div class="bg-gray-950 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider">Final Score</span>
+            <div id="go-score" class="text-xl font-black font-arcade text-cyan-400 mt-0.5">0</div>
+          </div>
+          <div class="bg-gray-950 p-3 rounded-xl border border-gray-800">
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider">Sector Reached</span>
+            <div id="go-level" class="text-xl font-black font-arcade text-pink-400 mt-0.5">01</div>
+          </div>
+        </div>
+
+        <button id="btn-restart" class="btn-neon w-full py-3.5 px-6 rounded-xl font-arcade font-bold text-base sm:text-lg text-white uppercase tracking-wider">
+          REBOOT SYSTEM
+        </button>
+      </div>
+
+      <!-- Sector Cleared Modal -->
+      <div id="view-cleared" class="hidden flex-col items-center">
+        <div class="w-14 h-14 mb-2 rounded-2xl bg-cyan-950/80 border border-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.6)]">
+          <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-black font-arcade text-cyan-400 tracking-wider uppercase mb-1">SECTOR SECURED</h2>
+        <p class="text-xs text-pink-400 mb-4 font-medium tracking-wide">Threats Purged &bull; Sync Conduits Recharged</p>
+
+        <div class="bg-gray-950/80 p-4 rounded-xl border border-gray-800 w-full mb-5 flex justify-around">
+          <div>
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Bonus Points</span>
+            <span id="clear-bonus" class="text-lg font-black font-arcade text-amber-300">+2500</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-gray-400 uppercase tracking-wider block">Max Combo</span>
+            <span id="clear-combo" class="text-lg font-black font-arcade text-cyan-400">4.5x</span>
+          </div>
+        </div>
+
+        <button id="btn-next-level" class="btn-neon w-full py-3.5 px-6 rounded-xl font-arcade font-bold text-base sm:text-lg text-white uppercase tracking-wider">
+          WARP TO NEXT SECTOR
+        </button>
+      </div>
+
+      <!-- System Paused Modal -->
+      <div id="view-paused" class="hidden flex-col items-center">
+        <h2 class="text-2xl font-black font-arcade text-cyan-400 tracking-widest uppercase mb-3">SYSTEM PAUSED</h2>
+        <p class="text-sm text-gray-400 mb-6 font-medium">Core transmission halted. Press <kbd class="px-2 py-0.5 rounded bg-gray-800 border border-gray-600 font-arcade text-cyan-300">P</kbd> or click below to resume.</p>
+        <button id="btn-resume-modal" class="btn-neon w-full py-3 rounded-xl font-arcade font-bold text-base text-white uppercase tracking-wider mb-2">
+          RESUME OPERATION
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class QuantumAudio {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+      }
+
+      resume() {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        return this.isMuted;
+      }
+
+      playBlip(freq = 440, type = 'sine', duration = 0.08, vol = 0.2) {
+        if (this.isMuted || !this.ctx) return;
+        this.resume();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      playConduitDrop() {
+        if (this.isMuted || !this.ctx) return;
+        this.resume();
+        try {
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, t);
+          osc.frequency.exponentialRampToValueAtTime(740, t + 0.12);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(t + 0.12);
+        } catch (e) {}
+      }
+
+      playSectorPurge(comboCount = 1) {
+        if (this.isMuted || !this.ctx) return;
+        this.resume();
+        try {
+          const t = this.ctx.currentTime;
+          const baseFreq = 220 * Math.min(2.5, 1 + comboCount * 0.15);
+          [1, 1.25, 1.5].forEach((multiplier, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(baseFreq * multiplier, t);
+            osc.frequency.exponentialRampToValueAtTime((baseFreq * multiplier) * 1.5, t + 0.35);
+
+            gain.gain.setValueAtTime(0.12 / (i + 1), t);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t + i * 0.03);
+            osc.stop(t + 0.38);
+          });
+        } catch (e) {}
+      }
+
+      playExplosion() {
+        if (this.isMuted || !this.ctx) return;
+        this.resume();
+        try {
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(140, t);
+          osc.frequency.exponentialRampToValueAtTime(30, t + 0.4);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(t + 0.4);
+        } catch (e) {}
+      }
+
+      playCrystalCollect() {
+        const notes = [587.33, 739.99, 880, 1174.66];
+        const note = notes[Math.floor(Math.random() * notes.length)];
+        this.playBlip(note, 'sine', 0.14, 0.25);
+      }
+    }
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+    const sound = new QuantumAudio();
+
+    // Game state tracking
+    let gameState = 'START'; // 'START' | 'PLAYING' | 'PAUSED' | 'CLEARED' | 'GAMEOVER'
+    let score = 0;
+    let highscore = parseInt(localStorage.getItem('quantum_gridlock_highscore') || '0', 10);
+    let level = 1;
+    let combo = 1.0;
+    let comboTimer = 0;
+    let maxComboRun = 1.0;
+
+    const MAX_CONDUITS = 6;
+    let conduits = [];
+    let particles = [];
+    let enemies = [];
+    let crystals = [];
+    let floatTexts = [];
+    let empPulses = [];
+    let warpGates = [];
+
+    // Player Core
+    const player = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      radius: 14,
+      glowRadius: 28,
+      speed: 10,
+      tail: []
+    };
+
+    function resizeCanvas() {
+      const rect = container.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      if (player.x === 0 && player.y === 0) {
+        player.x = rect.width / 2;
+        player.y = rect.height / 2;
+        player.targetX = player.x;
+        player.targetY = player.y;
+      }
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function checkLineIntersection(p1, p2, p3, p4) {
+      const denom = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
+      if (denom === 0) return null;
+      const ua = ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / denom;
+      const ub = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / denom;
+      if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+        return {
+          x: p1.x + ua * (p2.x - p1.x),
+          y: p1.y + ua * (p2.y - p1.y)
+        };
+      }
+      return null;
+    }
+
+    function isPointInPolygon(point, polygon) {
+      if (polygon.length < 3) return false;
+      let inside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x, yi = polygon[i].y;
+        const xj = polygon[j].x, yj = polygon[j].y;
+        const intersect = ((yi > point.y) !== (yj > point.y)) &&
+          (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function distToSegment(p, v, w) {
+      const l2 = (v.x - w.x) * (v.x - w.x) + (v.y - w.y) * (v.y - w.y);
+      if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+      let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+    }
+
+    function spawnSectorEnemies(lvl) {
+      enemies = [];
+      crystals = [];
+      empPulses = [];
+      warpGates = [];
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+
+      const enemyCount = 3 + lvl * 2;
+      for (let i = 0; i < enemyCount; i++) {
+        let type = 'packet';
+        if (lvl >= 2 && Math.random() < 0.35) type = 'tracker';
+        if (lvl >= 3 && Math.random() < 0.3) type = 'firewall';
+
+        let ex, ey;
+        do {
+          ex = Math.random() * (w - 80) + 40;
+          ey = Math.random() * (h - 120) + 80;
+        } while (Math.hypot(ex - player.x, ey - player.y) < 180);
+
+        const speed = (1.5 + Math.random() * 1.5) * (1 + lvl * 0.08);
+        const angle = Math.random() * Math.PI * 2;
+
+        enemies.push({
+          x: ex,
+          y: ey,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: type === 'firewall' ? 15 : 12,
+          type: type,
+          hp: type === 'firewall' ? 2 : 1,
+          pulse: Math.random() * Math.PI,
+          baseSpeed: speed
+        });
+      }
+
+      const crystalCount = 4 + lvl;
+      for (let i = 0; i < crystalCount; i++) {
+        spawnCrystal();
+      }
+
+      if (lvl >= 3) {
+        warpGates.push({
+          x1: 70 + Math.random() * 120,
+          y1: 120 + Math.random() * (h - 220),
+          x2: w - (70 + Math.random() * 120),
+          y2: 120 + Math.random() * (h - 220),
+          radius: 26,
+          spin: 0
+        });
+      }
+    }
+
+    function spawnCrystal() {
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+      crystals.push({
+        x: Math.random() * (w - 80) + 40,
+        y: Math.random() * (h - 120) + 80,
+        radius: 9,
+        spin: Math.random() * Math.PI,
+        value: 150
+      });
+    }
+
+    function addFloatingText(text, x, y, color = '#22d3ee') {
+      floatTexts.push({ text, x, y, color, alpha: 1.0 });
+    }
+
+    function createExplosion(x, y, color = '#ec4899', count = 18) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const spd = Math.random() * 5 + 1.5;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * spd,
+          vy: Math.sin(angle) * spd,
+          color,
+          size: Math.random() * 3.5 + 1.5,
+          alpha: 1.0,
+          decay: Math.random() * 0.03 + 0.015
+        });
+      }
+    }
+
+    function dropConduit() {
+      if (gameState !== 'PLAYING') return;
+
+      if (conduits.length > 0) {
+        const last = conduits[conduits.length - 1];
+        if (Math.hypot(last.x - player.x, last.y - player.y) < 30) {
+          return;
+        }
+      }
+
+      if (conduits.length >= MAX_CONDUITS) {
+        conduits.shift();
+      }
+
+      conduits.push({
+        x: player.x,
+        y: player.y,
+        radius: 7,
+        pulsePhase: 0
+      });
+
+      sound.playConduitDrop();
+      createExplosion(player.x, player.y, '#38bdf8', 8);
+
+      evaluateGridTraps();
+      updateHUDConduits();
+    }
+
+    function evaluateGridTraps() {
+      if (conduits.length < 3) return;
+
+      const first = conduits[0];
+      const last = conduits[conduits.length - 1];
+      const loopDist = Math.hypot(first.x - last.x, first.y - last.y);
+      const isLoop = (loopDist < 70 && conduits.length >= 3) || conduits.length === MAX_CONDUITS;
+
+      if (isLoop) {
+        const polygon = [...conduits];
+        let eliminatedCount = 0;
+
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          const e = enemies[i];
+          if (isPointInPolygon(e, polygon)) {
+            enemies.splice(i, 1);
+            eliminatedCount++;
+            createExplosion(e.x, e.y, '#ec4899', 24);
+          }
+        }
+
+        for (let c = 0; c < polygon.length; c++) {
+          const p1 = polygon[c];
+          const p2 = polygon[(c + 1) % polygon.length];
+          for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            if (distToSegment(e, p1, p2) < e.radius + 6) {
+              enemies.splice(i, 1);
+              eliminatedCount++;
+              createExplosion(e.x, e.y, '#f43f5e', 20);
+            }
+          }
+        }
+
+        if (eliminatedCount > 0) {
+          combo += eliminatedCount * 0.5;
+          comboTimer = 1.0;
+          if (combo > maxComboRun) maxComboRun = combo;
+
+          const pointsAwarded = Math.round(eliminatedCount * 500 * combo);
+          score += pointsAwarded;
+          sound.playSectorPurge(combo);
+
+          let cx = 0, cy = 0;
+          polygon.forEach(p => { cx += p.x; cy += p.y; });
+          cx /= polygon.length;
+          cy /= polygon.length;
+
+          addFloatingText(`SECTOR PURGED! +${pointsAwarded}`, cx, cy, '#38bdf8');
+          if (combo > 1.5) {
+            addFloatingText(`${combo.toFixed(1)}x COMBO!`, cx, cy - 25, '#fbbf24');
+          }
+
+          empPulses.push({
+            x: cx,
+            y: cy,
+            radius: 10,
+            maxRadius: Math.max(container.clientWidth, container.clientHeight) * 0.45,
+            alpha: 1.0
+          });
+        }
+
+        conduits = [];
+        updateHUDConduits();
+
+        if (enemies.length === 0) {
+          triggerSectorVictory();
+        }
+      }
+    }
+
+    function triggerSectorVictory() {
+      gameState = 'CLEARED';
+      const sectorBonus = level * 1000 + Math.round(combo * 500);
+      score += sectorBonus;
+      sound.playSectorPurge(3);
+
+      document.getElementById('clear-bonus').innerText = `+${sectorBonus}`;
+      document.getElementById('clear-combo').innerText = `${maxComboRun.toFixed(1)}x`;
+      showModal('view-cleared');
+    }
+
+    function triggerGameOver() {
+      gameState = 'GAMEOVER';
+      sound.playExplosion();
+      createExplosion(player.x, player.y, '#ef4444', 40);
+
+      if (score > highscore) {
+        highscore = score;
+        localStorage.setItem('quantum_gridlock_highscore', highscore.toString());
+        document.getElementById('hud-highscore').innerText = highscore;
+      }
+
+      document.getElementById('go-score').innerText = score;
+      document.getElementById('go-level').innerText = level < 10 ? '0' + level : level;
+      showModal('view-gameover');
+    }
+
+    function updateHUDConduits() {
+      const containerElem = document.getElementById('hud-conduits');
+      containerElem.innerHTML = '';
+      for (let i = 0; i < MAX_CONDUITS; i++) {
+        const dot = document.createElement('div');
+        const isActive = i < conduits.length;
+        dot.className = `w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-200 ${
+          isActive 
+            ? 'bg-cyan-400 shadow-[0_0_8px_#22d3ee] scale-110' 
+            : 'bg-gray-800 border border-gray-700'
+        }`;
+        containerElem.appendChild(dot);
+      }
+    }
+
+    function showModal(viewId) {
+      const overlay = document.getElementById('modal-overlay');
+      ['view-start', 'view-gameover', 'view-cleared', 'view-paused'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+        document.getElementById(id).classList.remove('flex');
+      });
+      document.getElementById(viewId).classList.remove('hidden');
+      document.getElementById(viewId).classList.add('flex');
+      overlay.classList.remove('hidden');
+    }
+
+    function hideModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+
+    function togglePause() {
+      if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        showModal('view-paused');
+        document.getElementById('btn-pause-main').innerText = 'RESUME';
+      } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        hideModal();
+        document.getElementById('btn-pause-main').innerText = 'PAUSE';
+      }
+    }
+
+    // Keyboard listener for [P] and [Space]
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        togglePause();
+      } else if (e.code === 'Space') {
+        e.preventDefault();
+        dropConduit();
+      }
+    });
+
+    document.getElementById('btn-pause-main').addEventListener('click', togglePause);
+    document.getElementById('btn-resume-modal').addEventListener('click', togglePause);
+
+    // Pointer movement
+    function handlePointerMove(e) {
+      const rect = container.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      player.targetX = clientX - rect.left;
+      player.targetY = clientY - rect.top;
+    }
+
+    container.addEventListener('mousemove', handlePointerMove);
+    container.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      handlePointerMove(e);
+    }, { passive: false });
+
+    container.addEventListener('pointerdown', (e) => {
+      sound.init();
+      if (gameState === 'PLAYING') {
+        dropConduit();
+      }
+    });
+
+    // Start / Restart / Next Level
+    document.getElementById('btn-play-game').addEventListener('click', () => {
+      sound.init();
+      score = 0;
+      level = 1;
+      combo = 1.0;
+      maxComboRun = 1.0;
+      conduits = [];
+      hideModal();
+      resizeCanvas();
+      spawnSectorEnemies(level);
+      updateHUDConduits();
+      document.getElementById('btn-pause-main').innerText = 'PAUSE';
+      gameState = 'PLAYING';
+    });
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      sound.init();
+      score = 0;
+      level = 1;
+      combo = 1.0;
+      maxComboRun = 1.0;
+      conduits = [];
+      hideModal();
+      spawnSectorEnemies(level);
+      updateHUDConduits();
+      document.getElementById('btn-pause-main').innerText = 'PAUSE';
+      gameState = 'PLAYING';
+    });
+
+    document.getElementById('btn-next-level').addEventListener('click', () => {
+      sound.init();
+      level++;
+      conduits = [];
+      hideModal();
+      spawnSectorEnemies(level);
+      updateHUDConduits();
+      document.getElementById('btn-pause-main').innerText = 'PAUSE';
+      gameState = 'PLAYING';
+    });
+
+    document.getElementById('btn-sound').addEventListener('click', () => {
+      sound.init();
+      const muted = sound.toggleMute();
+      document.getElementById('icon-sound-on').classList.toggle('hidden', muted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !muted);
+    });
+
+    let lastTime = performance.now();
+
+    function update(dt) {
+      if (gameState !== 'PLAYING') return;
+
+      if (combo > 1.0) {
+        comboTimer -= dt * 0.35;
+        if (comboTimer <= 0) {
+          combo = Math.max(1.0, combo - dt * 1.5);
+        }
+      }
+
+      // Smooth core interpolation
+      const dx = player.targetX - player.x;
+      const dy = player.targetY - player.y;
+      player.x += dx * 0.22;
+      player.y += dy * 0.22;
+
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      player.x = Math.max(player.radius, Math.min(w - player.radius, player.x));
+      player.y = Math.max(player.radius + 60, Math.min(h - player.radius, player.y));
+
+      player.tail.unshift({ x: player.x, y: player.y });
+      if (player.tail.length > 10) player.tail.pop();
+
+      // Collect crystals
+      for (let i = crystals.length - 1; i >= 0; i--) {
+        const c = crystals[i];
+        c.spin += dt * 3;
+        if (Math.hypot(c.x - player.x, c.y - player.y) < player.radius + c.radius) {
+          crystals.splice(i, 1);
+          const gained = Math.round(c.value * combo);
+          score += gained;
+          sound.playCrystalCollect();
+          addFloatingText(`+${gained}`, c.x, c.y, '#facc15');
+          createExplosion(c.x, c.y, '#facc15', 10);
+
+          setTimeout(() => {
+            if (gameState === 'PLAYING') spawnCrystal();
+          }, 3500);
+        }
+      }
+
+      // Warp portals
+      warpGates.forEach(g => {
+        g.spin += dt * 2;
+        if (Math.hypot(g.x1 - player.x, g.y1 - player.y) < g.radius) {
+          player.x = g.x2;
+          player.y = g.y2;
+          player.targetX = g.x2;
+          player.targetY = g.y2;
+          sound.playBlip(980, 'sine', 0.15, 0.3);
+          createExplosion(g.x1, g.y1, '#c084fc', 14);
+          createExplosion(g.x2, g.y2, '#c084fc', 14);
+        }
+      });
+
+      // Rogue security drones
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i];
+        e.pulse += dt * 5;
+
+        if (e.type === 'tracker') {
+          const angle = Math.atan2(player.y - e.y, player.x - e.x);
+          e.vx = Math.cos(angle) * e.baseSpeed * 0.95;
+          e.vy = Math.sin(angle) * e.baseSpeed * 0.95;
+        }
+
+        e.x += e.vx;
+        e.y += e.vy;
+
+        if (e.x < e.radius) { e.x = e.radius; e.vx *= -1; }
+        if (e.x > w - e.radius) { e.x = w - e.radius; e.vx *= -1; }
+        if (e.y < e.radius + 60) { e.y = e.radius + 60; e.vy *= -1; }
+        if (e.y > h - e.radius) { e.y = h - e.radius; e.vy *= -1; }
+
+        if (Math.hypot(e.x - player.x, e.y - player.y) < e.radius + player.radius - 2) {
+          triggerGameOver();
+          return;
+        }
+      }
+
+      conduits.forEach(c => {
+        c.pulsePhase += dt * 6;
+      });
+
+      for (let i = empPulses.length - 1; i >= 0; i--) {
+        const p = empPulses[i];
+        p.radius += (p.maxRadius - p.radius) * 0.12 + 2;
+        p.alpha -= dt * 1.5;
+        if (p.alpha <= 0) empPulses.splice(i, 1);
+      }
+
+      for (let i = floatTexts.length - 1; i >= 0; i--) {
+        const ft = floatTexts[i];
+        ft.y -= dt * 35;
+        ft.alpha -= dt * 1.2;
+        if (ft.alpha <= 0) floatTexts.splice(i, 1);
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+
+      document.getElementById('hud-score').innerText = score.toString().padStart(6, '0');
+      document.getElementById('hud-combo').innerText = `${combo.toFixed(1)}x`;
+      document.getElementById('hud-level').innerText = level < 10 ? '0' + level : level;
+    }
+
+    function render() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid background
+      ctx.strokeStyle = 'rgba(14, 165, 233, 0.07)';
+      ctx.lineWidth = 1;
+      const gridSize = 45;
+      for (let x = 0; x < w; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = 0; y < h; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Warp Gates
+      warpGates.forEach(g => {
+        [ {x: g.x1, y: g.y1}, {x: g.x2, y: g.y2} ].forEach((pos, idx) => {
+          ctx.save();
+          ctx.translate(pos.x, pos.y);
+          ctx.rotate(idx === 0 ? g.spin : -g.spin);
+          ctx.strokeStyle = '#c084fc';
+          ctx.lineWidth = 2.5;
+          ctx.shadowColor = '#c084fc';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.arc(0, 0, g.radius, 0, Math.PI * 1.5);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.fillStyle = 'rgba(192, 132, 252, 0.15)';
+          ctx.arc(0, 0, g.radius * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      });
+
+      // Conduits & Laser tether
+      if (conduits.length > 0) {
+        ctx.save();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.shadowColor = '#06b6d4';
+        ctx.shadowBlur = 14;
+
+        ctx.beginPath();
+        ctx.moveTo(conduits[0].x, conduits[0].y);
+        for (let i = 1; i < conduits.length; i++) {
+          ctx.lineTo(conduits[i].x, conduits[i].y);
+        }
+        ctx.lineTo(player.x, player.y);
+        ctx.stroke();
+
+        if (conduits.length >= 3) {
+          ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
+          ctx.beginPath();
+          ctx.moveTo(conduits[0].x, conduits[0].y);
+          for (let i = 1; i < conduits.length; i++) {
+            ctx.lineTo(conduits[i].x, conduits[i].y);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        conduits.forEach(c => {
+          ctx.beginPath();
+          ctx.fillStyle = '#ffffff';
+          ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.radius + 3 + Math.sin(c.pulsePhase) * 2, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+
+      // Energy Crystals
+      crystals.forEach(c => {
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(c.spin);
+        ctx.fillStyle = '#facc15';
+        ctx.shadowColor = '#fbbf24';
+        ctx.shadowBlur = 12;
+
+        ctx.beginPath();
+        ctx.moveTo(0, -c.radius);
+        ctx.lineTo(c.radius * 0.8, 0);
+        ctx.lineTo(0, c.radius);
+        ctx.lineTo(-c.radius * 0.8, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Hostile sentinels
+      enemies.forEach(e => {
+        ctx.save();
+        ctx.translate(e.x, e.y);
+
+        if (e.type === 'tracker') {
+          ctx.strokeStyle = '#ec4899';
+          ctx.fillStyle = 'rgba(236, 72, 153, 0.25)';
+          ctx.shadowColor = '#f43f5e';
+          ctx.shadowBlur = 14;
+          ctx.lineWidth = 2;
+
+          ctx.beginPath();
+          for (let a = 0; a < 3; a++) {
+            const rot = (a * 2 * Math.PI) / 3 + e.pulse * 0.5;
+            const px = Math.cos(rot) * e.radius;
+            const py = Math.sin(rot) * e.radius;
+            if (a === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.fill();
+        } else if (e.type === 'firewall') {
+          ctx.strokeStyle = '#fb923c';
+          ctx.fillStyle = 'rgba(251, 146, 60, 0.3)';
+          ctx.shadowColor = '#ea580c';
+          ctx.shadowBlur = 15;
+          ctx.lineWidth = 2.5;
+
+          ctx.beginPath();
+          ctx.arc(0, 0, e.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fill();
+
+          ctx.strokeStyle = '#fdba74';
+          ctx.beginPath();
+          ctx.arc(0, 0, e.radius * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#ef4444';
+          ctx.shadowColor = '#dc2626';
+          ctx.shadowBlur = 12;
+
+          ctx.beginPath();
+          ctx.arc(0, 0, e.radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#fca5a5';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+
+      // Player tail & core
+      if (player.tail.length > 1) {
+        ctx.save();
+        for (let i = 0; i < player.tail.length; i++) {
+          const pt = player.tail[i];
+          const ratio = (player.tail.length - i) / player.tail.length;
+          ctx.fillStyle = `rgba(6, 182, 212, ${ratio * 0.3})`;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, player.radius * ratio * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.shadowColor = '#06b6d4';
+      ctx.shadowBlur = 22;
+      ctx.fillStyle = '#06b6d4';
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, player.glowRadius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // EMP Shockwaves
+      empPulses.forEach(p => {
+        ctx.save();
+        ctx.strokeStyle = `rgba(56, 189, 248, ${p.alpha})`;
+        ctx.lineWidth = 4;
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Particles
+      particles.forEach(p => {
+        ctx.save();
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Floating texts
+      floatTexts.forEach(ft => {
+        ctx.save();
+        ctx.font = 'bold 15px Orbitron, monospace';
+        ctx.fillStyle = ft.color;
+        ctx.globalAlpha = ft.alpha;
+        ctx.shadowColor = ft.color;
+        ctx.shadowBlur = 10;
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      });
+    }
+
+    function gameLoop(timestamp) {
+      const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
+      lastTime = timestamp;
+
+      update(dt);
+      render();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Immediate boot to prevent blank screens
+    resizeCanvas();
+    document.getElementById('hud-highscore').innerText = highscore;
+    updateHUDConduits();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
