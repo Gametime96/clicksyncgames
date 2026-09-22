@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Survival in the Deep Forest</title>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #020704;
+            --panel-bg: rgba(4, 15, 9, 0.88);
+            --border-green: #14532d;
+            --accent-green: #22c55e;
+            --text-glow: #34d399;
+            --text-white: #ffffff;
+            --danger-red: #ef4444;
+            --warn-amber: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-white);
+            touch-action: manipulation;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Hunting Crosshair Reticle */
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 48px;
+            height: 48px;
+            transform: translate(-50%, -50%);
+            border: 2px dashed var(--danger-red);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 25;
+            display: none;
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.8);
+            animation: reticle-pulse 0.8s infinite alternate ease-in-out;
+        }
+
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            transform: translate(-50%, -50%);
+            background: var(--danger-red);
+            border-radius: 50%;
+        }
+
+        @keyframes reticle-pulse {
+            from { transform: translate(-50%, -50%) scale(1); }
+            to { transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        /* Master Survival HUD */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+        }
+
+        .interactive-zone {
+            pointer-events: auto;
+        }
+
+        /* Return to ClickSyncGames Logo Button */
+        .return-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-green);
+            border-radius: 8px;
+            padding: 4px 10px;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+        }
+
+        .return-link:hover {
+            border-color: var(--accent-green);
+            background: #082414;
+            transform: scale(1.03);
+        }
+
+        .return-text {
+            font-size: 11px;
+            font-weight: 800;
+            color: #a7f3d0;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .return-logo {
+            height: 26px;
+            width: auto;
+            max-width: 90px;
+            object-fit: contain;
+            border-radius: 4px;
+            display: block;
+        }
+
+        /* Essential Top Bar */
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-green);
+            border-radius: 10px;
+            padding: 8px 16px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+            gap: 10px;
+        }
+
+        .header-left-cluster {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #10b981;
+            letter-spacing: 1px;
+        }
+
+        .header-val {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--text-white);
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 1.5px;
+        }
+
+        .ctrl-btn {
+            background: #14532d;
+            border: 1px solid var(--accent-green);
+            color: var(--text-white);
+            font-weight: 800;
+            font-size: 13px;
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ctrl-btn:hover {
+            background: #166534;
+        }
+
+        /* Right-Side Stack of Vital Gauges & Aligned Action Buttons */
+        .hud-middle-body {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            flex: 1;
+            margin: 10px 0;
+        }
+
+        .hud-right-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 250px;
+            max-width: 48vw;
+        }
+
+        .vital-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-green);
+            border-radius: 10px;
+            padding: 10px 12px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .vital-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 800;
+            color: #6ee7b7;
+            text-transform: uppercase;
+        }
+
+        .vital-val {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--text-white);
+        }
+
+        .gauge-track {
+            width: 100%;
+            height: 10px;
+            background: #021a10;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #064e3b;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .fill-food {
+            background: linear-gradient(90deg, #059669, #34d399);
+        }
+
+        .fill-fire {
+            background: linear-gradient(90deg, #ea580c, #f59e0b);
+        }
+
+        /* Action Buttons with Strict Minimum 44px Touch Heights */
+        .action-button {
+            background: #064e3b;
+            border: 1px solid #10b981;
+            color: var(--text-white);
+            font-size: 12px;
+            font-weight: 800;
+            min-height: 44px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-button:hover {
+            background: #047857;
+            border-color: #34d399;
+        }
+
+        .action-button:active {
+            transform: scale(0.97);
+        }
+
+        .action-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .action-button.armed {
+            background: #dc2626 !important;
+            border-color: var(--danger-red) !important;
+            animation: pulse-btn 0.9s infinite alternate;
+        }
+
+        @keyframes pulse-btn {
+            from { box-shadow: 0 0 6px var(--danger-red); }
+            to { box-shadow: 0 0 16px var(--danger-red); }
+        }
+
+        /* Minimal Wildlife Counter Bar */
+        .hud-footer {
+            align-self: center;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-green);
+            border-radius: 24px;
+            padding: 6px 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            font-weight: 800;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+        }
+
+        .wildlife-item {
+            color: #a7f3d0;
+        }
+
+        /* Minimal Guided Orientation Overlay */
+        .tut-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 9000;
+            display: none;
+            pointer-events: none !important;
+        }
+
+        .tut-overlay.active {
+            display: block;
+        }
+
+        .tut-focus {
+            position: relative;
+            z-index: 10001 !important;
+            border-color: #facc15 !important;
+            box-shadow: 0 0 20px #facc15 !important;
+            animation: focus-glow 1s infinite alternate !important;
+            pointer-events: auto !important;
+        }
+
+        @keyframes focus-glow {
+            from { box-shadow: 0 0 10px #facc15; }
+            to { box-shadow: 0 0 24px #facc15; }
+        }
+
+        #tut-card {
+            position: absolute;
+            z-index: 10000;
+            background: #05140b;
+            border: 2px solid #facc15;
+            border-radius: 12px;
+            padding: 16px 18px;
+            max-width: 320px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.85);
+            display: none;
+            pointer-events: auto;
+        }
+
+        .tut-step-tag {
+            font-size: 11px;
+            font-weight: 900;
+            color: #facc15;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .tut-msg {
+            font-size: 13px;
+            color: #ecfdf5;
+            line-height: 1.45;
+            margin-bottom: 12px;
+        }
+
+        .tut-btn {
+            background: #facc15;
+            color: #022c22;
+            border: none;
+            font-size: 12px;
+            font-weight: 900;
+            min-height: 44px;
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* Level Intro & Victory Transitions */
+        .screen-curtain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .screen-curtain.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .curtain-title {
+            font-size: 40px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: #10b981;
+            -webkit-text-stroke: 1.8px #ffffff;
+            text-shadow: 0 0 25px rgba(16, 185, 129, 0.9);
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .curtain-sub {
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 14px;
+            color: #34d399;
+            -webkit-text-stroke: 1.2px #ffffff;
+            text-align: center;
+        }
+
+        /* Modal Dialogs (Pause, Game Over, Win) */
+        .modal-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 110;
+        }
+
+        .modal-wrap.hidden { display: none; }
+
+        .modal-box {
+            background: #05140b;
+            border: 2px solid var(--accent-green);
+            border-radius: 14px;
+            padding: 24px 28px;
+            max-width: 380px;
+            width: 88%;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.35);
+        }
+
+        .modal-box h2 {
+            font-size: 24px;
+            font-weight: 900;
+            color: #34d399;
+            margin-bottom: 10px;
+        }
+
+        .modal-box p {
+            font-size: 14px;
+            color: #a7f3d0;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-btn {
+            background: #15803d;
+            border: 1px solid var(--accent-green);
+            color: var(--text-white);
+            font-size: 15px;
+            font-weight: 900;
+            min-height: 48px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+        }
+
+        /* Mobile Adaptations */
+        @media (max-width: 768px) {
+            #hud {
+                padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+            }
+            .return-link {
+                padding: 3px 6px;
+                gap: 5px;
+            }
+            .return-text {
+                font-size: 9px;
+            }
+            .return-logo {
+                height: 20px;
+                max-width: 65px;
+            }
+            .hud-header {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .header-left-cluster {
+                gap: 8px;
+            }
+            .header-label { font-size: 9px; }
+            .header-val { font-size: 15px; }
+            .ctrl-btn { min-height: 40px; padding: 0 10px; font-size: 11px; }
+
+            .hud-right-stack {
+                width: 180px;
+                max-width: 55vw;
+                gap: 8px;
+            }
+            .vital-card {
+                padding: 6px 8px;
+                gap: 4px;
+            }
+            .vital-row { font-size: 10px; }
+            .vital-val { font-size: 11px; }
+            .action-button {
+                min-height: 40px;
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+            .hud-footer {
+                padding: 4px 14px;
+                font-size: 11px;
+                gap: 12px;
+            }
+            .curtain-title { font-size: 26px; -webkit-text-stroke: 1px #ffffff; }
+            .curtain-sub { font-size: 16px; -webkit-text-stroke: 0.8px #ffffff; }
+
+            #tut-card {
+                left: 12px !important;
+                right: 12px !important;
+                top: auto !important;
+                bottom: 70px !important;
+                max-width: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+<div id="crosshair"></div>
+
+<!-- Full-Screen Level Transitions & Victory Curtain -->
+<div id="transitionScreen" class="screen-curtain">
+    <div id="transitionMainText" class="curtain-title">Now entering level 1</div>
+    <div id="transitionSubText" class="curtain-sub" style="display: none;">Final level. Get ready.</div>
+</div>
+
+<!-- Level 1 Minimal Guided Orientation -->
+<div id="tut-overlay" class="tut-overlay"></div>
+<div id="tut-card">
+    <div class="tut-step-tag" id="tut-step">Step 1 of 3</div>
+    <div class="tut-msg" id="tut-msg">Harvest timber from the perimeter trees.</div>
+    <button id="tut-action-btn" class="tut-btn">CHOP TREE</button>
+</div>
+
+<!-- Master Survival HUD -->
+<div id="hud">
+    <!-- Top Status Row -->
+    <div class="hud-header interactive-zone">
+        <div class="header-left-cluster">
+            <!-- Return to ClickSyncGames Logo Button -->
+            <a href="index.html" class="return-link" title="Return to ClickSyncGames">
+                <span class="return-text">Return to</span>
+                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" class="return-logo" onerror="this.style.display='none'">
+            </a>
+
+            <div class="header-item">
+                <span class="header-label">TIME</span>
+                <span id="txt-time" class="header-val">0600</span>
+            </div>
+        </div>
+
+        <div class="header-item">
+            <span class="header-label">LEVEL</span>
+            <span id="txt-level" class="header-val">1 / 8</span>
+        </div>
+
+        <div class="header-item">
+            <button id="btn-pause" class="ctrl-btn" title="Pause Game (P)">⏸ PAUSE</button>
+            <button id="btn-audio" class="ctrl-btn">🔊</button>
+        </div>
+    </div>
+
+    <!-- Right Side: Essential Gauges with Aligned Action Buttons -->
+    <div class="hud-middle-body">
+        <div class="hud-right-stack interactive-zone">
+            <!-- 1. Rations Reserve & Bow Aim Action -->
+            <div class="vital-card" id="card-food">
+                <div class="vital-row">
+                    <span>Rations</span>
+                    <span id="txt-food" class="vital-val">18.0h</span>
+                </div>
+                <div class="gauge-track">
+                    <div id="meter-food" class="gauge-fill fill-food" style="width: 75%;"></div>
+                </div>
+                <button id="btn-bow" class="action-button">🏹 AIM BOW</button>
+            </div>
+
+            <!-- 2. Fire Fuel & Feed Fire Action -->
+            <div class="vital-card" id="card-fire">
+                <div class="vital-row">
+                    <span>Fire Fuel</span>
+                    <span id="txt-fire" class="vital-val">4.0h</span>
+                </div>
+                <div class="gauge-track">
+                    <div id="meter-fire" class="gauge-fill fill-fire" style="width: 40%;"></div>
+                </div>
+                <button id="btn-fire" class="action-button">🔥 FEED FIRE (+2.5h)</button>
+            </div>
+
+            <!-- 3. Timber Stockpile & Chop Action -->
+            <div class="vital-card" id="card-timber">
+                <div class="vital-row">
+                    <span>Timber</span>
+                    <span id="txt-timber" class="vital-val">2 Logs</span>
+                </div>
+                <button id="btn-chop" class="action-button">🪓 CHOP TREE (+2)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Wildlife Count -->
+    <div class="hud-footer interactive-zone">
+        <span class="wildlife-item">🦌 Deer: <strong id="txt-deer" style="color:#ffffff;">2/2</strong></span>
+        <span class="wildlife-item">🦅 Birds: <strong id="txt-birds" style="color:#ffffff;">3/3</strong></span>
+    </div>
+</div>
+
+<!-- Pause Modal Screen -->
+<div id="modal-pause" class="modal-wrap hidden">
+    <div class="modal-box">
+        <h2>PAUSED</h2>
+        <p>Game simulation and wildlife paths are frozen.</p>
+        <button id="btn-resume-modal" class="modal-btn">▶ Resume (P)</button>
+    </div>
+</div>
+
+<!-- Game Over / Victory Modal -->
+<div id="modal-end" class="modal-wrap hidden">
+    <div class="modal-box">
+        <h2 id="modal-title">MISSION OVER</h2>
+        <p id="modal-desc"></p>
+        <button id="btn-restart" class="modal-btn">Retry Level</button>
+    </div>
+</div>
+
+<script>
+class AudioSystem {
+    constructor() {
+        this.ctx = null;
+        this.muted = false;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    playShot() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, t);
+        osc.frequency.exponentialRampToValueAtTime(110, t + 0.15);
+        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.16);
+    }
+
+    playHit() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(240, t);
+        osc.frequency.exponentialRampToValueAtTime(50, t + 0.18);
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.19);
+    }
+
+    playChop() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, t);
+        osc.frequency.exponentialRampToValueAtTime(45, t + 0.08);
+        gain.gain.setValueAtTime(0.6, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.09);
+    }
+
+    playFeed() {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, t);
+        osc.frequency.exponentialRampToValueAtTime(480, t + 0.2);
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.21);
+    }
+}
+const sfx = new AudioSystem();
+
+const SECONDS_PER_DAY = 120; // 2 real minutes = 24 in-game hours
+const INGAME_HOURS_PER_REAL_SECOND = 24 / SECONDS_PER_DAY; // 0.2 hrs/sec
+
+const OBSTACLES = [
+    { x: 0.0, z: 0.0, radius: 3.2 },      // Firepit avoidance sphere
+    { x: -6.8, z: -2.6, radius: 4.2 }     // Tent avoidance sphere
+];
+
+let gameState = {
+    level: 1,
+    inGameTime: 6.0,   // Starts at 0600
+    foodHours: 18.0,   // Max 24.0
+    fireHours: 4.0,    // Max 10.0
+    timber: 2,
+    deerRemaining: 2,
+    birdsRemaining: 3,
+    bowArmed: false,
+    isChopping: false,
+    isPaused: false,
+    inTransition: false,
+    gameOver: false,
+    levelWon: false,
+    orientationStep: 0,
+    orientationActive: false
+};
+
+let scene, camera, renderer;
+let hemiLight, sunLight, moonLight, fireLight;
+let fireGroup, flameNodes = [], emberPoints;
+let trees = [], deers = [], birds = [], dyingFauna = [];
+let activeChoppingAction = null;
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
+
+function init3D() {
+    const container = document.getElementById('canvas-container');
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0a1a1f, 0.012);
+
+    // Canted left-of-center camera perspective (clear unobstructed campsite view)
+    camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 800);
+    camera.position.set(-12, 8.2, 21.5);
+    camera.lookAt(1.5, 2.0, 0);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    // Environmental Lights
+    hemiLight = new THREE.HemisphereLight(0x9bd8ff, 0x1a3824, 0.7);
+    scene.add(hemiLight);
+
+    sunLight = new THREE.DirectionalLight(0xfffaed, 1.3);
+    sunLight.position.set(20, 40, 20);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    scene.add(sunLight);
+
+    // Night moonlight ensures scene is clearly illuminated
+    moonLight = new THREE.DirectionalLight(0xa5c8ff, 0.55);
+    moonLight.position.set(-15, 35, -20);
+    scene.add(moonLight);
+
+    buildClearingTerrain();
+    buildCampStructures();
+    spawnExactSevenTrees();
+    spawnWildlife();
+
+    window.addEventListener('resize', onWindowResize);
+}
+
+function onWindowResize() {
+    if (!camera || !renderer) return;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function buildClearingTerrain() {
+    const groundGeo = new THREE.PlaneGeometry(160, 160, 32, 32);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x1b4226, roughness: 0.88, metalness: 0.08 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const clearingGeo = new THREE.CircleGeometry(9.5, 32);
+    const clearingMat = new THREE.MeshStandardMaterial({ color: 0x332819, roughness: 0.92 });
+    const clearing = new THREE.Mesh(clearingGeo, clearingMat);
+    clearing.rotation.x = -Math.PI / 2;
+    clearing.position.set(0, 0.02, 0);
+    clearing.receiveShadow = true;
+    scene.add(clearing);
+}
+
+function buildCampStructures() {
+    // 1. Lifelike Geodesic Dome Tent
+    const tentGroup = new THREE.Group();
+    tentGroup.position.set(-6.8, 0, -2.6);
+    tentGroup.rotation.y = Math.PI / 3.2;
+
+    const mainBodyMat = new THREE.MeshStandardMaterial({ color: 0x2e4f38, roughness: 0.75 });
+    const rainFlyMat = new THREE.MeshStandardMaterial({ color: 0x1d3625, roughness: 0.65 });
+    const poleMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.7 });
+
+    const domeGeo = new THREE.SphereGeometry(2.35, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.52);
+    const dome = new THREE.Mesh(domeGeo, mainBodyMat);
+    dome.scale.set(1.0, 0.95, 1.15);
+    dome.castShadow = true;
+    tentGroup.add(dome);
+
+    const flyGeo = new THREE.SphereGeometry(2.42, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.46);
+    const fly = new THREE.Mesh(flyGeo, rainFlyMat);
+    fly.scale.set(1.04, 0.98, 1.18);
+    fly.position.y = 0.04;
+    fly.castShadow = true;
+    tentGroup.add(fly);
+
+    function buildCurvedPole(rotAngle) {
+        const pGroup = new THREE.Group();
+        pGroup.rotation.y = rotAngle;
+        const pts = [];
+        for (let i = 0; i <= 20; i++) {
+            const theta = (i / 20) * Math.PI;
+            const x = Math.sin(theta) * 2.5;
+            const y = Math.cos(theta) * 2.35;
+            pts.push(new THREE.Vector3(x, Math.max(0.05, y), 0));
+        }
+        const curve = new THREE.CatmullRomCurve3(pts);
+        const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 20, 0.045, 8, false), poleMat);
+        pGroup.add(tube);
+        return pGroup;
+    }
+    tentGroup.add(buildCurvedPole(Math.PI / 4));
+    tentGroup.add(buildCurvedPole(-Math.PI / 4));
+
+    scene.add(tentGroup);
+
+    // 2. Chopping Stump
+    const stump = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.9, 10), new THREE.MeshStandardMaterial({ color: 0x4a321d, roughness: 0.9 }));
+    stump.position.set(5.5, 0.45, -1.0);
+    stump.castShadow = true;
+    scene.add(stump);
+
+    // 3. Center Stone Firepit Ring
+    const stoneRing = new THREE.Group();
+    stoneRing.position.set(0, 0.15, 0);
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x3d4742, roughness: 0.9 });
+    for (let i = 0; i < 11; i++) {
+        const angle = (i / 11) * Math.PI * 2;
+        const stone = new THREE.Mesh(new THREE.DodecahedronGeometry(0.32), stoneMat);
+        stone.position.set(Math.cos(angle) * 1.45, 0.1, Math.sin(angle) * 1.45);
+        stone.castShadow = true;
+        stoneRing.add(stone);
+    }
+    scene.add(stoneRing);
+
+    // 4. Animated Living Campfire
+    fireGroup = new THREE.Group();
+    fireGroup.position.set(0, 0.2, 0);
+    scene.add(fireGroup);
+
+    flameNodes = [];
+    const flameGeo = new THREE.ConeGeometry(0.48, 1.8, 6);
+    const flameMat = new THREE.MeshBasicMaterial({ color: 0xff6200, transparent: true, opacity: 0.88 });
+    for (let j = 0; j < 4; j++) {
+        const flame = new THREE.Mesh(flameGeo, flameMat);
+        flame.position.set((Math.random() - 0.5) * 0.4, 0.9, (Math.random() - 0.5) * 0.4);
+        flame.userData = { baseY: 0.9, speed: 8 + j * 3, rotSpeed: 4 + j * 2 };
+        fireGroup.add(flame);
+        flameNodes.push(flame);
+    }
+
+    fireLight = new THREE.PointLight(0xff7700, 2.8, 28, 1.5);
+    fireLight.position.set(0, 1.5, 0);
+    fireLight.castShadow = true;
+    scene.add(fireLight);
+
+    const emberCount = 36;
+    const emberPositions = new Float32Array(emberCount * 3);
+    for (let k = 0; k < emberCount * 3; k += 3) {
+        emberPositions[k] = (Math.random() - 0.5) * 1.2;
+        emberPositions[k + 1] = Math.random() * 2.8;
+        emberPositions[k + 2] = (Math.random() - 0.5) * 1.2;
+    }
+    const emberGeo = new THREE.BufferGeometry();
+    emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPositions, 3));
+    const emberMat = new THREE.PointsMaterial({
+        color: 0xffaa00,
+        size: 0.18,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending
+    });
+    emberPoints = new THREE.Points(emberGeo, emberMat);
+    fireGroup.add(emberPoints);
+}
+
+function spawnExactSevenTrees() {
+    trees.forEach(t => {
+        if (t.stumpMesh) scene.remove(t.stumpMesh);
+        scene.remove(t.group);
+    });
+    trees = [];
+
+    // Exactly 7 perimeter trees (never blocking campsite view)
+    const treePositions = [
+        { x: -14, z: -8 },
+        { x: -8,  z: -14 },
+        { x: -1,  z: -15 },
+        { x: 7,   z: -13 },
+        { x: 13,  z: -7 },
+        { x: 12,  z: 1 },
+        { x: -15, z: 2 }
+    ];
+
+    treePositions.forEach((pos, idx) => {
+        const treeGroup = new THREE.Group();
+        treeGroup.position.set(pos.x, 0, pos.z);
+
+        const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2716, roughness: 0.9 });
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x144322, roughness: 0.75, flatShading: true });
+
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.52, 3.8, 6), trunkMat);
+        trunk.position.y = 1.9;
+        trunk.castShadow = true;
+        treeGroup.add(trunk);
+
+        for (let l = 0; l < 3; l++) {
+            const cone = new THREE.Mesh(new THREE.ConeGeometry(2.4 - l * 0.4, 3.4, 6), leafMat);
+            cone.position.y = 3.4 + l * 1.5;
+            cone.castShadow = true;
+            treeGroup.add(cone);
+        }
+
+        scene.add(treeGroup);
+
+        trees.push({
+            id: idx,
+            group: treeGroup,
+            materials: [trunkMat, leafMat],
+            chopped: false,
+            pos: pos
+        });
+    });
+
+    updateTreeCountUI();
+}
+
+function updateTreeCountUI() {
+    const standing = trees.filter(t => !t.chopped).length;
+    const chopBtn = document.getElementById('btn-chop');
+    if (standing <= 0) {
+        chopBtn.disabled = true;
+        chopBtn.textContent = "NO TREES LEFT";
+    } else if (!gameState.isChopping) {
+        chopBtn.disabled = false;
+        chopBtn.textContent = "🪓 CHOP TREE (+2)";
+    }
+}
+
+function createLargeYellowRedAxe() {
+    const axeGroup = new THREE.Group();
+
+    // Bright Safety Yellow Handle
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.35 });
+    const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.095, 2.4, 10), handleMat);
+    handle.position.y = 1.0;
+    handle.castShadow = true;
+    axeGroup.add(handle);
+
+    // Large Fire-Engine Red Head
+    const headMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 });
+    const axeHead = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.65, 0.16), headMat);
+    axeHead.position.set(0.24, 1.95, 0);
+    axeHead.castShadow = true;
+    axeGroup.add(axeHead);
+
+    // Polished Cutting Edge
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0xf3f4f6, roughness: 0.15, metalness: 0.95 });
+    const cuttingEdge = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.72, 0.05), edgeMat);
+    cuttingEdge.position.set(0.48, 1.95, 0);
+    cuttingEdge.castShadow = true;
+    axeGroup.add(cuttingEdge);
+
+    return axeGroup;
+}
+
+function initiateChopTree() {
+    if (gameState.isChopping || gameState.isPaused || gameState.gameOver || gameState.inTransition) return;
+
+    const targetTree = trees.find(t => !t.chopped);
+    if (!targetTree) return;
+
+    gameState.isChopping = true;
+    const chopBtn = document.getElementById('btn-chop');
+    chopBtn.disabled = true;
+    chopBtn.textContent = "CHOPPING (3s)...";
+
+    targetTree.materials.forEach(m => {
+        m.transparent = true;
+        m.opacity = 1.0;
+    });
+
+    const axe = createLargeYellowRedAxe();
+    axe.position.set(targetTree.pos.x + 1.2, 0.3, targetTree.pos.z + 0.4);
+    axe.rotation.y = -Math.PI / 4;
+    scene.add(axe);
+
+    sfx.playChop();
+
+    activeChoppingAction = {
+        tree: targetTree,
+        axe: axe,
+        startTime: performance.now(),
+        duration: 3000,
+        lastChopAudioTime: performance.now()
+    };
+
+    if (gameState.level === 1 && gameState.orientationStep === 1) {
+        dismissOrientationStep();
+        setTimeout(() => advanceOrientation(2), 3200);
+    }
+}
+
+function updateChoppingAction(currentTime) {
+    if (!activeChoppingAction) return;
+
+    const elapsed = currentTime - activeChoppingAction.startTime;
+    const progress = Math.min(1.0, elapsed / activeChoppingAction.duration);
+
+    const swingAngle = Math.sin(elapsed * 0.001 * 9.5);
+    activeChoppingAction.axe.rotation.z = -0.3 + swingAngle * 0.85;
+
+    if (swingAngle > 0.85 && (currentTime - activeChoppingAction.lastChopAudioTime > 500)) {
+        sfx.playChop();
+        activeChoppingAction.lastChopAudioTime = currentTime;
+    }
+
+    const remainingOpacity = Math.max(0.0, 1.0 - progress);
+    activeChoppingAction.tree.materials.forEach(m => {
+        m.opacity = remainingOpacity;
+    });
+
+    if (progress >= 1.0) {
+        scene.remove(activeChoppingAction.axe);
+        scene.remove(activeChoppingAction.tree.group);
+        activeChoppingAction.tree.chopped = true;
+
+        const stump = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.38, 0.45, 0.4, 6),
+            new THREE.MeshStandardMaterial({ color: 0x2e1d11, roughness: 0.9 })
+        );
+        stump.position.set(activeChoppingAction.tree.pos.x, 0.2, activeChoppingAction.tree.pos.z);
+        scene.add(stump);
+        activeChoppingAction.tree.stumpMesh = stump;
+
+        gameState.timber += 2;
+        document.getElementById('txt-timber').textContent = `${gameState.timber} Logs`;
+
+        activeChoppingAction = null;
+        gameState.isChopping = false;
+        updateTreeCountUI();
+    }
+}
+
+function createArticulatedDeer() {
+    const deerGroup = new THREE.Group();
+    const deerMat = new THREE.MeshStandardMaterial({ color: 0x8b552a, roughness: 0.75 });
+    const bellyMat = new THREE.MeshStandardMaterial({ color: 0xc89d70, roughness: 0.8 });
+    const antlerMat = new THREE.MeshStandardMaterial({ color: 0xded2be, roughness: 0.6 });
+
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.55, 2.1, 10), deerMat);
+    body.rotation.x = Math.PI / 2;
+    body.position.y = 1.6;
+    body.castShadow = true;
+    deerGroup.add(body);
+
+    const chest = new THREE.Mesh(new THREE.SphereGeometry(0.62, 8, 8), bellyMat);
+    chest.position.set(0, 1.55, 0.8);
+    chest.scale.set(0.9, 0.85, 1.2);
+    deerGroup.add(chest);
+
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 1.1, 8), deerMat);
+    neck.position.set(0, 2.2, 1.1);
+    neck.rotation.x = Math.PI / 4;
+    neck.castShadow = true;
+    deerGroup.add(neck);
+
+    const head = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.85, 8), deerMat);
+    head.rotation.x = -Math.PI / 3;
+    head.position.set(0, 2.7, 1.5);
+    head.castShadow = true;
+    deerGroup.add(head);
+
+    function buildAntler(sign) {
+        const antler = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.9, 5), antlerMat);
+        antler.position.set(sign * 0.25, 3.1, 1.35);
+        antler.rotation.z = sign * 0.35;
+        antler.rotation.x = -0.2;
+        deerGroup.add(antler);
+    }
+    buildAntler(1);
+    buildAntler(-1);
+
+    const legs = [];
+    const legOffsets = [
+        { x: 0.35, z: 0.75 }, { x: -0.35, z: 0.75 },
+        { x: 0.35, z: -0.75 }, { x: -0.35, z: -0.75 }
+    ];
+
+    legOffsets.forEach((cfg, idx) => {
+        const hip = new THREE.Group();
+        hip.position.set(cfg.x, 1.45, cfg.z);
+
+        const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.07, 1.4, 6), deerMat);
+        thigh.position.y = -0.7;
+        thigh.castShadow = true;
+        hip.add(thigh);
+
+        deerGroup.add(hip);
+        legs.push({ hip: hip, phase: idx * Math.PI * 0.5 });
+    });
+
+    deerGroup.userData = {
+        type: 'deer',
+        legs: legs,
+        walkCycle: 0,
+        alive: true,
+        foodYield: 24.0,
+        materials: [deerMat, bellyMat, antlerMat]
+    };
+
+    return deerGroup;
+}
+
+function createCruisingBird() {
+    const birdGroup = new THREE.Group();
+    const featherMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+    const beakMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 });
+
+    const body = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.95, 6), featherMat);
+    body.rotation.x = Math.PI / 2;
+    birdGroup.add(body);
+
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.28, 4), beakMat);
+    beak.rotation.x = Math.PI / 2;
+    beak.position.set(0, 0, 0.6);
+    birdGroup.add(beak);
+
+    const wingL = new THREE.Group();
+    wingL.position.set(0.2, 0.05, 0.1);
+    const wingLMesh = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.03, 0.35), featherMat);
+    wingLMesh.position.x = 0.42;
+    wingL.add(wingLMesh);
+    birdGroup.add(wingL);
+
+    const wingR = new THREE.Group();
+    wingR.position.set(-0.2, 0.05, 0.1);
+    const wingRMesh = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.03, 0.35), featherMat);
+    wingRMesh.position.x = -0.42;
+    wingR.add(wingRMesh);
+    birdGroup.add(wingR);
+
+    birdGroup.userData = {
+        type: 'bird',
+        wingL: wingL,
+        wingR: wingR,
+        wingTime: 0,
+        alive: true,
+        foodYield: 12.0,
+        materials: [featherMat, beakMat]
+    };
+
+    return birdGroup;
+}
+
+function spawnWildlife() {
+    deers.forEach(d => scene.remove(d));
+    birds.forEach(b => scene.remove(b));
+    dyingFauna.forEach(df => scene.remove(df.mesh));
+    deers = [];
+    birds = [];
+    dyingFauna = [];
+
+    // Exactly 2 Deer (separated clearing corridors)
+    for (let i = 0; i < 2; i++) {
+        const deer = createArticulatedDeer();
+        const corridorZ = (i === 0) ? 4.5 : -6.8;
+        deer.position.set(i === 0 ? -13 : 13, 0, corridorZ);
+        deer.userData.speed = 0.038 + Math.random() * 0.012;
+        deer.userData.dir = i === 0 ? 1 : -1;
+        deer.userData.baseZ = corridorZ;
+        scene.add(deer);
+        deers.push(deer);
+    }
+
+    // Exactly 3 Birds
+    for (let j = 0; j < 3; j++) {
+        const bird = createCruisingBird();
+        bird.position.set(-22 + j * 14, 6.2 + Math.random() * 2.2, -3 + Math.random() * 6);
+        bird.userData.speed = 0.045 + Math.random() * 0.015;
+        scene.add(bird);
+        birds.push(bird);
+    }
+
+    gameState.deerRemaining = 2;
+    gameState.birdsRemaining = 3;
+    updateWildlifeUI();
+}
+
+function updateWildlifeAnimation(delta) {
+    if (gameState.isPaused || gameState.inTransition) return;
+
+    // Deer movement with active radial obstacle steering (No walking through fire or tent)
+    deers.forEach(deer => {
+        if (deer.userData.alive) {
+            let vx = deer.userData.speed * deer.userData.dir;
+            let vz = 0;
+
+            OBSTACLES.forEach(obs => {
+                const dx = deer.position.x - obs.x;
+                const dz = deer.position.z - obs.z;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+                if (dist < obs.radius + 1.2) {
+                    const nx = (dist > 0.001) ? (dx / dist) : 0;
+                    const nz = (dist > 0.001) ? (dz / dist) : 1;
+                    vx += nx * 0.04;
+                    vz += nz * 0.06;
+                    deer.position.z += nz * 0.05;
+                }
+            });
+
+            if (deer.userData.baseZ !== undefined) {
+                vz += (deer.userData.baseZ - deer.position.z) * 0.02;
+            }
+
+            deer.position.x += vx;
+            deer.position.z += vz;
+            deer.rotation.y = Math.atan2(vx, vz);
+
+            if (deer.position.x > 16) deer.userData.dir = -1;
+            if (deer.position.x < -16) deer.userData.dir = 1;
+
+            deer.userData.walkCycle += delta * 7.5;
+            deer.userData.legs.forEach(leg => {
+                leg.hip.rotation.x = Math.sin(deer.userData.walkCycle + leg.phase) * 0.45;
+            });
+        }
+    });
+
+    // Slow Bird cruising
+    birds.forEach(bird => {
+        if (bird.userData.alive) {
+            bird.position.x += bird.userData.speed;
+            bird.userData.wingTime += delta * 11;
+            bird.userData.wingL.rotation.z = Math.sin(bird.userData.wingTime) * 0.5;
+            bird.userData.wingR.rotation.z = -Math.sin(bird.userData.wingTime) * 0.5;
+
+            if (bird.position.x > 25) {
+                bird.position.x = -25;
+                bird.position.z = -5 + Math.random() * 7;
+            }
+        }
+    });
+
+    // Falling physics and 2-second fade-out on shot animals
+    for (let i = dyingFauna.length - 1; i >= 0; i--) {
+        const item = dyingFauna[i];
+        if (!item.hasLanded) {
+            item.mesh.position.y -= item.fallSpeed * delta;
+            item.fallSpeed += 9.8 * delta;
+            item.mesh.rotation.z += item.rotSpeed * delta;
+
+            const groundLimit = item.type === 'deer' ? 0.3 : 0.15;
+            if (item.mesh.position.y <= groundLimit) {
+                item.mesh.position.y = groundLimit;
+                item.hasLanded = true;
+                item.fadeStart = performance.now();
+            }
+        } else {
+            const elapsed = (performance.now() - item.fadeStart) / 1000;
+            const progress = Math.min(1.0, elapsed / 2.0);
+            const opacity = 1.0 - progress;
+
+            item.materials.forEach(m => {
+                m.transparent = true;
+                m.opacity = opacity;
+            });
+
+            if (progress >= 1.0) {
+                scene.remove(item.mesh);
+                dyingFauna.splice(i, 1);
+            }
+        }
+    }
+}
+
+function handleFaunaHit(group, type) {
+    group.userData.alive = false;
+
+    const materials = [];
+    group.traverse(child => {
+        if (child.isMesh && child.material) {
+            child.material = child.material.clone();
+            materials.push(child.material);
+        }
+    });
+
+    dyingFauna.push({
+        mesh: group,
+        type: type,
+        fallSpeed: type === 'bird' ? 3.5 : 1.5,
+        rotSpeed: type === 'deer' ? (group.userData.dir * 2.5) : 3.5,
+        hasLanded: false,
+        fadeStart: 0,
+        materials: materials
+    });
+}
+
+function updateAtmosphere(hrsDecimal) {
+    const angle = ((hrsDecimal - 6.0) / 24.0) * Math.PI * 2;
+    const daylight = THREE.MathUtils.smoothstep(Math.sin(angle), -0.25, 0.45);
+
+    // Dynamic Color Palette (Luminous night, never pitch black)
+    const nightSky = new THREE.Color(0x0a1b2d);
+    const dawnSky = new THREE.Color(0xd97706);
+    const noonSky = new THREE.Color(0x60a5fa);
+    const duskSky = new THREE.Color(0x581c87);
+
+    const nightFog = new THREE.Color(0x091c1b);
+    const dawnFog = new THREE.Color(0x272718);
+    const noonFog = new THREE.Color(0x184227);
+    const duskFog = new THREE.Color(0x2d1238);
+
+    let skyColor = new THREE.Color();
+    let fogColor = new THREE.Color();
+    let sunIntensity = 0.35;
+
+    if (hrsDecimal >= 4.0 && hrsDecimal < 8.0) {
+        const f = (hrsDecimal - 4.0) / 4.0;
+        skyColor.lerpColors(nightSky, dawnSky, f);
+        fogColor.lerpColors(nightFog, dawnFog, f);
+        sunIntensity = THREE.MathUtils.lerp(0.35, 0.95, f);
+    } else if (hrsDecimal >= 8.0 && hrsDecimal < 16.0) {
+        const f = (hrsDecimal - 8.0) / 8.0;
+        skyColor.lerpColors(dawnSky, noonSky, f);
+        fogColor.lerpColors(dawnFog, noonFog, f);
+        sunIntensity = THREE.MathUtils.lerp(0.95, 1.4, Math.sin(f * Math.PI));
+    } else if (hrsDecimal >= 16.0 && hrsDecimal < 21.0) {
+        const f = (hrsDecimal - 16.0) / 5.0;
+        skyColor.lerpColors(noonSky, duskSky, f);
+        fogColor.lerpColors(noonFog, duskFog, f);
+        sunIntensity = THREE.MathUtils.lerp(1.2, 0.5, f);
+    } else {
+        const f = (hrsDecimal >= 21.0) ? (hrsDecimal - 21.0) / 7.0 : (hrsDecimal + 3.0) / 7.0;
+        skyColor.lerpColors(duskSky, nightSky, Math.min(1.0, f));
+        fogColor.lerpColors(duskFog, nightFog, Math.min(1.0, f));
+        sunIntensity = THREE.MathUtils.lerp(0.5, 0.35, Math.min(1.0, f));
+    }
+
+    renderer.setClearColor(skyColor, 1);
+    scene.fog.color.copy(fogColor);
+    sunLight.intensity = sunIntensity;
+
+    // Ambient light remains high (0.45+) so clearing, tent, and wildlife are always visible
+    hemiLight.intensity = THREE.MathUtils.lerp(0.45, 0.85, daylight);
+    moonLight.intensity = THREE.MathUtils.lerp(0.55, 0.05, daylight);
+
+    const sunDist = 55;
+    sunLight.position.set(
+        Math.cos(angle) * sunDist,
+        Math.max(4.0, Math.sin(angle) * sunDist),
+        Math.sin(angle * 0.5) * 20
+    );
+}
+
+function formatClockTime(hrsDec) {
+    const totalMinutes = Math.floor(hrsDec * 60);
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = totalMinutes % 60;
+    const hh = h < 10 ? '0' + h : '' + h;
+    const mm = m < 10 ? '0' + m : '' + m;
+    return `${hh}${mm}`;
+}
+
+function updateSimulation(delta) {
+    if (gameState.isPaused || gameState.gameOver || gameState.levelWon || gameState.inTransition || gameState.orientationActive) return;
+
+    gameState.inGameTime += delta * INGAME_HOURS_PER_REAL_SECOND;
+    if (gameState.inGameTime >= 24) {
+        gameState.inGameTime -= 24;
+        advanceLevel();
+    }
+
+    const hourStep = delta * INGAME_HOURS_PER_REAL_SECOND;
+    gameState.foodHours = Math.max(0, gameState.foodHours - hourStep);
+    gameState.fireHours = Math.max(0, gameState.fireHours - hourStep);
+
+    // Mandatory Night Fire Protocol Check (2100 to 0500)
+    const isNight = gameState.inGameTime >= 21.0 || gameState.inGameTime < 5.0;
+    if (isNight && gameState.fireHours <= 0) {
+        triggerGameOver("The campfire died between 2100 and 0500. Nocturnal beasts overtook the campsite.");
+        return;
+    }
+
+    if (gameState.foodHours <= 0) {
+        triggerGameOver("Rations expired. Without nourishment, you could not survive.");
+        return;
+    }
+
+    updateAtmosphere(gameState.inGameTime);
+
+    // Fire flame motion & light
+    if (gameState.fireHours > 0) {
+        fireGroup.visible = true;
+        const now = performance.now() * 0.001;
+        flameNodes.forEach(node => {
+            const flicker = Math.sin(now * node.userData.speed) * 0.3;
+            node.scale.set(1 + flicker * 0.25, 1 + flicker * 0.5, 1 + flicker * 0.25);
+            node.rotation.y = now * node.userData.rotSpeed;
+        });
+
+        const firePower = gameState.fireHours / 10.0;
+        fireLight.intensity = (2.2 + Math.sin(now * 14) * 0.4) * firePower;
+
+        const pos = emberPoints.geometry.attributes.position.array;
+        for (let k = 1; k < pos.length; k += 3) {
+            pos[k] += 0.05;
+            if (pos[k] > 2.8) pos[k] = 0.2;
+        }
+        emberPoints.geometry.attributes.position.needsUpdate = true;
+    } else {
+        fireGroup.visible = false;
+        fireLight.intensity = 0;
+    }
+
+    updateHUD();
+}
+
+function updateHUD() {
+    document.getElementById('txt-time').textContent = formatClockTime(gameState.inGameTime);
+
+    const foodPct = Math.min(100, (gameState.foodHours / 24.0) * 100);
+    document.getElementById('meter-food').style.width = `${foodPct}%`;
+    document.getElementById('txt-food').textContent = `${gameState.foodHours.toFixed(1)}h`;
+
+    const firePct = Math.min(100, (gameState.fireHours / 10.0) * 100);
+    document.getElementById('meter-fire').style.width = `${firePct}%`;
+    document.getElementById('txt-fire').textContent = `${gameState.fireHours.toFixed(1)}h`;
+
+    document.getElementById('txt-timber').textContent = `${gameState.timber} Logs`;
+}
+
+function updateWildlifeUI() {
+    document.getElementById('txt-deer').textContent = `${gameState.deerRemaining}/2`;
+    document.getElementById('txt-birds').textContent = `${gameState.birdsRemaining}/3`;
+}
+
+function toggleBow() {
+    if (gameState.isPaused || gameState.gameOver || gameState.inTransition) return;
+
+    if (gameState.inGameTime >= 21.0 || gameState.inGameTime < 6.0) {
+        disarmBow();
+        return;
+    }
+
+    gameState.bowArmed = !gameState.bowArmed;
+    const btn = document.getElementById('btn-bow');
+    const crosshair = document.getElementById('crosshair');
+
+    if (gameState.bowArmed) {
+        btn.textContent = "🎯 CANCEL AIM";
+        btn.classList.add('armed');
+        crosshair.style.display = 'block';
+
+        if (gameState.level === 1 && gameState.orientationStep === 3) {
+            dismissOrientationStep();
+            gameState.orientationStep = 4;
+        }
+    } else {
+        disarmBow();
+    }
+}
+
+function disarmBow() {
+    gameState.bowArmed = false;
+    const btn = document.getElementById('btn-bow');
+    const crosshair = document.getElementById('crosshair');
+
+    btn.textContent = "🏹 AIM BOW";
+    btn.classList.remove('armed');
+    crosshair.style.display = 'none';
+}
+
+function shootBow(screenX, screenY) {
+    if (!gameState.bowArmed || gameState.isPaused || gameState.gameOver || gameState.inTransition) return;
+
+    if (gameState.inGameTime >= 21.0 || gameState.inGameTime < 6.0) {
+        disarmBow();
+        return;
+    }
+
+    sfx.playShot();
+
+    mouse.x = (screenX / window.innerWidth) * 2 - 1;
+    mouse.y = -(screenY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+
+    const targets = [];
+    deers.forEach(d => { if (d.userData.alive) targets.push(d); });
+    birds.forEach(b => { if (b.userData.alive) targets.push(b); });
+
+    const hits = raycaster.intersectObjects(targets, true);
+    if (hits.length > 0) {
+        let hitObj = hits[0].object;
+        while (hitObj.parent && (!hitObj.userData || !hitObj.userData.type)) {
+            hitObj = hitObj.parent;
+        }
+
+        if (hitObj && hitObj.userData && hitObj.userData.alive) {
+            sfx.playHit();
+            if (hitObj.userData.type === 'deer') {
+                gameState.deerRemaining--;
+                gameState.foodHours = Math.min(24.0, gameState.foodHours + 24.0);
+                updateWildlifeUI();
+                handleFaunaHit(hitObj, 'deer');
+            } else if (hitObj.userData.type === 'bird') {
+                gameState.birdsRemaining--;
+                gameState.foodHours = Math.min(24.0, gameState.foodHours + 12.0);
+                updateWildlifeUI();
+                handleFaunaHit(hitObj, 'bird');
+            }
+        }
+    }
+
+    disarmBow();
+}
+
+function feedFire() {
+    if (gameState.isPaused || gameState.gameOver || gameState.inTransition) return;
+    if (gameState.timber <= 0 || gameState.fireHours >= 10.0) return;
+
+    sfx.playFeed();
+    gameState.timber--;
+    gameState.fireHours = Math.min(10.0, gameState.fireHours + 2.5);
+    document.getElementById('txt-timber').textContent = `${gameState.timber} Logs`;
+
+    if (gameState.level === 1 && gameState.orientationStep === 2) {
+        dismissOrientationStep();
+        setTimeout(() => advanceOrientation(3), 800);
+    }
+}
+
+function advanceOrientation(step) {
+    if (gameState.level !== 1) return;
+
+    gameState.orientationStep = step;
+    gameState.orientationActive = true;
+
+    const overlay = document.getElementById('tut-overlay');
+    const card = document.getElementById('tut-card');
+    const stepTag = document.getElementById('tut-step');
+    const msg = document.getElementById('tut-msg');
+    const actionBtn = document.getElementById('tut-action-btn');
+
+    overlay.classList.add('active');
+    card.style.display = 'block';
+
+    const rightStack = document.querySelector('.hud-right-stack');
+    const rect = rightStack.getBoundingClientRect();
+
+    if (window.innerWidth > 768) {
+        card.style.top = `${Math.max(80, rect.top + 20)}px`;
+        card.style.left = `${Math.max(20, rect.left - 340)}px`;
+    }
+
+    document.querySelectorAll('.vital-card, .action-button').forEach(el => el.classList.remove('tut-focus'));
+
+    if (step === 1) {
+        stepTag.textContent = "Step 1 of 3: Timber";
+        msg.textContent = "Chop perimeter trees to harvest logs for the campfire.";
+        actionBtn.textContent = "CHOP TREE";
+        document.getElementById('card-timber').classList.add('tut-focus');
+        document.getElementById('btn-chop').classList.add('tut-focus');
+    } else if (step === 2) {
+        stepTag.textContent = "Step 2 of 3: Campfire";
+        msg.textContent = "Feed the fire with logs. The fire must remain lit between 2100 and 0500.";
+        actionBtn.textContent = "FEED FIRE";
+        document.getElementById('card-fire').classList.add('tut-focus');
+        document.getElementById('btn-fire').classList.add('tut-focus');
+    } else if (step === 3) {
+        stepTag.textContent = "Step 3 of 3: Hunting";
+        msg.textContent = "Aim your bow to hunt deer or birds for rations between 0600 and 2100.";
+        actionBtn.textContent = "AIM BOW";
+        document.getElementById('card-food').classList.add('tut-focus');
+        document.getElementById('btn-bow').classList.add('tut-focus');
+    }
+}
+
+function dismissOrientationStep() {
+    document.querySelectorAll('.vital-card, .action-button').forEach(el => el.classList.remove('tut-focus'));
+    document.getElementById('tut-overlay').classList.remove('active');
+    document.getElementById('tut-card').style.display = 'none';
+    gameState.orientationActive = false;
+}
+
+function showLevelCurtain(levelNum, onComplete) {
+    gameState.inTransition = true;
+    const curtain = document.getElementById('transitionScreen');
+    const mainText = document.getElementById('transitionMainText');
+    const subText = document.getElementById('transitionSubText');
+
+    mainText.textContent = `Now entering level ${levelNum}`;
+    subText.style.display = (levelNum === 8) ? 'block' : 'none';
+
+    curtain.classList.add('active');
+    setTimeout(() => {
+        curtain.classList.remove('active');
+        gameState.inTransition = false;
+        if (onComplete) onComplete();
+    }, 2000);
+}
+
+function showVictoryCurtain(onComplete) {
+    gameState.inTransition = true;
+    const curtain = document.getElementById('transitionScreen');
+    const mainText = document.getElementById('transitionMainText');
+    const subText = document.getElementById('transitionSubText');
+
+    mainText.textContent = "Game completed. Congratulations!";
+    subText.style.display = 'none';
+
+    curtain.classList.add('active');
+    setTimeout(() => {
+        curtain.classList.remove('active');
+        gameState.inTransition = false;
+        if (onComplete) onComplete();
+    }, 3000);
+}
+
+function advanceLevel() {
+    if (gameState.level >= 8) {
+        showVictoryCurtain(() => {
+            gameState.levelWon = true;
+            document.getElementById('modal-title').textContent = "EXPEDITION COMPLETE";
+            document.getElementById('modal-desc').textContent = "You survived all 8 levels of the Deep Forest.";
+            document.getElementById('modal-end').classList.remove('hidden');
+        });
+    } else {
+        gameState.level++;
+        showLevelCurtain(gameState.level, () => {
+            document.getElementById('txt-level').textContent = `${gameState.level} / 8`;
+            spawnExactSevenTrees();
+            spawnWildlife();
+            disarmBow();
+        });
+    }
+}
+
+function triggerGameOver(reason) {
+    gameState.gameOver = true;
+    disarmBow();
+    document.getElementById('modal-title').textContent = "SURVIVAL FAILED";
+    document.getElementById('modal-desc').textContent = reason;
+    document.getElementById('modal-end').classList.remove('hidden');
+}
+
+function togglePause() {
+    if (gameState.gameOver || gameState.levelWon || gameState.inTransition || gameState.orientationActive) return;
+
+    gameState.isPaused = !gameState.isPaused;
+    const modal = document.getElementById('modal-pause');
+    const btn = document.getElementById('btn-pause');
+
+    if (gameState.isPaused) {
+        modal.classList.remove('hidden');
+        btn.textContent = "▶ RESUME";
+    } else {
+        modal.classList.add('hidden');
+        btn.textContent = "⏸ PAUSE";
+    }
+}
+
+function restartLevel() {
+    gameState.level = 1;
+    gameState.inGameTime = 6.0;
+    gameState.foodHours = 18.0;
+    gameState.fireHours = 4.0;
+    gameState.timber = 2;
+    gameState.gameOver = false;
+    gameState.levelWon = false;
+    gameState.isPaused = false;
+    gameState.orientationStep = 0;
+    gameState.orientationActive = false;
+    disarmBow();
+
+    document.getElementById('modal-end').classList.add('hidden');
+    document.getElementById('modal-pause').classList.add('hidden');
+    document.getElementById('txt-level').textContent = "1 / 8";
+
+    spawnExactSevenTrees();
+    spawnWildlife();
+
+    showLevelCurtain(1, () => {
+        setTimeout(() => advanceOrientation(1), 600);
+    });
+}
+
+function setupEvents() {
+    window.addEventListener('keydown', e => {
+        if (e.key === 'p' || e.key === 'P') togglePause();
+    });
+
+    window.addEventListener('pointerdown', e => {
+        if (e.target.closest('#hud') || e.target.closest('.modal-wrap') || e.target.closest('#transitionScreen') || e.target.closest('#tut-card')) return;
+        if (gameState.bowArmed) shootBow(e.clientX, e.clientY);
+    });
+
+    window.addEventListener('pointermove', e => {
+        if (gameState.bowArmed) {
+            const crosshair = document.getElementById('crosshair');
+            crosshair.style.left = `${e.clientX}px`;
+            crosshair.style.top = `${e.clientY}px`;
+        }
+    });
+
+    // Right-Hand Action Buttons
+    document.getElementById('btn-bow').addEventListener('click', toggleBow);
+    document.getElementById('btn-fire').addEventListener('click', feedFire);
+    document.getElementById('btn-chop').addEventListener('click', initiateChopTree);
+
+    // Orientation Card Action
+    document.getElementById('tut-action-btn').addEventListener('click', () => {
+        if (gameState.orientationStep === 1) initiateChopTree();
+        else if (gameState.orientationStep === 2) feedFire();
+        else if (gameState.orientationStep === 3) toggleBow();
+    });
+
+    // Pause Controls
+    document.getElementById('btn-pause').addEventListener('click', togglePause);
+    document.getElementById('btn-resume-modal').addEventListener('click', togglePause);
+    document.getElementById('btn-restart').addEventListener('click', restartLevel);
+
+    // Audio Toggle
+    const audioBtn = document.getElementById('btn-audio');
+    audioBtn.addEventListener('click', () => {
+        sfx.muted = !sfx.muted;
+        audioBtn.textContent = sfx.muted ? "🔇" : "🔊";
+    });
+}
+
+let lastFrameTime = performance.now();
+
+function animate(currentTime) {
+    requestAnimationFrame(animate);
+
+    const delta = Math.min((currentTime - lastFrameTime) / 1000, 0.1);
+    lastFrameTime = currentTime;
+
+    if (!gameState.isPaused && !gameState.gameOver && !gameState.levelWon) {
+        updateSimulation(delta);
+        updateWildlifeAnimation(delta);
+        updateChoppingAction(currentTime);
+    }
+
+    if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+    }
+}
+
+window.addEventListener('load', () => {
+    init3D();
+    setupEvents();
+    showLevelCurtain(1, () => {
+        requestAnimationFrame(animate);
+        setTimeout(() => advanceOrientation(1), 600);
+    });
+});
+</script>
+</body>
+</html>
