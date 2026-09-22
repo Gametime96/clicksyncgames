@@ -15,18 +15,22 @@
     <title>ClickSyncGames | Premium Browser Games</title>
     <style>
         :root {
-            --bg-color: #e5e7eb;
-            --text-color: #0f172a;
-            --panel-bg: #ffffff;
-            --accent-blue: #2563eb;
-            --search-bg: #f1f5f9;
+            --bg-color: #000000;
+            --panel-bg: #050d08;
+            --card-border: #143820;
+            --text-primary: #34d399; /* Vibrant dark-mode green */
+            --text-muted: #15803d;   /* Deep/dark green */
+            --accent-green: #15803d; /* Classic dark green */
+            --accent-green-hover: #166534;
+            --accent-light: #22c55e;
+            --search-bg: #030805;
         }
 
         body {
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: var(--text-primary);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
@@ -34,12 +38,13 @@
         }
 
         header {
-            background-color: var(--panel-bg);
+            background-color: var(--bg-color);
             padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-bottom: 2px solid var(--accent-green);
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.2);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -52,18 +57,20 @@
         .logo-container h1 {
             margin: 0;
             font-size: 32px;
-            color: var(--text-color);
+            color: #10b981;
             letter-spacing: 1px;
             font-weight: 900;
             display: flex;
             align-items: flex-start;
         }
 
-        .logo-container span { color: var(--accent-blue); }
+        .logo-container span { 
+            color: #166534; 
+        }
         
         .tm-symbol {
             font-size: 14px;
-            color: var(--text-color);
+            color: #10b981;
             margin-left: 2px;
             font-weight: bold;
         }
@@ -75,20 +82,25 @@
             position: relative;
         }
 
-        /* Bolder & Darker Outline for Search Bar */
         .search-bar {
             width: 100%;
             padding: 12px 20px;
-            border: 3px solid #475569;
+            border: 2px solid #166534;
             border-radius: 25px;
             font-size: 16px;
-            color: var(--text-color);
+            color: #34d399;
             background-color: var(--search-bg);
             outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-bar::placeholder {
+            color: #065f46;
         }
 
         .search-bar:focus {
-            border-color: var(--accent-blue);
+            border-color: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
         }
 
         main {
@@ -101,10 +113,12 @@
 
         h2.section-title {
             font-size: 24px;
-            border-bottom: 3px solid var(--accent-blue);
+            color: #22c55e;
+            border-bottom: 3px solid var(--accent-green);
             padding-bottom: 10px;
             margin-bottom: 25px;
             display: inline-block;
+            letter-spacing: 0.5px;
         }
 
         .category-grid {
@@ -115,7 +129,7 @@
         }
 
         .category-btn {
-            color: white;
+            color: #a7f3d0;
             padding: 20px 10px;
             border-radius: 12px;
             text-align: center;
@@ -123,29 +137,34 @@
             font-size: 17px;
             letter-spacing: 0.5px;
             text-decoration: none;
-            -webkit-text-stroke: 1px black;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
-            filter: saturate(40%) opacity(0.85);
+            border: 1px solid #14532d;
+            -webkit-text-stroke: 0.5px #022c22;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); 
+            filter: saturate(70%) opacity(0.9);
             transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
             user-select: none;
         }
 
-        .category-btn:nth-child(5n+1) { background: linear-gradient(135deg, #166534, #14532d); } 
-        .category-btn:nth-child(5n+2) { background: linear-gradient(135deg, #fb923c, #ea580c); } 
-        .category-btn:nth-child(5n+3) { background: linear-gradient(135deg, #374151, #0f172a); } 
-        .category-btn:nth-child(5n+4) { background: linear-gradient(135deg, #ef4444, #b91c1c); } 
-        .category-btn:nth-child(5n+5) { background: linear-gradient(135deg, #9ca3af, #4b5563); } 
+        /* Dark green gradient palette across categories */
+        .category-btn:nth-child(5n+1) { background: linear-gradient(135deg, #052e16, #022c22); } 
+        .category-btn:nth-child(5n+2) { background: linear-gradient(135deg, #14532d, #064e3b); } 
+        .category-btn:nth-child(5n+3) { background: linear-gradient(135deg, #166534, #052e16); } 
+        .category-btn:nth-child(5n+4) { background: linear-gradient(135deg, #064e3b, #042f2e); } 
+        .category-btn:nth-child(5n+5) { background: linear-gradient(135deg, #15803d, #14532d); } 
 
         .category-btn:hover {
             transform: scale(1.05);
-            filter: saturate(100%) opacity(1);
+            filter: saturate(120%) opacity(1);
+            border-color: #22c55e;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
         }
 
         .category-btn.active-filter {
             transform: scale(1.05);
-            filter: saturate(100%) opacity(1);
-            box-shadow: 0 0 0 4px var(--bg-color), 0 0 0 6px var(--text-color);
+            filter: saturate(120%) opacity(1);
+            box-shadow: 0 0 0 3px #000000, 0 0 0 5px #22c55e;
+            border-color: #22c55e;
         }
 
         /* --- PAGINATION BOX STYLES --- */
@@ -168,10 +187,10 @@
         }
 
         .page-box {
-            background: linear-gradient(135deg, #374151, #0f172a); 
-            color: white;
+            background: linear-gradient(135deg, #064e3b, #022c22); 
+            color: #a7f3d0;
             font-weight: bold;
-            border: none;
+            border: 1px solid #14532d;
             width: 45px;
             height: 45px;
             display: flex;
@@ -179,21 +198,25 @@
             align-items: center;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 0px !important; /* Strictly sharp corners */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 0px !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             user-select: none;
             box-sizing: border-box;
         }
 
         .page-box:hover {
             transform: scale(1.1);
+            border-color: #22c55e;
+            color: #ecfdf5;
         }
 
         .page-box.active-page {
-            transform: scale(1.15) !important; /* Forces the active page box to be exactly 15% larger */
-            outline: 2px solid black; /* Crisp sharp black outline box */
-            outline-offset: 3px; /* Positions the square frame slightly outside the box border lines */
+            transform: scale(1.15) !important;
+            background: #14532d;
+            color: #ffffff;
+            outline: 2px solid #22c55e;
+            outline-offset: 3px;
         }
 
         .game-grid {
@@ -204,20 +227,21 @@
 
         .game-card {
             background-color: var(--panel-bg);
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 20px;
             text-decoration: none;
-            color: var(--text-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease;
+            color: var(--text-primary);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: column;
         }
 
         .game-card:hover {
             transform: translateY(-5px);
-            border-color: var(--accent-blue);
+            border-color: #22c55e;
+            box-shadow: 0 8px 20px rgba(22, 101, 52, 0.4);
         }
 
         .thumbnail-container {
@@ -227,7 +251,8 @@
             margin-bottom: 15px;
             overflow: hidden; 
             position: relative;
-            background-color: #000;
+            background-color: #000000;
+            border: 1px solid #0f2e1a;
         }
 
         .game-thumbnail {
@@ -240,7 +265,7 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: radial-gradient(circle at 20% 30%, rgba(37, 99, 235, 0.4) 0%, transparent 50%);
+            background-image: radial-gradient(circle at 20% 30%, rgba(22, 101, 52, 0.4) 0%, transparent 50%);
             opacity: 0.8;
         }
         
@@ -251,19 +276,33 @@
         .thumb-sync::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.4) 0%, transparent 60%); }
         .thumb-pulse::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.5) 0%, transparent 60%); }
         .thumb-train::after { background-image: radial-gradient(circle at 50% 50%, rgba(26, 188, 156, 0.5) 0%, transparent 60%); }
-        .thumb-twelve::after { background-image: radial-gradient(circle at 50% 50%, rgba(37, 99, 235, 0.45) 0%, transparent 65%); }
+        .thumb-twelve::after { background-image: radial-gradient(circle at 50% 50%, rgba(22, 101, 52, 0.45) 0%, transparent 65%); }
 
-        .game-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; }
-        .game-desc { font-size: 14px; line-height: 1.5; color: #475569; }
+        .game-title { 
+            font-size: 19px; 
+            font-weight: 800; 
+            margin-bottom: 8px; 
+            text-transform: uppercase; 
+            color: #34d399;
+            letter-spacing: 0.5px;
+        }
+
+        .game-desc { 
+            font-size: 14px; 
+            line-height: 1.5; 
+            color: #10b981; 
+            opacity: 0.85;
+        }
+
         .hidden { display: none !important; }
 
         /* --- FOOTER STYLES --- */
         footer {
-            background-color: #cbd5e1;
+            background-color: #000000;
             padding: 40px 20px;
             margin-top: 60px;
             text-align: center;
-            border-top: 2px solid #94a3b8;
+            border-top: 2px solid #143820;
         }
 
         .footer-content {
@@ -273,7 +312,7 @@
 
         .legal-text {
             font-size: 11px;
-            color: #475569;
+            color: #065f46;
             line-height: 1.6;
             margin-bottom: 30px;
         }
@@ -283,18 +322,23 @@
         }
 
         .contact-btn {
-            background-color: var(--accent-blue);
-            color: white;
-            border: none;
+            background-color: #14532d;
+            color: #a7f3d0;
+            border: 1px solid #166534;
             padding: 12px 24px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
-            transition: 0.2s;
+            transition: 0.2s ease;
         }
 
-        .contact-btn:hover { background-color: #1d4ed8; }
+        .contact-btn:hover { 
+            background-color: #166534; 
+            color: #ffffff;
+            border-color: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
 
         /* --- MOBILE RESPONSIVE FIXES --- */
         @media (max-width: 768px) {
@@ -762,7 +806,7 @@
             gameGrid.innerHTML = '';
 
             if (itemsList.length === 0) {
-                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #64748b; font-weight: bold;">No games found matching your filters.</div>';
+                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #065f46; font-weight: bold;">No games found matching your filters.</div>';
                 paginationBottom.innerHTML = '';
                 return;
             }
