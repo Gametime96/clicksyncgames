@@ -1,0 +1,529 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #060a0f;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  touch-action: none;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  width: 100dvw;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#canvas-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+canvas {
+  display: block;
+}
+
+/* Modern Minimalist HUD Top Bar */
+#flight-hud {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.telemetry-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(10, 16, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hud-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #7f8c9d;
+}
+
+.hud-metric {
+  font-size: 15px;
+  font-weight: 800;
+  color: #ecf0f1;
+  letter-spacing: 0.5px;
+}
+
+.hud-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tag-auto {
+  color: #f1c40f;
+}
+
+.tag-manual {
+  color: #2ecc71;
+}
+
+/* Ingress & Handoff Countdown Display */
+.countdown-panel {
+  position: absolute;
+  top: 86px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 23, 34, 0.9);
+  border: 1px solid rgba(241, 196, 15, 0.4);
+  border-radius: 30px;
+  padding: 8px 24px;
+  z-index: 20;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+.countdown-spinner {
+  width: 10px;
+  height: 10px;
+  border: 2px solid #f1c40f;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.countdown-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.countdown-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #f1c40f;
+}
+
+.countdown-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+/* Alert Banner: Manual Control Handoff */
+.alert-banner {
+  position: absolute;
+  top: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(46, 204, 113, 0.95);
+  color: #0d1e15;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 30;
+  box-shadow: 0 6px 25px rgba(46, 204, 113, 0.4);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.alert-banner.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px);
+  pointer-events: none;
+}
+
+/* Modern HUD Crosshair */
+#targeting-reticle {
+  position: absolute;
+  top: 66%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.reticle-ring {
+  width: 58px;
+  height: 58px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  position: relative;
+}
+
+.reticle-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff4757;
+  box-shadow: 0 0 8px #ff4757;
+}
+
+.reticle-label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 6px;
+}
+
+/* Tactical GTA-Style Radar (Bottom-Left) */
+#tactical-radar {
+  position: absolute;
+  bottom: 22px;
+  left: 22px;
+  width: 146px;
+  background: rgba(9, 15, 22, 0.94);
+  border: 1.5px solid #233446;
+  border-radius: 8px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+#radar-canvas {
+  width: 132px;
+  height: 132px;
+  background: #09121a;
+  border-radius: 4px;
+}
+
+.hull-integrity-bar {
+  width: 132px;
+  height: 5px;
+  background: #240d0f;
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+#hull-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: #2ecc71;
+  transition: width 0.15s ease-out, background 0.25s;
+}
+
+.radar-meta {
+  width: 132px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #7f8c9d;
+  margin-top: 4px;
+}
+
+/* Bottom-Right Flight Deck Controls */
+#touch-flight-deck {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 25;
+}
+
+.virtual-dpad {
+  position: relative;
+  width: 132px;
+  height: 132px;
+}
+
+.pad-key {
+  position: absolute;
+  background: rgba(16, 25, 36, 0.82);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  font-size: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  transition: background 0.1s, transform 0.1s;
+}
+
+.pad-key:active, .pad-key.active {
+  background: rgba(52, 152, 219, 0.85);
+  transform: scale(0.94);
+}
+
+.pad-up    { top: 0; left: 46px; width: 40px; height: 40px; }
+.pad-down  { bottom: 0; left: 46px; width: 40px; height: 40px; }
+.pad-left  { top: 46px; left: 0; width: 40px; height: 40px; }
+.pad-right { top: 46px; right: 0; width: 40px; height: 40px; }
+
+.pad-center-hub {
+  position: absolute;
+  top: 46px;
+  left: 46px;
+  width: 40px;
+  height: 40px;
+  background: rgba(8, 13, 19, 0.6);
+  border-radius: 4px;
+}
+
+/* Modern Drop Bomb Trigger Button */
+.bomb-action-btn {
+  width: 132px;
+  height: 48px;
+  background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+  border: 1px solid #ff7675;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(231, 76, 60, 0.4);
+  transition: opacity 0.3s ease, filter 0.3s ease, transform 0.1s;
+}
+
+.bomb-action-btn:active {
+  transform: scale(0.95);
+}
+
+.bomb-action-btn.faded {
+  opacity: 0.25;
+  filter: grayscale(85%);
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.bomb-symbology {
+  font-size: 14px;
+}
+
+/* Modern Briefing Modal */
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 12, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal-backdrop.hidden {
+  display: none;
+}
+
+.briefing-container {
+  background: #0d1520;
+  border: 1px solid #233446;
+  border-top: 4px solid #e74c3c;
+  padding: 34px 38px;
+  border-radius: 10px;
+  max-width: 580px;
+  margin: 16px;
+  text-align: center;
+  color: #ecf0f1;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9);
+}
+
+.classification-stamp {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #e74c3c;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.briefing-header h1 {
+  font-size: 22px;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  margin-bottom: 16px;
+  font-weight: 900;
+}
+
+.briefing-body p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #a4b0be;
+  margin-bottom: 22px;
+}
+
+.controls-guide-panel {
+  display: flex;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 14px 18px;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.guide-column {
+  flex: 1;
+}
+
+.guide-title {
+  display: block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #f1c40f;
+  margin-bottom: 8px;
+}
+
+.controls-guide-panel ul {
+  list-style: none;
+}
+
+.controls-guide-panel li {
+  font-size: 11px;
+  color: #c8d6e5;
+  margin-bottom: 5px;
+}
+
+.commence-btn {
+  background: #e74c3c;
+  color: #ffffff;
+  border: none;
+  padding: 14px 36px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(231, 76, 60, 0.4);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.commence-btn:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+}
+
+/* Portrait & Mobile Screen Tuning */
+@media (max-width: 640px), (orientation: portrait) {
+  #flight-hud {
+    top: 10px;
+  }
+  .telemetry-bar {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+  .hud-tag { font-size: 8px; }
+  .hud-metric { font-size: 12px; }
+  .countdown-panel {
+    top: 68px;
+    padding: 6px 16px;
+  }
+  .countdown-label { font-size: 9px; }
+  .countdown-value { font-size: 14px; }
+  #tactical-radar {
+    bottom: 14px;
+    left: 14px;
+    width: 104px;
+    padding: 4px;
+  }
+  #radar-canvas {
+    width: 96px;
+    height: 96px;
+  }
+  .hull-integrity-bar { width: 96px; }
+  .radar-meta { width: 96px; font-size: 7px; }
+  #touch-flight-deck {
+    bottom: 14px;
+    right: 14px;
+    gap: 8px;
+  }
+  .virtual-dpad {
+    width: 110px;
+    height: 110px;
+  }
+  .pad-key {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+  .pad-up    { left: 37px; }
+  .pad-down  { left: 37px; }
+  .pad-left  { top: 37px; }
+  .pad-right { top: 37px; }
+  .pad-center-hub { top: 37px; left: 37px; width: 36px; height: 36px; }
+  .bomb-action-btn {
+    width: 110px;
+    height: 42px;
+    font-size: 11px;
+  }
+  .controls-guide-panel {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
