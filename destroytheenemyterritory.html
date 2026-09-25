@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Destroy the Enemy Territory</title>
+  <link rel="stylesheet" href="destroytheenemyterritory.css">
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div id="game-container">
+    <!-- WebGL Rendering Canvas -->
+    <div id="canvas-wrapper"></div>
+
+    <!-- Modern Cockpit Telemetry HUD -->
+    <div id="flight-hud">
+      <div class="telemetry-bar">
+        <div class="hud-item">
+          <span class="hud-tag">ZONE LEVEL</span>
+          <span id="hud-level" class="hud-metric">1 / 7</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+          <span class="hud-tag">PAYLOAD</span>
+          <span id="hud-bombs" class="hud-metric">1 BOMB</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+          <span class="hud-tag">TARGETS</span>
+          <span id="hud-targets" class="hud-metric">1 BASE</span>
+        </div>
+        <div class="hud-divider"></div>
+        <div class="hud-item">
+          <span class="hud-tag">SYSTEM</span>
+          <span id="hud-system" class="hud-metric tag-auto">AUTOPILOT</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Master Ingress & Control Handoff Countdown -->
+    <div id="countdown-hud" class="countdown-panel">
+      <div class="countdown-spinner"></div>
+      <div class="countdown-info">
+        <span id="countdown-label" class="countdown-label">AUTOPILOT INGRESS DESCENT</span>
+        <span id="countdown-timer" class="countdown-value">12.0s</span>
+      </div>
+    </div>
+
+    <!-- Control Handoff Alert Banner -->
+    <div id="control-alert" class="alert-banner hidden">
+      <span class="alert-icon">&#9888;</span>
+      <span class="alert-text">AUTOPILOT DISENGAGED // MANUAL CONTROL ACTIVE</span>
+    </div>
+
+    <!-- Military Crosshair Sight -->
+    <div id="targeting-reticle">
+      <div class="reticle-ring"></div>
+      <div class="reticle-core"></div>
+      <span class="reticle-label">ORDNANCE IMPACT ZONE</span>
+    </div>
+
+    <!-- GTA-Style Tactical Radar (Bottom-Left) -->
+    <div id="tactical-radar">
+      <canvas id="radar-canvas" width="160" height="160"></canvas>
+      <div class="hull-integrity-bar">
+        <div id="hull-bar-fill"></div>
+      </div>
+      <div class="radar-meta">
+        <span>B-29 HULL INTEGRITY</span>
+        <span id="hull-value">100%</span>
+      </div>
+    </div>
+
+    <!-- Responsive On-Screen Controls (Bottom-Right) -->
+    <div id="touch-flight-deck">
+      <div class="virtual-dpad">
+        <button id="btn-up" class="pad-key pad-up" aria-label="Pitch Down">&#9650;</button>
+        <button id="btn-left" class="pad-key pad-left" aria-label="Bank Left">&#9664;</button>
+        <button id="btn-down" class="pad-key pad-down" aria-label="Pitch Up">&#9660;</button>
+        <button id="btn-right" class="pad-key pad-right" aria-label="Bank Right">&#9654;</button>
+        <div class="pad-center-hub"></div>
+      </div>
+      <button id="btn-bomb" class="bomb-action-btn faded" aria-label="Drop Bomb">
+        <span class="bomb-symbology">&#9662;</span>
+        <span class="bomb-title">DROP BOMB</span>
+      </button>
+    </div>
+
+    <!-- Operation & Debrief Modal -->
+    <div id="mission-modal" class="modal-backdrop">
+      <div class="briefing-container">
+        <div class="briefing-header">
+          <span class="classification-stamp">TOP SECRET // MILITARY OPERATION</span>
+          <h1 id="modal-title">DESTROY THE ENEMY TERRITORY</h1>
+        </div>
+        <div class="briefing-body">
+          <p id="modal-status-text">
+            Fly the Boeing B-29 Superfortress into hostile airspace. Auto-pilot maintains level flight for 9 seconds before descending through the cloud deck. After 3 seconds beneath the ceiling, manual flight controls will engage. Neutralize the primary military installation to progress.
+          </p>
+
+          <div class="controls-guide-panel">
+            <div class="guide-column">
+              <span class="guide-title">DESKTOP CONTROLS</span>
+              <ul>
+                <li><strong>Steer:</strong> [A / D] or [&larr; / &rarr;]</li>
+                <li><strong>Altitude:</strong> [W / S] or [&uarr; / &darr;]</li>
+                <li><strong>Deploy Payload:</strong> [SPACEBAR]</li>
+              </ul>
+            </div>
+            <div class="guide-column">
+              <span class="guide-title">MOBILE / TOUCH</span>
+              <ul>
+                <li><strong>Directional D-Pad:</strong> Bottom-Right</li>
+                <li><strong>Deploy Payload:</strong> [DROP BOMB] Button</li>
+                <li><strong>Map Recon:</strong> Bottom-Left Tactical Radar</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="briefing-footer">
+          <button id="modal-action-btn" class="commence-btn">COMMENCE OPERATION</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="destroytheenemyterritory.js"></script>
+</body>
+</html>
