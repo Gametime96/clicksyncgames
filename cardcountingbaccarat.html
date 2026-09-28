@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Baccarat - ClickSyncGames</title>
   <link rel="stylesheet" href="cardcountingbaccarat.css">
 </head>
@@ -11,7 +11,7 @@
     <!-- Top Bar Controls -->
     <header class="top-nav">
       <div class="top-left-cluster">
-        <button id="btn-instructions" class="casino-btn square-btn" title="View Instructions">INSTRUCTIONS</button>
+        <button id="btn-instructions" class="casino-btn square-btn" title="View Game Rules">RULES</button>
         <a href="index.html" class="return-home-btn square-btn" title="Return to ClickSyncGames">
           <span class="return-arrow">‹</span>
           <span class="return-text">Return to</span>
@@ -42,7 +42,26 @@
         <div id="shuffle-cards-container" class="shuffle-cards-container"></div>
       </div>
 
-      <!-- Center Dropping Winner Outcome Banner -->
+      <!-- Right Side Dealing Shoe Stack (Clear at Top Right) -->
+      <aside class="card-shoe-stack" id="card-shoe">
+        <div class="deck-shadow-base">
+          <div class="card-back-pattern"></div>
+        </div>
+      </aside>
+
+      <!-- Rightmost Action Side-Bar (Moved Downward to Avoid Covering Deck) -->
+      <aside class="rightmost-panel">
+        <button id="btn-running-count" class="side-action-btn toggle-btn" title="Toggle Running Count">
+          <span class="btn-main-txt">RUNNING COUNT</span>
+          <span id="rc-value-display" class="rc-tag hidden">RC: 0</span>
+        </button>
+
+        <button id="btn-how-to-count" class="side-action-btn mid-right-btn" title="How to Count in Baccarat">
+          <span>HOW TO COUNT<br>IN BACCARAT</span>
+        </button>
+      </aside>
+
+      <!-- Center Dropping Winner Outcome Banner (Below Cards) -->
       <div id="winner-drop-banner" class="winner-drop-banner"></div>
 
       <!-- History Scoreboard on Left -->
@@ -58,13 +77,6 @@
           <div class="hist-row"><span>-</span><span>-</span></div>
           <div class="hist-row"><span>-</span><span>-</span></div>
           <div class="hist-row"><span>-</span><span>-</span></div>
-        </div>
-      </aside>
-
-      <!-- Right Side Dealing Shoe Stack -->
-      <aside class="card-shoe-stack" id="card-shoe">
-        <div class="deck-shadow-base">
-          <div class="card-back-pattern"></div>
         </div>
       </aside>
 
@@ -164,21 +176,119 @@
     </footer>
   </div>
 
-  <!-- Instructions Modal -->
+  <!-- Rules Modal with Grid -->
   <div id="instructions-modal" class="modal-backdrop">
-    <div class="modal-card">
+    <div class="modal-card rules-modal-card">
       <div class="modal-header">
-        <h2>HOW TO PLAY</h2>
+        <h2>RULES</h2>
         <button id="btn-close-instructions" class="modal-close">&times;</button>
       </div>
       <div class="modal-body">
-        <ul class="condensed-bullets">
-          <li>Closest hand to 9 points wins (modulo 10).</li>
-          <li>Player and Banker win bets pay 1:1.</li>
-          <li>Tie pays 8:1; Player/Banker push.</li>
-          <li>Aces=1, 2–9=face, 10/J/Q/K=0.</li>
-          <li>Third cards are auto-dealt per casino tableau.</li>
-        </ul>
+        <div class="rules-bold-text">
+          <p><strong>How to Play:</strong></p>
+          <p><strong>Closest hand to 9 points wins.</strong></p>
+          <p><strong>Player and Banker win bets pay 1:1.</strong></p>
+          <p><strong>Tie pays 8:1; Player/Banker push.</strong></p>
+          <p><strong>Aces=1; 2–9=Face; 10/J/Q/K=0.</strong></p>
+          <p><strong>Third cards are auto-dealt rules.</strong></p>
+        </div>
+
+        <h3 class="tableau-heading">Baccarat Drawing Tableau Grid</h3>
+        <div class="tableau-scroll-wrap">
+          <table class="tableau-grid">
+            <thead>
+              <tr>
+                <th>Banker 2-Card Total</th>
+                <th>Banker Draws When Player 3rd Card Is:</th>
+                <th>Banker Stands When Player 3rd Card Is:</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>0, 1, or 2</strong></td>
+                <td class="cell-draw">Always Draws</td>
+                <td class="cell-stand">—</td>
+              </tr>
+              <tr>
+                <td><strong>3</strong></td>
+                <td class="cell-draw">0, 1, 2, 3, 4, 5, 6, 7, 9</td>
+                <td class="cell-stand">8</td>
+              </tr>
+              <tr>
+                <td><strong>4</strong></td>
+                <td class="cell-draw">2, 3, 4, 5, 6, 7</td>
+                <td class="cell-stand">0, 1, 8, 9</td>
+              </tr>
+              <tr>
+                <td><strong>5</strong></td>
+                <td class="cell-draw">4, 5, 6, 7</td>
+                <td class="cell-stand">0, 1, 2, 3, 8, 9</td>
+              </tr>
+              <tr>
+                <td><strong>6</strong></td>
+                <td class="cell-draw">6, 7</td>
+                <td class="cell-stand">0, 1, 2, 3, 4, 5, 8, 9</td>
+              </tr>
+              <tr>
+                <td><strong>7</strong></td>
+                <td class="cell-draw">—</td>
+                <td class="cell-stand">Always Stands</td>
+              </tr>
+              <tr>
+                <td><strong>8 or 9</strong></td>
+                <td colspan="2" class="cell-natural">NATURAL (No cards drawn by either hand)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="tableau-note"><em>Note: If the Player stands on 6 or 7, the Banker draws on 0–5 and stands on 6–7.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- How to Count in Baccarat Modal -->
+  <div id="count-modal" class="modal-backdrop">
+    <div class="modal-card count-modal-card">
+      <div class="modal-header">
+        <h2>HOW TO COUNT IN BACCARAT</h2>
+        <button id="btn-close-count" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="count-intro">Track cards revealed face-up in the shoe using the following values:</p>
+        <div class="count-grid-wrap">
+          <table class="count-grid">
+            <thead>
+              <tr>
+                <th>Card Denomination</th>
+                <th>Count Value</th>
+                <th>Impact</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ace, 2, 3</strong></td>
+                <td class="count-val-pos">+1</td>
+                <td>Favors Player as low cards deplete</td>
+              </tr>
+              <tr>
+                <td><strong>5, 7, 8</strong></td>
+                <td class="count-val-neg">-1</td>
+                <td>Favors Banker as high/neutral cards deplete</td>
+              </tr>
+              <tr>
+                <td><strong>6</strong></td>
+                <td class="count-val-neg">-2</td>
+                <td>Significant shift toward Banker edge</td>
+              </tr>
+              <tr>
+                <td><strong>9, 10, Jack, Queen, King</strong></td>
+                <td class="count-val-zero">0</td>
+                <td>Neutral count effect</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="tableau-note"><em>The running count updates only after cards are revealed face up.</em></p>
       </div>
     </div>
   </div>
