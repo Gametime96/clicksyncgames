@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Baccarat - ClickSyncGames</title>
+  <link rel="stylesheet" href="cardcountingbaccarat.css">
+</head>
+<body>
+  <div class="casino-stage">
+    <!-- Top Bar Controls -->
+    <header class="top-nav">
+      <div class="top-left-cluster">
+        <button id="btn-instructions" class="casino-btn square-btn" title="View Instructions">INSTRUCTIONS</button>
+        <a href="index.html" class="return-home-btn square-btn" title="Return to ClickSyncGames">
+          <span class="return-arrow">‹</span>
+          <span class="return-text">Return to</span>
+          <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames" class="clicksync-nav-logo" onerror="this.style.display='none'">
+        </a>
+      </div>
+
+      <div class="balance-pill">
+        <div class="coin-badge">$</div>
+        <span id="bankroll-display">1,000</span>
+      </div>
+
+      <div class="top-right-cluster">
+        <button id="btn-sound-toggle" class="casino-btn square-btn sound-btn" title="Toggle Sound">🔊</button>
+        <button id="btn-pause" class="casino-btn square-btn pause-btn" title="Pause Game (P)">PAUSE</button>
+      </div>
+    </header>
+
+    <!-- Main Blue Felt Table -->
+    <main class="table-felt" id="table-felt">
+      <!-- 4-Second Animated Shuffle Overlay -->
+      <div id="shuffle-overlay" class="shuffle-overlay">
+        <div class="shuffle-banner">
+          <div class="casino-spinner"></div>
+          <h2>Shuffling 8 Decks...</h2>
+          <p>Washing 416 cards across the felt</p>
+        </div>
+        <div id="shuffle-cards-container" class="shuffle-cards-container"></div>
+      </div>
+
+      <!-- Center Dropping Winner Outcome Banner -->
+      <div id="winner-drop-banner" class="winner-drop-banner"></div>
+
+      <!-- History Scoreboard on Left -->
+      <aside class="history-board">
+        <div class="history-header">HISTORY</div>
+        <div class="history-sub">
+          <span>P</span>
+          <span>B</span>
+        </div>
+        <div class="history-grid" id="history-grid">
+          <div class="hist-row"><span>-</span><span>-</span></div>
+          <div class="hist-row"><span>-</span><span>-</span></div>
+          <div class="hist-row"><span>-</span><span>-</span></div>
+          <div class="hist-row"><span>-</span><span>-</span></div>
+          <div class="hist-row"><span>-</span><span>-</span></div>
+        </div>
+      </aside>
+
+      <!-- Right Side Dealing Shoe Stack -->
+      <aside class="card-shoe-stack" id="card-shoe">
+        <div class="deck-shadow-base">
+          <div class="card-back-pattern"></div>
+        </div>
+      </aside>
+
+      <!-- Center Dealt Hands Area -->
+      <section class="deal-area">
+        <!-- Player Hand Display (Left) -->
+        <div class="hand-column" id="player-hand-spot">
+          <div class="hand-label-placard">PLAYER</div>
+          <div class="score-badge" id="player-score-badge">0</div>
+          <div class="cards-holder" id="player-cards-container">
+            <div class="card-slot slot-outer-player" id="player-card-3"></div>
+            <div class="card-slot" id="player-card-1"></div>
+            <div class="card-slot" id="player-card-2"></div>
+          </div>
+        </div>
+
+        <!-- Banker Hand Display (Right) -->
+        <div class="hand-column" id="banker-hand-spot">
+          <div class="hand-label-placard">BANKER</div>
+          <div class="score-badge" id="banker-score-badge">0</div>
+          <div class="cards-holder" id="banker-cards-container">
+            <div class="card-slot" id="banker-card-1"></div>
+            <div class="card-slot" id="banker-card-2"></div>
+            <div class="card-slot slot-outer-banker" id="banker-card-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Circular Betting Rings with Outside Arched Text -->
+      <section class="betting-rings-area">
+        <!-- Player Bet Circle -->
+        <div class="bet-spot-wrap">
+          <svg class="outer-arch-svg" viewBox="0 0 140 38">
+            <path id="arch-p" d="M 10,34 Q 70,2 130,34" fill="none" />
+            <text class="arch-text"><textPath href="#arch-p" startOffset="50%" text-anchor="middle">PLAYER</textPath></text>
+          </svg>
+          <div class="bet-circle circle-main circle-player" id="spot-player" data-target="player">
+            <div class="placed-chip-socket" id="placed-chip-player"></div>
+          </div>
+          <div class="bet-amount-tag" id="tag-player">$0</div>
+        </div>
+
+        <!-- Tie Bet Circle (No text inside) -->
+        <div class="bet-spot-wrap">
+          <svg class="outer-arch-svg arch-tie-svg" viewBox="0 0 120 34">
+            <path id="arch-t" d="M 10,30 Q 60,2 110,30" fill="none" />
+            <text class="arch-text arch-text-tie"><textPath href="#arch-t" startOffset="50%" text-anchor="middle">TIE</textPath></text>
+          </svg>
+          <div class="bet-circle circle-tie" id="spot-tie" data-target="tie">
+            <div class="placed-chip-socket" id="placed-chip-tie"></div>
+          </div>
+          <div class="bet-amount-tag" id="tag-tie">$0</div>
+        </div>
+
+        <!-- Banker Bet Circle -->
+        <div class="bet-spot-wrap">
+          <svg class="outer-arch-svg" viewBox="0 0 140 38">
+            <path id="arch-b" d="M 10,34 Q 70,2 130,34" fill="none" />
+            <text class="arch-text"><textPath href="#arch-b" startOffset="50%" text-anchor="middle">BANKER</textPath></text>
+          </svg>
+          <div class="bet-circle circle-main circle-banker" id="spot-banker" data-target="banker">
+            <div class="placed-chip-socket" id="placed-chip-banker"></div>
+          </div>
+          <div class="bet-amount-tag" id="tag-banker">$0</div>
+        </div>
+      </section>
+
+      <!-- Bottom Status Announcement -->
+      <div id="game-status-banner" class="status-ribbon">PLACE YOUR BETS</div>
+    </main>
+
+    <!-- Bottom Armrest Rail & Coin Area -->
+    <footer class="table-armrest-bar">
+      <div class="chips-tray-crt">
+        <button class="chip-piece chip-1 active-chip" data-amount="1" title="Chip $1">
+          <span class="chip-inner">1</span>
+        </button>
+        <button class="chip-piece chip-5" data-amount="5" title="Chip $5">
+          <span class="chip-inner">5</span>
+        </button>
+        <button class="chip-piece chip-25" data-amount="25" title="Chip $25">
+          <span class="chip-inner">25</span>
+        </button>
+        <button class="chip-piece chip-100" data-amount="100" title="Chip $100">
+          <span class="chip-inner">100</span>
+        </button>
+      </div>
+
+      <div class="bet-controls-cluster">
+        <div class="gold-meter-box">
+          <span id="total-wager-amount">0</span>
+        </div>
+        <button id="btn-clear-bets" class="btn-cancel-x square-btn" title="Clear Bets">✕</button>
+      </div>
+
+      <button id="btn-deal" class="deal-button square-btn" disabled>DEAL</button>
+    </footer>
+  </div>
+
+  <!-- Instructions Modal -->
+  <div id="instructions-modal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>HOW TO PLAY</h2>
+        <button id="btn-close-instructions" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul class="condensed-bullets">
+          <li>Closest hand to 9 points wins (modulo 10).</li>
+          <li>Player and Banker win bets pay 1:1.</li>
+          <li>Tie pays 8:1; Player/Banker push.</li>
+          <li>Aces=1, 2–9=face, 10/J/Q/K=0.</li>
+          <li>Third cards are auto-dealt per casino tableau.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Minimal Pause Modal -->
+  <div id="pause-modal" class="modal-backdrop">
+    <div class="modal-card pause-card">
+      <h2>GAME PAUSED</h2>
+      <button id="btn-continue" class="deal-button square-btn continue-btn">CONTINUE</button>
+    </div>
+  </div>
+
+  <script src="cardcountingbaccarat.js"></script>
+</body>
+</html>
