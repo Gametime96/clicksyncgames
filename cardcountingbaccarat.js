@@ -1,12 +1,16 @@
 /* ========================================================
    CLICK SYNC GAMES - CASINO BACCARAT ENGINE
-   - Immediate Face-Up Flip upon reaching designated areas
-   - Winning Hand 2 original cards slowly slide 8% downward
-   - 1-second delay before winner display is presented
-   - Winner Drop Banner positioned cleanly below dealt cards
-   - Board Clear: ALL dealt cards slide off-screen to the left
-   - Ambience removed; interactive procedural audio intact
-   - Dynamic Max Bet Enforcement (Player 500, Banker 500, Tie 100)
+   - Baccarat Card Counting System:
+     * Ace, 2, 3 = +1
+     * 5, 7, 8 = -1
+     * 6 = -2
+     * 9, 10, J, Q, K = 0
+     * Count changes strictly upon cards being flipped face-up
+   - Depressable toggle button for Running Count (lowered below shoe)
+   - Separate "How to Count in Baccarat" modal grid
+   - Winning Hand 2 original cards slide 8% downward
+   - 1-second delay before winner display drops cleanly below cards
+   - All dealt cards swipe off-screen to the left on round transition
    ======================================================== */
 
 (function () {
@@ -20,26 +24,30 @@
   let isPaused = false;
   let soundEnabled = true;
 
+  // Card Counting State
+  let runningCount = 0;
+  let isCountVisible = false;
+
   const MAX_BETS = { player: 500, banker: 500, tie: 100 };
 
-  // 8-Deck Shoe Setup
+  // 8-Deck Shoe Setup with exact Baccarat Count Values
   const TOTAL_DECKS = 8;
   let shoe = [];
   const suits = ['♠', '♥', '♦', '♣'];
   const ranks = [
-    { rank: 'A', val: 1 },
-    { rank: '2', val: 2 },
-    { rank: '3', val: 3 },
-    { rank: '4', val: 4 },
-    { rank: '5', val: 5 },
-    { rank: '6', val: 6 },
-    { rank: '7', val: 7 },
-    { rank: '8', val: 8 },
-    { rank: '9', val: 9 },
-    { rank: '10', val: 0 },
-    { rank: 'J', val: 0 },
-    { rank: 'Q', val: 0 },
-    { rank: 'K', val: 0 }
+    { rank: 'A', val: 1, count: 1 },
+    { rank: '2', val: 2, count: 1 },
+    { rank: '3', val: 3, count: 1 },
+    { rank: '4', val: 4, count: 0 },
+    { rank: '5', val: 5, count: -1 },
+    { rank: '6', val: 6, count: -2 },
+    { rank: '7', val: 7, count: -1 },
+    { rank: '8', val: 8, count: -1 },
+    { rank: '9', val: 9, count: 0 },
+    { rank: '10', val: 0, count: 0 },
+    { rank: 'J', val: 0, count: 0 },
+    { rank: 'Q', val: 0, count: 0 },
+    { rank: 'K', val: 0, count: 0 }
   ];
 
   // DOM Elements
@@ -49,6 +57,13 @@
   const winnerDropBanner = document.getElementById('winner-drop-banner');
   const tableFelt = document.getElementById('table-felt');
   const cardShoe = document.getElementById('card-shoe');
+
+  // Count UI Elements
+  const btnRunningCount = document.getElementById('btn-running-count');
+  const rcValueDisplay = document.getElementById('rc-value-display');
+  const btnHowToCount = document.getElementById('btn-how-to-count');
+  const countModal = document.getElementById('count-modal');
+  const btnCloseCount = document.getElementById('btn-close-count');
 
   const btnDeal = document.getElementById('btn-deal');
   const btnClear = document.getElementById('btn-clear-bets');
@@ -99,7 +114,7 @@
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Synthesized Web Audio (Interactive noises only, no ambient background)
+  // Synthesized Web Audio
   const AudioEngine = {
     ctx: null,
     init() {
@@ -188,6 +203,41 @@
     }
   };
 
+  // Running Count Update Display
+  function renderRunningCount() {
+    const formatted = runningCount > 0 ? `+${runningCount}` : `${runningCount}`;
+    rcValueDisplay.textContent = `RC: ${formatted}`;
+  }
+
+  // Running Count Toggle (Depressed/Undepressed)
+  btnRunningCount.addEventListener('click', () => {
+    AudioEngine.init();
+    AudioEngine.playChip();
+    isCountVisible = !isCountVisible;
+    if (isCountVisible) {
+      btnRunningCount.classList.add('depressed');
+      rcValueDisplay.classList.remove('hidden');
+      renderRunningCount();
+    } else {
+      btnRunningCount.classList.remove('depressed');
+      rcValueDisplay.classList.add('hidden');
+    }
+  });
+
+  // How to Count Modal Toggles
+  btnHowToCount.addEventListener('click', () => {
+    AudioEngine.init();
+    countModal.classList.add('open');
+  });
+
+  btnCloseCount.addEventListener('click', () => {
+    countModal.classList.remove('open');
+  });
+
+  countModal.addEventListener('click', (e) => {
+    if (e.target === countModal) countModal.classList.remove('open');
+  });
+
   // 4-Second Animated Shuffle
   async function perform4SecondShuffle() {
     isDealing = true;
@@ -242,6 +292,7 @@
             rank: r.rank,
             suit: suit,
             val: r.val,
+            count: r.count,
             isRed: suit === '♥' || suit === '♦'
           });
         }
@@ -253,6 +304,11 @@
       [shoe[i], shoe[j]] = [shoe[j], shoe[i]];
     }
 
+    // Reset running count for fresh shoe
+    runningCount = 0;
+    renderRunningCount();
+
+    // Burn cards (burned face down: not revealed, so not counted)
     const burn = shoe.pop();
     const count = burn.val === 0 ? 10 : burn.val;
     for (let b = 0; b < count; b++) {
@@ -456,22 +512,22 @@
       return flipper;
     }
 
-    // Step 1: Draw card 1 (Player) - angle to left of shoe
+    // Step 1: Draw card 1 (Player) - face down at angle to left of shoe
     await sleep(300);
     pHand.push(drawCard());
     const c1 = spawnStagingCard(pHand[0], 0, 0, -8);
 
-    // Step 2: Draw card 2 (Banker) - directly beneath
+    // Step 2: Draw card 2 (Banker) - face down directly beneath
     await sleep(300);
     bHand.push(drawCard());
     const c2 = spawnStagingCard(bHand[0], 0, 100, 4);
 
-    // Step 3: Draw card 3 (Player) - overlaps card 1
+    // Step 3: Draw card 3 (Player) - face down overlaps card 1
     await sleep(300);
     pHand.push(drawCard());
     const c3 = spawnStagingCard(pHand[1], 25, 0, -8);
 
-    // Step 4: Draw card 4 (Banker) - overlaps card 2
+    // Step 4: Draw card 4 (Banker) - face down overlaps card 2
     await sleep(300);
     bHand.push(drawCard());
     const c4 = spawnStagingCard(bHand[1], 25, 100, 4);
@@ -503,7 +559,7 @@
 
     await sleep(450);
 
-    // Clean up staging cards and snap directly into slot DOM
+    // Remove staging cards and snap directly into slot DOM
     c1.remove();
     c2.remove();
     c3.remove();
@@ -528,6 +584,10 @@
     flipperB1.classList.add('flipped');
     flipperB2.classList.add('flipped');
 
+    // COUNTING REFORM: Only now that the 4 cards are revealed face up do we update the count!
+    runningCount += (pHand[0].count + pHand[1].count + bHand[0].count + bHand[1].count);
+    renderRunningCount();
+
     let pScore = calcTotal(pHand);
     let bScore = calcTotal(bHand);
     elPlayerBadge.style.display = 'block';
@@ -545,7 +605,7 @@
       return;
     }
 
-    // Step 7: Player 3rd Card Rule (0-5 draws, 6-7 stands) - Non-overlapping perpendicular slot
+    // Step 7: Player 3rd Card Rule (0-5 draws, 6-7 stands)
     let playerThird = null;
     if (pScore <= 5) {
       elStatusBanner.textContent = 'PLAYER DRAWS 3RD CARD...';
@@ -556,16 +616,21 @@
       const p3Flipper = createCardFlipper(playerThird, true);
       slots.p3.appendChild(p3Flipper);
 
+      // Card is dealt face down, then flips face up after 0.5s
       await sleep(500);
       AudioEngine.playFlip();
       p3Flipper.classList.add('flipped');
+
+      // Update count only when flipped face-up
+      runningCount += playerThird.count;
+      renderRunningCount();
 
       pScore = calcTotal(pHand);
       elPlayerBadge.textContent = pScore;
       await sleep(650);
     }
 
-    // Step 8: Banker 3rd Card Rule (Tableau) - Non-overlapping perpendicular slot
+    // Step 8: Banker 3rd Card Rule (Tableau)
     let bankerDraws = false;
     if (!playerThird) {
       if (bScore <= 5) bankerDraws = true;
@@ -588,9 +653,14 @@
       const b3Flipper = createCardFlipper(bankerThird, true);
       slots.b3.appendChild(b3Flipper);
 
+      // Card is dealt face down, then flips face up after 0.5s
       await sleep(500);
       AudioEngine.playFlip();
       b3Flipper.classList.add('flipped');
+
+      // Update count only when flipped face-up
+      runningCount += bankerThird.count;
+      renderRunningCount();
 
       bScore = calcTotal(bHand);
       elBankerBadge.textContent = bScore;
@@ -600,7 +670,7 @@
     concludeHand(pHand, bHand);
   });
 
-  // Hand Conclusion: 8% Downward Slide for Winners -> 1s Delay -> Outcome Drop (Below Cards) -> Board Discard to Left
+  // Hand Conclusion
   async function concludeHand(pHand, bHand) {
     const pScore = calcTotal(pHand);
     const bScore = calcTotal(bHand);
@@ -615,7 +685,6 @@
     let outcomeText = '';
 
     // If player or banker wins, slide the 2 original cards slowly 8% downward
-    // If there is a tie, no cards move downward
     if (!isTie) {
       if (pWin) {
         slots.p1.classList.add('winning-slide');
