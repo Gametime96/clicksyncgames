@@ -6,11 +6,12 @@
      * 6 = -2
      * 9, 10, J, Q, K = 0
      * Count changes strictly upon cards being flipped face-up
-   - Middle-Right Action Panel (Vertically Centered, Far Right)
-   - Separate "How to Count in Baccarat" modal grid
-   - Winning Hand 2 original cards slide 8% downward
-   - 1-second delay before winner display drops cleanly below cards
-   - All dealt cards swipe off-screen to the left on round transition
+   - Phase-Focus Camera System:
+     * Betting Phase: Table focuses lower half (betting rings clear of UI)
+     * Dealing Phase: Table focuses upper half (cards dealt clearly)
+   - Middle-Right Action Panel positioned safely clear of shoe and cards
+   - Winning hand 8% slide, 1s delay, centered banner below cards
+   - Leftward sweep discard of all dealt cards upon completion
    ======================================================== */
 
 (function () {
@@ -30,7 +31,7 @@
 
   const MAX_BETS = { player: 500, banker: 500, tie: 100 };
 
-  // 8-Deck Shoe Setup with exact Baccarat Count Values
+  // 8-Deck Shoe Setup
   const TOTAL_DECKS = 8;
   let shoe = [];
   const suits = ['♠', '♥', '♦', '♣'];
@@ -51,6 +52,7 @@
   ];
 
   // DOM Elements
+  const casinoStage = document.getElementById('casino-stage');
   const elBankroll = document.getElementById('bankroll-display');
   const elTotalWager = document.getElementById('total-wager-amount');
   const elStatusBanner = document.getElementById('game-status-banner');
@@ -113,6 +115,17 @@
   const chipButtons = document.querySelectorAll('.chip-piece');
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Phase Camera Setter
+  function setGamePhase(phase) {
+    if (phase === 'betting') {
+      casinoStage.classList.remove('phase-dealing');
+      casinoStage.classList.add('phase-betting');
+    } else if (phase === 'dealing') {
+      casinoStage.classList.remove('phase-betting');
+      casinoStage.classList.add('phase-dealing');
+    }
+  }
 
   // Synthesized Web Audio
   const AudioEngine = {
@@ -224,7 +237,7 @@
     }
   });
 
-  // How to Count Modal Toggles
+  // How to Count Modal
   btnHowToCount.addEventListener('click', () => {
     AudioEngine.init();
     countModal.classList.add('open');
@@ -307,7 +320,6 @@
     runningCount = 0;
     renderRunningCount();
 
-    // Burn cards face down
     const burn = shoe.pop();
     const count = burn.val === 0 ? 10 : burn.val;
     for (let b = 0; b < count; b++) {
@@ -316,6 +328,7 @@
 
     isDealing = false;
     updateUI();
+    setGamePhase('betting');
     elStatusBanner.textContent = '8-Deck Shoe loaded. Place your bets.';
   }
 
@@ -396,7 +409,7 @@
     });
   });
 
-  // Betting Spots
+  // Betting Spots Interaction
   Object.keys(spots).forEach(t => {
     spots[t].addEventListener('click', () => {
       if (isDealing || isPaused) return;
@@ -475,7 +488,10 @@
     btnDeal.disabled = true;
     btnClear.disabled = true;
 
-    // Reset card slots
+    // Shift to dealing phase focus (moves lower-half bet rings down in mobile landscape)
+    setGamePhase('dealing');
+
+    // Reset card slots & classes
     Object.values(slots).forEach(slot => {
       slot.innerHTML = '';
       slot.className = 'card-slot';
@@ -494,44 +510,44 @@
     const feltRect = tableFelt.getBoundingClientRect();
     const shoeRect = cardShoe ? cardShoe.getBoundingClientRect() : { left: feltRect.right - 80, top: feltRect.top + 70 };
 
-    const shoeX = shoeRect.left - feltRect.left + 10;
-    const shoeY = shoeRect.top - feltRect.top + 20;
+    const shoeX = shoeRect.left - feltRect.left + 5;
+    const shoeY = shoeRect.top - feltRect.top + 10;
 
     function spawnStagingCard(card, offsetX, offsetY, rot) {
       const flipper = createCardFlipper(card);
       flipper.style.position = 'absolute';
-      flipper.style.width = `${slots.p1.offsetWidth || 62}px`;
-      flipper.style.height = `${slots.p1.offsetHeight || 92}px`;
-      flipper.style.left = `${shoeX - 110 + offsetX}px`;
+      flipper.style.width = `${slots.p1.offsetWidth || 44}px`;
+      flipper.style.height = `${slots.p1.offsetHeight || 64}px`;
+      flipper.style.left = `${shoeX - 85 + offsetX}px`;
       flipper.style.top = `${shoeY + offsetY}px`;
       flipper.style.transform = `rotate(${rot}deg)`;
       flipper.style.zIndex = '35';
-      flipper.style.transition = 'all 0.45s ease';
+      flipper.style.transition = 'all 0.4s ease';
       tableFelt.appendChild(flipper);
       return flipper;
     }
 
     // Step 1: Draw card 1 (Player)
-    await sleep(300);
+    await sleep(250);
     pHand.push(drawCard());
     const c1 = spawnStagingCard(pHand[0], 0, 0, -8);
 
     // Step 2: Draw card 2 (Banker)
-    await sleep(300);
+    await sleep(250);
     bHand.push(drawCard());
-    const c2 = spawnStagingCard(bHand[0], 0, 100, 4);
+    const c2 = spawnStagingCard(bHand[0], 0, 60, 4);
 
     // Step 3: Draw card 3 (Player)
-    await sleep(300);
+    await sleep(250);
     pHand.push(drawCard());
-    const c3 = spawnStagingCard(pHand[1], 25, 0, -8);
+    const c3 = spawnStagingCard(pHand[1], 18, 0, -8);
 
     // Step 4: Draw card 4 (Banker)
-    await sleep(300);
+    await sleep(250);
     bHand.push(drawCard());
-    const c4 = spawnStagingCard(bHand[1], 25, 100, 4);
+    const c4 = spawnStagingCard(bHand[1], 18, 60, 4);
 
-    await sleep(400);
+    await sleep(350);
 
     // Glide pairs to Player & Banker spots
     const p1Rect = slots.p1.getBoundingClientRect();
@@ -556,7 +572,7 @@
     c4.style.top = `${b2Rect.top - feltRect.top}px`;
     c4.style.transform = 'rotate(0deg)';
 
-    await sleep(450);
+    await sleep(400);
 
     c1.remove();
     c2.remove();
@@ -593,7 +609,7 @@
     elPlayerBadge.textContent = pScore;
     elBankerBadge.textContent = bScore;
 
-    await sleep(700);
+    await sleep(650);
 
     // Natural 8 or 9 Check
     if (pScore >= 8 || bScore >= 8) {
@@ -607,14 +623,14 @@
     let playerThird = null;
     if (pScore <= 5) {
       elStatusBanner.textContent = 'PLAYER DRAWS 3RD CARD...';
-      await sleep(400);
+      await sleep(350);
       playerThird = drawCard();
       pHand.push(playerThird);
 
       const p3Flipper = createCardFlipper(playerThird, true);
       slots.p3.appendChild(p3Flipper);
 
-      await sleep(500);
+      await sleep(450);
       AudioEngine.playFlip();
       p3Flipper.classList.add('flipped');
 
@@ -623,7 +639,7 @@
 
       pScore = calcTotal(pHand);
       elPlayerBadge.textContent = pScore;
-      await sleep(650);
+      await sleep(600);
     }
 
     // Step 8: Banker 3rd Card Rule
@@ -642,14 +658,14 @@
 
     if (bankerDraws) {
       elStatusBanner.textContent = 'BANKER DRAWS 3RD CARD...';
-      await sleep(400);
+      await sleep(350);
       const bankerThird = drawCard();
       bHand.push(bankerThird);
 
       const b3Flipper = createCardFlipper(bankerThird, true);
       slots.b3.appendChild(b3Flipper);
 
-      await sleep(500);
+      await sleep(450);
       AudioEngine.playFlip();
       b3Flipper.classList.add('flipped');
 
@@ -658,7 +674,7 @@
 
       bScore = calcTotal(bHand);
       elBankerBadge.textContent = bScore;
-      await sleep(650);
+      await sleep(600);
     }
 
     concludeHand(pHand, bHand);
@@ -743,6 +759,9 @@
 
     bets = { player: 0, tie: 0, banker: 0 };
     updateUI();
+
+    // Revert focus back to betting phase
+    setGamePhase('betting');
 
     isDealing = false;
     btnClear.disabled = false;
