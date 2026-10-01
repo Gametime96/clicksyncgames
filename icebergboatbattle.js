@@ -13,6 +13,9 @@ const livesDisplay = document.getElementById("lives-left");
 const pauseBtn = document.getElementById("pause-btn");
 const pauseModal = document.getElementById("pause-modal");
 const resumeBtn = document.getElementById("resume-btn");
+const instructionsBtn = document.getElementById("instructions-btn");
+const instructionsModal = document.getElementById("instructions-modal");
+const closeInstructionsBtn = document.getElementById("close-instructions-btn");
 const boatSelectModal = document.getElementById("boat-select-modal");
 const selectLevelNum = document.getElementById("select-level-num");
 const statusModal = document.getElementById("status-modal");
@@ -21,13 +24,172 @@ const statusMessage = document.getElementById("status-message");
 const statusBtn = document.getElementById("status-btn");
 const boatCards = document.querySelectorAll(".boat-card");
 
+// Audio Controls
+const muteBtn = document.getElementById("mute-btn");
+const soundWaves = document.getElementById("sound-waves");
+const muteSlash = document.getElementById("mute-slash");
+
 // On-screen D-Pad Buttons
 const btnUp = document.getElementById("btn-up");
 const btnDown = document.getElementById("btn-down");
 const btnLeft = document.getElementById("btn-left");
 const btnRight = document.getElementById("btn-right");
 
-// High-Definition Vector Boat Renderers & Adjusted Speeds
+/* =========================================================
+   Web Audio API Engine: Procedural Sound System
+   ========================================================= */
+
+let audioCtx = null;
+let isMuted = false;
+let engineOsc = null;
+let engineGain = null;
+let engineFilter = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+}
+
+function startEngineSound() {
+  if (!audioCtx || engineOsc) return;
+
+  try {
+    engineOsc = audioCtx.createOscillator();
+    engineGain = audioCtx.createGain();
+    engineFilter = audioCtx.createBiquadFilter();
+
+    engineOsc.type = "sawtooth";
+    engineOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
+
+    engineFilter.type = "lowpass";
+    engineFilter.frequency.setValueAtTime(140, audioCtx.currentTime);
+
+    engineGain.gain.setValueAtTime(isMuted ? 0 : 0.05, audioCtx.currentTime);
+
+    engineOsc.connect(engineFilter);
+    engineFilter.connect(engineGain);
+    engineGain.connect(audioCtx.destination);
+
+    engineOsc.start();
+  } catch (e) {
+    console.warn("Audio initialization bypassed:", e);
+  }
+}
+
+function updateEngineAudio(speedRatio, isThrusting) {
+  if (!audioCtx || !engineOsc || !engineGain) return;
+  if (isMuted) {
+    engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+    return;
+  }
+
+  const baseFreq = isThrusting ? 75 : 42;
+  const targetFreq = baseFreq + speedRatio * 85;
+  const targetGain = isThrusting ? 0.08 : (speedRatio > 0.05 ? 0.05 : 0.02);
+
+  engineOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.1);
+  engineGain.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.1);
+}
+
+function stopEngineSound() {
+  if (engineOsc) {
+    try {
+      engineOsc.stop();
+      engineOsc.disconnect();
+    } catch (e) {}
+    engineOsc = null;
+    engineGain = null;
+    engineFilter = null;
+  }
+}
+
+// Procedural Sound Effects
+function playCrashSound() {
+  if (isMuted || !audioCtx) return;
+  initAudio();
+
+  const bufferSize = audioCtx.sampleRate * 0.45;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.1));
+  }
+
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(260, audioCtx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.4);
+
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  noise.start();
+}
+
+function playCoinSound() {
+  if (isMuted || !audioCtx) return;
+  initAudio();
+
+  const now = audioCtx.currentTime;
+  const osc1 = audioCtx.createOscillator();
+  const osc2 = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc1.type = "sine";
+  osc2.type = "sine";
+
+  osc1.frequency.setValueAtTime(880, now); // A5
+  osc1.frequency.exponentialRampToValueAtTime(1760, now + 0.12); // A6
+
+  osc2.frequency.setValueAtTime(1100, now);
+  osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.12);
+
+  gain.gain.setValueAtTime(0.12, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+  osc1.connect(gain);
+  osc2.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc1.start(now);
+  osc2.start(now);
+  osc1.stop(now + 0.2);
+  osc2.stop(now + 0.2);
+}
+
+function toggleMute() {
+  initAudio();
+  isMuted = !isMuted;
+  if (isMuted) {
+    soundWaves.style.display = "none";
+    muteSlash.style.display = "inline";
+    if (engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  } else {
+    soundWaves.style.display = "inline";
+    muteSlash.style.display = "none";
+  }
+}
+
+muteBtn.addEventListener("click", toggleMute);
+
+/* =========================================================
+   High-Definition Vector Boat Renderers (Scaled Up 10%)
+   ========================================================= */
+
 const BOAT_SPECS = {
   speedBoat: {
     name: "Red & White Speed Boat",
@@ -36,12 +198,12 @@ const BOAT_SPECS = {
     maxSpeed: 3.2,
     accel: 0.08,
     turnSpeed: 0.042,
-    length: 46,
-    width: 22,
-    radius: 16,
+    length: 51,      // 46 * 1.10
+    width: 24,       // 22 * 1.10
+    radius: 18,      // 16 * 1.10
     draw(c) {
       c.save();
-      // Drop Shadow for high definition depth
+      c.scale(1.10, 1.10);
       c.shadowColor = "rgba(0, 15, 30, 0.6)";
       c.shadowBlur = 8;
       c.shadowOffsetX = 2;
@@ -62,7 +224,6 @@ const BOAT_SPECS = {
       c.fill();
       c.shadowColor = "transparent";
 
-      // Hull Outer Rim
       c.lineWidth = 1.5;
       c.strokeStyle = "#ffffff";
       c.stroke();
@@ -91,7 +252,7 @@ const BOAT_SPECS = {
       c.closePath();
       c.fill();
 
-      // Twin Exhaust Vents
+      // Exhaust
       c.fillStyle = "#263238";
       c.fillRect(-20, -7, 4, 3);
       c.fillRect(-20, 4, 4, 3);
@@ -105,24 +266,22 @@ const BOAT_SPECS = {
     maxSpeed: 2.6,
     accel: 0.06,
     turnSpeed: 0.034,
-    length: 48,
-    width: 26,
-    radius: 17,
+    length: 53,      // 48 * 1.10
+    width: 29,       // 26 * 1.10
+    radius: 19,      // 17 * 1.10
     draw(c) {
       c.save();
-      // Drop Shadow
+      c.scale(1.10, 1.10);
       c.shadowColor = "rgba(0, 15, 30, 0.6)";
       c.shadowBlur = 8;
       c.shadowOffsetX = 2;
       c.shadowOffsetY = 3;
 
-      // Dual Silver Aluminum Tubes
       const tubeGrad = c.createLinearGradient(0, -13, 0, -5);
       tubeGrad.addColorStop(0, "#eceff1");
       tubeGrad.addColorStop(0.5, "#b0bec5");
       tubeGrad.addColorStop(1, "#78909c");
 
-      // Port Tube
       c.fillStyle = tubeGrad;
       c.beginPath();
       c.roundRect(-23, -13, 46, 8, 4);
@@ -131,7 +290,6 @@ const BOAT_SPECS = {
       c.lineWidth = 1;
       c.stroke();
 
-      // Starboard Tube
       const tubeGrad2 = c.createLinearGradient(0, 5, 0, 13);
       tubeGrad2.addColorStop(0, "#eceff1");
       tubeGrad2.addColorStop(0.5, "#b0bec5");
@@ -144,16 +302,13 @@ const BOAT_SPECS = {
 
       c.shadowColor = "transparent";
 
-      // Wood-grain / Slate Deck Flooring
       c.fillStyle = "#546e7a";
       c.fillRect(-17, -7, 34, 14);
 
-      // Aluminum Railings
       c.strokeStyle = "#cfd8dc";
       c.lineWidth = 1.5;
       c.strokeRect(-16, -6, 32, 12);
 
-      // Bimini Canvas Sunshade Top
       const biminiGrad = c.createLinearGradient(-11, 0, 4, 0);
       biminiGrad.addColorStop(0, "#263238");
       biminiGrad.addColorStop(1, "#37474f");
@@ -171,18 +326,17 @@ const BOAT_SPECS = {
     maxSpeed: 2.2,
     accel: 0.05,
     turnSpeed: 0.028,
-    length: 56,
-    width: 28,
-    radius: 19,
+    length: 62,      // 56 * 1.10
+    width: 31,       // 28 * 1.10
+    radius: 21,      // 19 * 1.10
     draw(c) {
       c.save();
-      // Drop Shadow
+      c.scale(1.10, 1.10);
       c.shadowColor = "rgba(0, 15, 30, 0.6)";
       c.shadowBlur = 10;
       c.shadowOffsetX = 2;
       c.shadowOffsetY = 4;
 
-      // Deep Navy Ocean Hull
       c.beginPath();
       c.moveTo(28, 0);
       c.quadraticCurveTo(12, -14, -26, -13);
@@ -197,12 +351,10 @@ const BOAT_SPECS = {
       c.fill();
       c.shadowColor = "transparent";
 
-      // White Waterline / Upper Trim
       c.strokeStyle = "#ffffff";
       c.lineWidth = 1.5;
       c.stroke();
 
-      // Multi-tier White Superstructure Cabins
       c.fillStyle = "#f8fafd";
       c.beginPath();
       c.roundRect(-19, -9, 32, 18, 3);
@@ -211,17 +363,14 @@ const BOAT_SPECS = {
       c.lineWidth = 1;
       c.stroke();
 
-      // Upper Bridge Deck
       c.fillStyle = "#e2e8f0";
       c.beginPath();
       c.roundRect(-12, -6, 20, 12, 2);
       c.fill();
 
-      // Bridge Windows
       c.fillStyle = "rgba(0, 200, 255, 0.9)";
       c.fillRect(6, -4, 2, 8);
 
-      // Iconic Red & Black Cruise Funnel (Smokestack)
       c.fillStyle = "#e53935";
       c.beginPath();
       c.arc(-3, 0, 4, 0, Math.PI * 2);
@@ -240,18 +389,17 @@ const BOAT_SPECS = {
     maxSpeed: 2.6,
     accel: 0.06,
     turnSpeed: 0.034,
-    length: 50,
-    width: 26,
-    radius: 18,
+    length: 55,      // 50 * 1.10
+    width: 29,       // 26 * 1.10
+    radius: 20,      // 18 * 1.10
     draw(c) {
       c.save();
-      // Drop Shadow
+      c.scale(1.10, 1.10);
       c.shadowColor = "rgba(0, 15, 30, 0.6)";
       c.shadowBlur = 8;
       c.shadowOffsetX = 2;
       c.shadowOffsetY = 3;
 
-      // Azure Blue Lower Hull
       c.beginPath();
       c.moveTo(25, 0);
       c.quadraticCurveTo(10, -13, -23, -12);
@@ -270,11 +418,9 @@ const BOAT_SPECS = {
       c.lineWidth = 1.5;
       c.stroke();
 
-      // Lower Deck Enclosure
       c.fillStyle = "#ffffff";
       c.fillRect(-17, -8, 28, 16);
 
-      // Elevated Upper Sun Deck
       c.fillStyle = "#e1f5fe";
       c.beginPath();
       c.roundRect(-15, -7, 22, 14, 2);
@@ -283,7 +429,6 @@ const BOAT_SPECS = {
       c.lineWidth = 1;
       c.stroke();
 
-      // Upper Deck Sun Loungers / Canopy
       c.fillStyle = "#ffb300";
       c.fillRect(-8, -4, 10, 8);
       c.restore();
@@ -306,6 +451,7 @@ let timeRemaining = 60;
 let coinsCollected = 0;
 let isPlaying = false;
 let isPaused = false;
+let wasPausedBeforeInstructions = false;
 let timerInterval = null;
 let animationFrameId = null;
 
@@ -331,7 +477,7 @@ let coins = [];
 let particles = [];
 let ambientWaves = [];
 
-// Initialize Ambient Waves
+// Initialize Waves
 for (let i = 0; i < 25; i++) {
   ambientWaves.push({
     x: Math.random() * canvas.width,
@@ -342,21 +488,15 @@ for (let i = 0; i < 25; i++) {
   });
 }
 
-/* =========================================================
-   Render High Definition Boat Previews in Selection Cards
-   ========================================================= */
-
 function renderBoatPreviews() {
   Object.keys(BOAT_SPECS).forEach((key) => {
     const previewCanvas = document.getElementById(`preview-${key}`);
     if (previewCanvas) {
       const pctx = previewCanvas.getContext("2d");
       pctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-
       pctx.save();
-      // Center and render preview at 1.25x scale
       pctx.translate(previewCanvas.width / 2, previewCanvas.height / 2);
-      pctx.scale(1.25, 1.25);
+      pctx.scale(1.15, 1.15);
       BOAT_SPECS[key].draw(pctx);
       pctx.restore();
     }
@@ -364,30 +504,54 @@ function renderBoatPreviews() {
 }
 
 /* =========================================================
-   Event Listeners & Key Handlers
+   Event Listeners: Strict Arrow Keys & P Only
    ========================================================= */
 
-// Keyboard Navigation
 window.addEventListener("keydown", (e) => {
+  initAudio();
   if (e.key === "p" || e.key === "P") {
-    if (isPlaying && !boatSelectModal.classList.contains("hidden") === false) {
+    e.preventDefault();
+    if (isPlaying && boatSelectModal.classList.contains("hidden")) {
       togglePause();
     }
     return;
   }
 
   if (!isPlaying || isPaused) return;
-  if (e.key === "w" || e.key === "ArrowUp") { keys.forward = true; highlightButton(btnUp, true); }
-  if (e.key === "s" || e.key === "ArrowDown") { keys.reverse = true; highlightButton(btnDown, true); }
-  if (e.key === "a" || e.key === "ArrowLeft") { keys.left = true; highlightButton(btnLeft, true); }
-  if (e.key === "d" || e.key === "ArrowRight") { keys.right = true; highlightButton(btnRight, true); }
+
+  if (e.key === "ArrowUp") {
+    e.preventDefault();
+    keys.forward = true;
+    highlightButton(btnUp, true);
+  } else if (e.key === "ArrowDown") {
+    e.preventDefault();
+    keys.reverse = true;
+    highlightButton(btnDown, true);
+  } else if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    keys.left = true;
+    highlightButton(btnLeft, true);
+  } else if (e.key === "ArrowRight") {
+    e.preventDefault();
+    keys.right = true;
+    highlightButton(btnRight, true);
+  }
 });
 
 window.addEventListener("keyup", (e) => {
-  if (e.key === "w" || e.key === "ArrowUp") { keys.forward = false; highlightButton(btnUp, false); }
-  if (e.key === "s" || e.key === "ArrowDown") { keys.reverse = false; highlightButton(btnDown, false); }
-  if (e.key === "a" || e.key === "ArrowLeft") { keys.left = false; highlightButton(btnLeft, false); }
-  if (e.key === "d" || e.key === "ArrowRight") { keys.right = false; highlightButton(btnRight, false); }
+  if (e.key === "ArrowUp") {
+    keys.forward = false;
+    highlightButton(btnUp, false);
+  } else if (e.key === "ArrowDown") {
+    keys.reverse = false;
+    highlightButton(btnDown, false);
+  } else if (e.key === "ArrowLeft") {
+    keys.left = false;
+    highlightButton(btnLeft, false);
+  } else if (e.key === "ArrowRight") {
+    keys.right = false;
+    highlightButton(btnRight, false);
+  }
 });
 
 function highlightButton(btn, active) {
@@ -397,10 +561,11 @@ function highlightButton(btn, active) {
   }
 }
 
-// Bind D-Pad Mobile Touch & Mouse Events
+// On-screen D-Pad Binding
 function attachDPad(element, keyName) {
   const start = (e) => {
     e.preventDefault();
+    initAudio();
     if (isPlaying && !isPaused) {
       keys[keyName] = true;
       element.classList.add("active");
@@ -427,10 +592,12 @@ attachDPad(btnRight, "right");
 
 // Pause & Resume Event Handlers
 pauseBtn.addEventListener("click", () => {
+  initAudio();
   if (isPlaying) togglePause();
 });
 
 resumeBtn.addEventListener("click", () => {
+  initAudio();
   togglePause();
 });
 
@@ -440,14 +607,37 @@ function togglePause() {
 
   if (isPaused) {
     clearInterval(timerInterval);
+    if (engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
     pauseModal.classList.remove("hidden");
   } else {
     pauseModal.classList.add("hidden");
     startTimer();
-    lastTime = performance.now();
     requestAnimationFrame(gameLoop);
   }
 }
+
+// Instructions Modal Handlers
+instructionsBtn.addEventListener("click", () => {
+  initAudio();
+  if (isPlaying && !isPaused) {
+    wasPausedBeforeInstructions = false;
+    isPaused = true;
+    clearInterval(timerInterval);
+    if (engineGain) engineGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  } else {
+    wasPausedBeforeInstructions = true;
+  }
+  instructionsModal.classList.remove("hidden");
+});
+
+closeInstructionsBtn.addEventListener("click", () => {
+  instructionsModal.classList.add("hidden");
+  if (isPlaying && !wasPausedBeforeInstructions) {
+    isPaused = false;
+    startTimer();
+    requestAnimationFrame(gameLoop);
+  }
+});
 
 function startTimer() {
   clearInterval(timerInterval);
@@ -465,6 +655,7 @@ function startTimer() {
 
 boatCards.forEach((card) => {
   card.querySelector(".select-btn").addEventListener("click", () => {
+    initAudio();
     selectedBoatType = card.getAttribute("data-boat");
     boatSelectModal.classList.add("hidden");
     startLevelSession();
@@ -480,6 +671,7 @@ function promptBoatSelection() {
   isPaused = false;
   clearInterval(timerInterval);
   cancelAnimationFrame(animationFrameId);
+  stopEngineSound();
 
   selectLevelNum.textContent = currentLevel;
   boatSelectModal.classList.remove("hidden");
@@ -495,23 +687,19 @@ function startLevelSession() {
   coinsCollected = 0;
   isPaused = false;
 
-  // Reset Player
   player.x = 80;
   player.y = canvas.height / 2;
   player.angle = 0;
   player.speed = 0;
   player.wake = [];
 
-  // Update HUD
   updateHUD();
-
-  // Generate Map Entities
   generateIcebergs(config.icebergs);
   generateCoins(config.coins);
   particles = [];
 
+  startEngineSound();
   startTimer();
-
   isPlaying = true;
   requestAnimationFrame(gameLoop);
 }
@@ -540,11 +728,9 @@ function generateIcebergs(count) {
       const x = 180 + Math.random() * (canvas.width - 240);
       const y = 50 + Math.random() * (canvas.height - 100);
 
-      // Keep clear of player spawn point
       const distToPlayer = Math.hypot(x - 80, y - canvas.height / 2);
       if (distToPlayer < 120) continue;
 
-      // Keep distance between icebergs
       let overlap = false;
       for (let existing of icebergs) {
         if (Math.hypot(x - existing.x, y - existing.y) < radius + existing.radius + 20) {
@@ -554,7 +740,6 @@ function generateIcebergs(count) {
       }
 
       if (!overlap) {
-        // High Definition Irregular Geometry
         const vertices = [];
         const numPoints = 7 + Math.floor(Math.random() * 4);
         for (let p = 0; p < numPoints; p++) {
@@ -572,7 +757,7 @@ function generateIcebergs(count) {
           radius,
           vertices,
           driftAngle: Math.random() * Math.PI * 2,
-          driftSpeed: 0.08 + Math.random() * 0.12, // Tuned down for slower movement
+          driftSpeed: 0.08 + Math.random() * 0.12,
           rot: 0,
           rotSpeed: (Math.random() - 0.5) * 0.003
         };
@@ -596,10 +781,8 @@ function generateCoins(count) {
       const x = 160 + Math.random() * (canvas.width - 220);
       const y = 60 + Math.random() * (canvas.height - 120);
 
-      // Keep clear of spawn
       if (Math.hypot(x - 80, y - canvas.height / 2) < 100) continue;
 
-      // Keep clear of icebergs
       let insideBerg = false;
       for (let berg of icebergs) {
         if (Math.hypot(x - berg.x, y - berg.y) < berg.radius + 25) {
@@ -608,7 +791,6 @@ function generateCoins(count) {
         }
       }
 
-      // Keep clear of other coins
       let overlapCoin = false;
       for (let c of coins) {
         if (Math.hypot(x - c.x, y - c.y) < 60) {
@@ -643,6 +825,8 @@ function handleLevelFailure(title, msg) {
   lives--;
   updateHUD();
 
+  playCrashSound();
+  stopEngineSound();
   createExplosion(player.x, player.y, 40);
 
   setTimeout(() => {
@@ -673,6 +857,7 @@ function handleLevelSuccess() {
   isPlaying = false;
   isPaused = false;
   clearInterval(timerInterval);
+  stopEngineSound();
 
   if (currentLevel < 3) {
     statusTitle.textContent = `Level ${currentLevel} Complete!`;
@@ -762,7 +947,6 @@ function update() {
     player.speed += spec.accel;
     if (player.speed > spec.maxSpeed) player.speed = spec.maxSpeed;
 
-    // Add wake particles
     if (Math.random() < 0.5) {
       const backX = player.x - Math.cos(player.angle) * (spec.length / 2);
       const backY = player.y - Math.sin(player.angle) * (spec.length / 2);
@@ -777,23 +961,23 @@ function update() {
     player.speed -= spec.accel * 0.6;
     if (player.speed < -spec.maxSpeed * 0.4) player.speed = -spec.maxSpeed * 0.4;
   } else {
-    // Hydrodynamic Drag
     player.speed *= 0.965;
     if (Math.abs(player.speed) < 0.02) player.speed = 0;
   }
 
-  // Update Player Position
+  // Audio Update
+  const speedRatio = Math.abs(player.speed) / spec.maxSpeed;
+  updateEngineAudio(speedRatio, keys.forward);
+
   player.x += Math.cos(player.angle) * player.speed;
   player.y += Math.sin(player.angle) * player.speed;
 
-  // Boundary Constraints
   const pad = spec.radius;
   if (player.x < pad) { player.x = pad; player.speed = 0; }
   if (player.x > canvas.width - pad) { player.x = canvas.width - pad; player.speed = 0; }
   if (player.y < pad) { player.y = pad; player.speed = 0; }
   if (player.y > canvas.height - pad) { player.y = canvas.height - pad; player.speed = 0; }
 
-  // Update Wake Particles
   for (let i = player.wake.length - 1; i >= 0; i--) {
     player.wake[i].alpha -= 0.02;
     player.wake[i].radius += 0.25;
@@ -802,13 +986,11 @@ function update() {
     }
   }
 
-  // Update Icebergs (Drift & Collision)
   icebergs.forEach((berg) => {
     berg.x += Math.cos(berg.driftAngle) * berg.driftSpeed;
     berg.y += Math.sin(berg.driftAngle) * berg.driftSpeed;
     berg.rot += berg.rotSpeed;
 
-    // Boundary Bounce
     if (berg.x < berg.radius || berg.x > canvas.width - berg.radius) {
       berg.driftAngle = Math.PI - berg.driftAngle;
     }
@@ -816,20 +998,19 @@ function update() {
       berg.driftAngle = -berg.driftAngle;
     }
 
-    // Collision Check: Boat vs Iceberg
     const distToBerg = Math.hypot(player.x - berg.x, player.y - berg.y);
     if (distToBerg < spec.radius + berg.radius * 0.85) {
       handleLevelFailure("Collision!", "Your boat crashed into an iceberg.");
     }
   });
 
-  // Update Coins & Collision
   for (let i = coins.length - 1; i >= 0; i--) {
     const coin = coins[i];
     coin.pulse += 0.05;
 
     const distToCoin = Math.hypot(player.x - coin.x, player.y - coin.y);
     if (distToCoin < spec.radius + coin.radius) {
+      playCoinSound();
       createCoinSparkle(coin.x, coin.y);
       coins.splice(i, 1);
       coinsCollected++;
@@ -841,7 +1022,6 @@ function update() {
     }
   }
 
-  // Update Ambient Waves
   ambientWaves.forEach((wave) => {
     wave.x += wave.speed;
     if (wave.x > canvas.width + 40) {
@@ -850,7 +1030,6 @@ function update() {
     }
   });
 
-  // Update Particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.x += p.vx;
@@ -863,7 +1042,7 @@ function update() {
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 1. High Definition Ocean Gradient
+  // Ocean Gradient
   const oceanGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
   oceanGrad.addColorStop(0, "#061d38");
   oceanGrad.addColorStop(0.5, "#041529");
@@ -871,7 +1050,7 @@ function render() {
   ctx.fillStyle = oceanGrad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 2. Ambient Water Reflections
+  // Reflections
   ctx.save();
   ambientWaves.forEach((wave) => {
     ctx.strokeStyle = `rgba(100, 220, 255, ${wave.opacity})`;
@@ -883,7 +1062,7 @@ function render() {
   });
   ctx.restore();
 
-  // 3. Boat Wakes
+  // Wakes
   player.wake.forEach((w) => {
     ctx.beginPath();
     ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
@@ -891,19 +1070,17 @@ function render() {
     ctx.fill();
   });
 
-  // 4. Render Icebergs
+  // Icebergs
   icebergs.forEach((berg) => {
     ctx.save();
     ctx.translate(berg.x, berg.y);
     ctx.rotate(berg.rot);
 
-    // Underwater Subsurface Halo
     ctx.beginPath();
     ctx.arc(0, 0, berg.radius * 1.25, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0, 180, 216, 0.12)";
     ctx.fill();
 
-    // Iceberg Solid Base
     ctx.beginPath();
     ctx.moveTo(berg.vertices[0].x, berg.vertices[0].y);
     for (let v = 1; v < berg.vertices.length; v++) {
@@ -923,7 +1100,6 @@ function render() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Internal Facets
     ctx.beginPath();
     ctx.moveTo(berg.vertices[0].x, berg.vertices[0].y);
     ctx.lineTo(0, 0);
@@ -935,7 +1111,7 @@ function render() {
     ctx.restore();
   });
 
-  // 5. Render Collectible Coins
+  // Collectible Coins
   coins.forEach((coin) => {
     ctx.save();
     ctx.translate(coin.x, coin.y);
@@ -943,13 +1119,11 @@ function render() {
     const scale = 1 + Math.sin(coin.pulse) * 0.12;
     ctx.scale(scale, scale);
 
-    // Outer Glow
     ctx.beginPath();
     ctx.arc(0, 0, coin.radius * 1.5, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(255, 215, 0, 0.25)";
     ctx.fill();
 
-    // Coin Body
     ctx.beginPath();
     ctx.arc(0, 0, coin.radius, 0, Math.PI * 2);
     const coinGrad = ctx.createRadialGradient(0, -3, 2, 0, 0, coin.radius);
@@ -962,7 +1136,6 @@ function render() {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Inscribed Star
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 11px sans-serif";
     ctx.textAlign = "center";
@@ -972,7 +1145,7 @@ function render() {
     ctx.restore();
   });
 
-  // 6. Draw Player Boat
+  // Boat
   if (isPlaying) {
     ctx.save();
     ctx.translate(player.x, player.y);
@@ -981,7 +1154,7 @@ function render() {
     ctx.restore();
   }
 
-  // 7. Render Particles
+  // Particles
   particles.forEach((p) => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
