@@ -6,7 +6,7 @@
      * 6 = -2
      * 9, 10, J, Q, K = 0
      * Count changes strictly upon cards being flipped face-up
-   - Depressable toggle button for Running Count (lowered below shoe)
+   - Middle-Right Action Panel (Vertically Centered, Far Right)
    - Separate "How to Count in Baccarat" modal grid
    - Winning Hand 2 original cards slide 8% downward
    - 1-second delay before winner display drops cleanly below cards
@@ -209,7 +209,7 @@
     rcValueDisplay.textContent = `RC: ${formatted}`;
   }
 
-  // Running Count Toggle (Depressed/Undepressed)
+  // Running Count Toggle
   btnRunningCount.addEventListener('click', () => {
     AudioEngine.init();
     AudioEngine.playChip();
@@ -304,11 +304,10 @@
       [shoe[i], shoe[j]] = [shoe[j], shoe[i]];
     }
 
-    // Reset running count for fresh shoe
     runningCount = 0;
     renderRunningCount();
 
-    // Burn cards (burned face down: not revealed, so not counted)
+    // Burn cards face down
     const burn = shoe.pop();
     const count = burn.val === 0 ? 10 : burn.val;
     for (let b = 0; b < count; b++) {
@@ -397,7 +396,7 @@
     });
   });
 
-  // Betting Spots Interaction with Dynamic Max Bet Warnings
+  // Betting Spots
   Object.keys(spots).forEach(t => {
     spots[t].addEventListener('click', () => {
       if (isDealing || isPaused) return;
@@ -476,7 +475,7 @@
     btnDeal.disabled = true;
     btnClear.disabled = true;
 
-    // Reset card slots & classes
+    // Reset card slots
     Object.values(slots).forEach(slot => {
       slot.innerHTML = '';
       slot.className = 'card-slot';
@@ -512,29 +511,29 @@
       return flipper;
     }
 
-    // Step 1: Draw card 1 (Player) - face down at angle to left of shoe
+    // Step 1: Draw card 1 (Player)
     await sleep(300);
     pHand.push(drawCard());
     const c1 = spawnStagingCard(pHand[0], 0, 0, -8);
 
-    // Step 2: Draw card 2 (Banker) - face down directly beneath
+    // Step 2: Draw card 2 (Banker)
     await sleep(300);
     bHand.push(drawCard());
     const c2 = spawnStagingCard(bHand[0], 0, 100, 4);
 
-    // Step 3: Draw card 3 (Player) - face down overlaps card 1
+    // Step 3: Draw card 3 (Player)
     await sleep(300);
     pHand.push(drawCard());
     const c3 = spawnStagingCard(pHand[1], 25, 0, -8);
 
-    // Step 4: Draw card 4 (Banker) - face down overlaps card 2
+    // Step 4: Draw card 4 (Banker)
     await sleep(300);
     bHand.push(drawCard());
     const c4 = spawnStagingCard(bHand[1], 25, 100, 4);
 
     await sleep(400);
 
-    // Step 5: Both pairs glide smoothly left across the felt to Player & Banker spots
+    // Glide pairs to Player & Banker spots
     const p1Rect = slots.p1.getBoundingClientRect();
     const p2Rect = slots.p2.getBoundingClientRect();
     const b1Rect = slots.b1.getBoundingClientRect();
@@ -559,7 +558,6 @@
 
     await sleep(450);
 
-    // Remove staging cards and snap directly into slot DOM
     c1.remove();
     c2.remove();
     c3.remove();
@@ -577,14 +575,14 @@
 
     void flipperP1.offsetHeight;
 
-    // Immediately flip face-up once positioned in designated areas
+    // Flip face-up immediately
     AudioEngine.playFlip();
     flipperP1.classList.add('flipped');
     flipperP2.classList.add('flipped');
     flipperB1.classList.add('flipped');
     flipperB2.classList.add('flipped');
 
-    // COUNTING REFORM: Only now that the 4 cards are revealed face up do we update the count!
+    // Update count only after face-up flip
     runningCount += (pHand[0].count + pHand[1].count + bHand[0].count + bHand[1].count);
     renderRunningCount();
 
@@ -605,7 +603,7 @@
       return;
     }
 
-    // Step 7: Player 3rd Card Rule (0-5 draws, 6-7 stands)
+    // Step 7: Player 3rd Card Rule
     let playerThird = null;
     if (pScore <= 5) {
       elStatusBanner.textContent = 'PLAYER DRAWS 3RD CARD...';
@@ -616,12 +614,10 @@
       const p3Flipper = createCardFlipper(playerThird, true);
       slots.p3.appendChild(p3Flipper);
 
-      // Card is dealt face down, then flips face up after 0.5s
       await sleep(500);
       AudioEngine.playFlip();
       p3Flipper.classList.add('flipped');
 
-      // Update count only when flipped face-up
       runningCount += playerThird.count;
       renderRunningCount();
 
@@ -630,7 +626,7 @@
       await sleep(650);
     }
 
-    // Step 8: Banker 3rd Card Rule (Tableau)
+    // Step 8: Banker 3rd Card Rule
     let bankerDraws = false;
     if (!playerThird) {
       if (bScore <= 5) bankerDraws = true;
@@ -653,12 +649,10 @@
       const b3Flipper = createCardFlipper(bankerThird, true);
       slots.b3.appendChild(b3Flipper);
 
-      // Card is dealt face down, then flips face up after 0.5s
       await sleep(500);
       AudioEngine.playFlip();
       b3Flipper.classList.add('flipped');
 
-      // Update count only when flipped face-up
       runningCount += bankerThird.count;
       renderRunningCount();
 
@@ -684,7 +678,6 @@
 
     let outcomeText = '';
 
-    // If player or banker wins, slide the 2 original cards slowly 8% downward
     if (!isTie) {
       if (pWin) {
         slots.p1.classList.add('winning-slide');
@@ -693,13 +686,11 @@
         slots.b1.classList.add('winning-slide');
         slots.b2.classList.add('winning-slide');
       }
-      // Exactly 1 second delay before displaying who won
       await sleep(1000);
     } else {
       await sleep(300);
     }
 
-    // Set payouts and outcome label
     if (isTie) {
       outcomeText = 'TIE';
       if (bets.tie > 0) roundReturn += (bets.tie * 8) + bets.tie;
@@ -712,7 +703,6 @@
       if (bets.banker > 0) roundReturn += bets.banker + (bets.banker * 0.95);
     }
 
-    // Drop the centered outcome banner (positioned at top: 54% to clear cards)
     winnerDropBanner.textContent = outcomeText;
     winnerDropBanner.classList.add('dropped');
 
@@ -727,13 +717,11 @@
       elStatusBanner.textContent = outcomeText;
     }
 
-    // Hold outcome on screen for 2.2 seconds before transition
     await sleep(2200);
 
-    // Retract outcome banner
     winnerDropBanner.classList.remove('dropped');
 
-    // Remove ALL dealt cards to the left direction (shoe stack remains untouched)
+    // Swipe all dealt cards to the left
     Object.values(slots).forEach(slot => {
       if (slot.children.length > 0) {
         slot.classList.remove('winning-slide');
@@ -741,10 +729,8 @@
       }
     });
 
-    // Allow swipe-left animation to finish completely
     await sleep(800);
 
-    // Clear dealt card slots
     Object.values(slots).forEach(slot => {
       slot.innerHTML = '';
       slot.className = 'card-slot';
@@ -755,7 +741,6 @@
     elPlayerBadge.style.display = 'none';
     elBankerBadge.style.display = 'none';
 
-    // Reset bets and table for next hand
     bets = { player: 0, tie: 0, banker: 0 };
     updateUI();
 
