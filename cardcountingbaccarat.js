@@ -6,12 +6,11 @@
      * 6 = -2
      * 9, 10, J, Q, K = 0
      * Count changes strictly upon cards being flipped face-up
-   - Phase-Focus Camera System:
-     * Betting Phase: Table focuses lower half (betting rings clear of UI)
-     * Dealing Phase: Table focuses upper half (cards dealt clearly)
-   - Middle-Right Action Panel positioned safely clear of shoe and cards
-   - Winning hand 8% slide, 1s delay, centered banner below cards
-   - Leftward sweep discard of all dealt cards upon completion
+   - Modal-Driven Game History:
+     * Permanent left board removed
+     * "HISTORY" button placed beneath "HOW TO COUNT"
+     * Dedicated modal displays round number, scores, and outcome
+   - Phase-Focus Camera System for Mobile Landscape
    ======================================================== */
 
 (function () {
@@ -28,6 +27,10 @@
   // Card Counting State
   let runningCount = 0;
   let isCountVisible = false;
+
+  // History State
+  const historyList = [];
+  let roundCounter = 0;
 
   const MAX_BETS = { player: 500, banker: 500, tie: 100 };
 
@@ -67,6 +70,12 @@
   const countModal = document.getElementById('count-modal');
   const btnCloseCount = document.getElementById('btn-close-count');
 
+  // History UI Elements
+  const btnHistory = document.getElementById('btn-history');
+  const historyModal = document.getElementById('history-modal');
+  const btnCloseHistory = document.getElementById('btn-close-history');
+  const historyModalTbody = document.getElementById('history-modal-tbody');
+
   const btnDeal = document.getElementById('btn-deal');
   const btnClear = document.getElementById('btn-clear-bets');
   const btnSound = document.getElementById('btn-sound-toggle');
@@ -80,7 +89,6 @@
 
   const shuffleOverlay = document.getElementById('shuffle-overlay');
   const shuffleContainer = document.getElementById('shuffle-cards-container');
-  const elHistoryGrid = document.getElementById('history-grid');
 
   const elPlayerBadge = document.getElementById('player-score-badge');
   const elBankerBadge = document.getElementById('banker-score-badge');
@@ -251,6 +259,44 @@
     if (e.target === countModal) countModal.classList.remove('open');
   });
 
+  // History Modal Handlers
+  function renderHistoryModal() {
+    if (historyList.length === 0) {
+      historyModalTbody.innerHTML = '<tr><td colspan="4" class="no-history-cell">No hands dealt yet in this shoe.</td></tr>';
+      return;
+    }
+
+    historyModalTbody.innerHTML = '';
+    historyList.slice().reverse().forEach(item => {
+      const row = document.createElement('tr');
+      let outcomeClass = 'hist-out-player';
+      if (item.outcome === 'Banker') outcomeClass = 'hist-out-banker';
+      if (item.outcome === 'Tie') outcomeClass = 'hist-out-tie';
+
+      row.innerHTML = `
+        <td><strong>#${item.round}</strong></td>
+        <td>${item.pScore}</td>
+        <td>${item.bScore}</td>
+        <td class="${outcomeClass}">${item.outcome}</td>
+      `;
+      historyModalTbody.appendChild(row);
+    });
+  }
+
+  btnHistory.addEventListener('click', () => {
+    AudioEngine.init();
+    renderHistoryModal();
+    historyModal.classList.add('open');
+  });
+
+  btnCloseHistory.addEventListener('click', () => {
+    historyModal.classList.remove('open');
+  });
+
+  historyModal.addEventListener('click', (e) => {
+    if (e.target === historyModal) historyModal.classList.remove('open');
+  });
+
   // 4-Second Animated Shuffle
   async function perform4SecondShuffle() {
     isDealing = true;
@@ -319,6 +365,10 @@
 
     runningCount = 0;
     renderRunningCount();
+
+    // Reset history for fresh shoe
+    historyList.length = 0;
+    roundCounter = 0;
 
     const burn = shoe.pop();
     const count = burn.val === 0 ? 10 : burn.val;
@@ -389,14 +439,18 @@
     return '1';
   }
 
-  function addHistory(pScore, bScore) {
-    const row = document.createElement('div');
-    row.className = 'hist-row';
-    row.innerHTML = `<span>${pScore}</span><span>${bScore}</span>`;
-    elHistoryGrid.insertBefore(row, elHistoryGrid.firstChild);
-    if (elHistoryGrid.children.length > 5) {
-      elHistoryGrid.removeChild(elHistoryGrid.lastChild);
-    }
+  function recordHistory(pScore, bScore) {
+    roundCounter += 1;
+    let outcome = 'Tie';
+    if (pScore > bScore) outcome = 'Player';
+    if (bScore > pScore) outcome = 'Banker';
+
+    historyList.push({
+      round: roundCounter,
+      pScore: pScore,
+      bScore: bScore,
+      outcome: outcome
+    });
   }
 
   chipButtons.forEach(btn => {
@@ -447,6 +501,7 @@
 
   btnSound.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
+    AudioEngine.toggleSound(soundEnabled);
     btnSound.textContent = soundEnabled ? '🔊' : '🔇';
   });
 
@@ -488,7 +543,6 @@
     btnDeal.disabled = true;
     btnClear.disabled = true;
 
-    // Shift to dealing phase focus (moves lower-half bet rings down in mobile landscape)
     setGamePhase('dealing');
 
     // Reset card slots & classes
@@ -685,7 +739,7 @@
     const pScore = calcTotal(pHand);
     const bScore = calcTotal(bHand);
 
-    addHistory(pScore, bScore);
+    recordHistory(pScore, bScore);
 
     let roundReturn = 0;
     const isTie = (pScore === bScore);
@@ -760,7 +814,6 @@
     bets = { player: 0, tie: 0, banker: 0 };
     updateUI();
 
-    // Revert focus back to betting phase
     setGamePhase('betting');
 
     isDealing = false;
