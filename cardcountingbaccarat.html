@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="cardcountingbaccarat.css">
 </head>
 <body>
-  <div class="casino-stage">
+  <div class="casino-stage" id="casino-stage">
     <!-- Top Navigation Bar -->
-    <header class="top-nav">
+    <header class="top-nav" id="top-nav">
       <div class="top-left-cluster">
         <button id="btn-instructions" class="casino-btn square-btn" title="View Game Rules">RULES</button>
         <a href="index.html" class="return-home-btn square-btn" title="Return to ClickSyncGames">
@@ -43,7 +43,7 @@
       </div>
 
       <!-- Left History Scoreboard -->
-      <aside class="history-board">
+      <aside class="history-board" id="history-board">
         <div class="history-header">HISTORY</div>
         <div class="history-sub">
           <span>P</span>
@@ -65,8 +65,8 @@
         </div>
       </aside>
 
-      <!-- Middle-Right Action Panel (Vertically Centered, Far Right) -->
-      <aside class="middle-right-panel">
+      <!-- Middle-Right Action Panel (Running Count & How to Count) -->
+      <aside class="middle-right-panel" id="middle-right-panel">
         <button id="btn-running-count" class="side-action-btn toggle-btn" title="Toggle Running Count">
           <span class="btn-main-txt">RUNNING COUNT</span>
           <span id="rc-value-display" class="rc-tag hidden">RC: 0</span>
@@ -80,8 +80,8 @@
       <!-- Centered Outcome Banner -->
       <div id="winner-drop-banner" class="winner-drop-banner"></div>
 
-      <!-- Dealt Cards Area -->
-      <section class="deal-area">
+      <!-- Dealt Cards Area (Upper Half Focus) -->
+      <section class="deal-area" id="deal-area">
         <!-- Player Hand -->
         <div class="hand-column" id="player-hand-spot">
           <div class="hand-label-placard">PLAYER</div>
@@ -105,8 +105,8 @@
         </div>
       </section>
 
-      <!-- Circular Betting Rings -->
-      <section class="betting-rings-area">
+      <!-- Circular Betting Rings (Lower Half Focus) -->
+      <section class="betting-rings-area" id="betting-rings-area">
         <!-- Player Bet Circle -->
         <div class="bet-spot-wrap">
           <svg class="outer-arch-svg" viewBox="0 0 140 38">
@@ -149,7 +149,7 @@
     </main>
 
     <!-- Bottom Armrest & Chip Controls -->
-    <footer class="table-armrest-bar">
+    <footer class="table-armrest-bar" id="table-armrest-bar">
       <div class="chips-tray-crt">
         <button class="chip-piece chip-1 active-chip" data-amount="1" title="Chip $1">
           <span class="chip-inner">1</span>
