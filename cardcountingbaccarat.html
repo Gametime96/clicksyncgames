@@ -42,22 +42,6 @@
         <div id="shuffle-cards-container" class="shuffle-cards-container"></div>
       </div>
 
-      <!-- Left History Scoreboard -->
-      <aside class="history-board" id="history-board">
-        <div class="history-header">HISTORY</div>
-        <div class="history-sub">
-          <span>P</span>
-          <span>B</span>
-        </div>
-        <div class="history-grid" id="history-grid">
-          <div class="hist-row"><span>-</span><span>-</span></div>
-          <div class="hist-row"><span>-</span><span>-</span></div>
-          <div class="hist-row"><span>-</span><span>-</span></div>
-          <div class="hist-row"><span>-</span><span>-</span></div>
-          <div class="hist-row"><span>-</span><span>-</span></div>
-        </div>
-      </aside>
-
       <!-- Right Side Dealing Shoe Stack -->
       <aside class="card-shoe-stack" id="card-shoe">
         <div class="deck-shadow-base">
@@ -65,7 +49,7 @@
         </div>
       </aside>
 
-      <!-- Middle-Right Action Panel (Running Count & How to Count) -->
+      <!-- Middle-Right Action Panel -->
       <aside class="middle-right-panel" id="middle-right-panel">
         <button id="btn-running-count" class="side-action-btn toggle-btn" title="Toggle Running Count">
           <span class="btn-main-txt">RUNNING COUNT</span>
@@ -75,12 +59,16 @@
         <button id="btn-how-to-count" class="side-action-btn" title="How to Count in Baccarat">
           <span>HOW TO COUNT<br>IN BACCARAT</span>
         </button>
+
+        <button id="btn-history" class="side-action-btn" title="View Game History">
+          <span>HISTORY</span>
+        </button>
       </aside>
 
       <!-- Centered Outcome Banner -->
       <div id="winner-drop-banner" class="winner-drop-banner"></div>
 
-      <!-- Dealt Cards Area (Upper Half Focus) -->
+      <!-- Dealt Cards Area -->
       <section class="deal-area" id="deal-area">
         <!-- Player Hand -->
         <div class="hand-column" id="player-hand-spot">
@@ -105,7 +93,7 @@
         </div>
       </section>
 
-      <!-- Circular Betting Rings (Lower Half Focus) -->
+      <!-- Circular Betting Rings -->
       <section class="betting-rings-area" id="betting-rings-area">
         <!-- Player Bet Circle -->
         <div class="bet-spot-wrap">
@@ -289,6 +277,35 @@
           </table>
         </div>
         <p class="tableau-note"><em>The running count updates only after cards are revealed face up.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Modal (Opens via History Button) -->
+  <div id="history-modal" class="modal-backdrop">
+    <div class="modal-card history-modal-card">
+      <div class="modal-header">
+        <h2>GAME HISTORY</h2>
+        <button id="btn-close-history" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="history-modal-table-wrap">
+          <table class="history-modal-table">
+            <thead>
+              <tr>
+                <th>Round</th>
+                <th>Player Score</th>
+                <th>Banker Score</th>
+                <th>Outcome</th>
+              </tr>
+            </thead>
+            <tbody id="history-modal-tbody">
+              <tr>
+                <td colspan="4" class="no-history-cell">No hands dealt yet in this shoe.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
