@@ -1,10 +1,9 @@
 /* ========================================================
    CLICK SYNC GAMES - CASINO BACCARAT STYLESHEET
    - Dark Blue Felt
-   - Dynamic Phase-Focus Camera for Mobile Landscape
-   - Zero Overlap in all viewports (Desktop, Portrait, Landscape)
-   - Immediate Face-Up Flip & 8% Forward Winning Card Slide
-   - Left Discard Swipe for All Dealt Cards
+   - Dedicated History Modal (Persistent Left Box Removed)
+   - Middle-Right Action Stack: Running Count, How to Count, History
+   - Phase-Focus Camera System for Mobile Landscape
    ======================================================== */
 
 * {
@@ -219,7 +218,7 @@ body {
   background-size: 14px 14px;
 }
 
-/* Middle-Right Action Panel */
+/* Middle-Right Action Stack */
 .middle-right-panel {
   position: absolute;
   top: 50%;
@@ -228,7 +227,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
   z-index: 22;
   pointer-events: auto;
   transition: all 0.3s ease;
@@ -380,72 +379,6 @@ body {
 .winner-drop-banner.dropped {
   top: 54%;
   opacity: 1;
-}
-
-/* History Board */
-.history-board {
-  position: absolute;
-  top: 65px;
-  left: 18px;
-  width: 78px;
-  background: #0d1e34;
-  border: 2px solid #b8860b;
-  border-radius: 6px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.8);
-  color: #ffffff;
-  font-size: 0.75rem;
-  text-align: center;
-  overflow: hidden;
-  z-index: 5;
-}
-
-.history-header {
-  background: #1b3557;
-  color: #ffd700;
-  font-weight: 800;
-  font-size: 0.68rem;
-  letter-spacing: 1px;
-  padding: 3px 0;
-  border-bottom: 2px solid #b8860b;
-}
-
-.history-sub {
-  display: flex;
-  background: #112540;
-  font-weight: bold;
-  border-bottom: 1px solid #1e3f68;
-}
-
-.history-sub span {
-  flex: 1;
-  padding: 2px 0;
-}
-
-.history-grid {
-  display: flex;
-  flex-direction: column;
-}
-
-.hist-row {
-  display: flex;
-  border-bottom: 1px solid #162c49;
-  font-size: 0.8rem;
-  font-weight: bold;
-}
-
-.hist-row span {
-  flex: 1;
-  padding: 3px 0;
-  background: #0a1728;
-}
-
-.hist-row span:first-child {
-  border-right: 1px solid #162c49;
-  color: #64b5f6;
-}
-
-.hist-row span:last-child {
-  color: #ef5350;
 }
 
 /* Dealt Hands Area */
@@ -907,7 +840,7 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.9);
 }
 
-.rules-modal-card, .count-modal-card {
+.rules-modal-card, .count-modal-card, .history-modal-card {
   max-width: 600px;
   max-height: 85vh;
   overflow-y: auto;
@@ -960,21 +893,21 @@ body {
   text-transform: uppercase;
 }
 
-.tableau-scroll-wrap, .count-grid-wrap {
+.tableau-scroll-wrap, .count-grid-wrap, .history-modal-table-wrap {
   overflow-x: auto;
   margin-bottom: 10px;
   border: 1px solid rgba(255, 215, 0, 0.4);
   border-radius: 6px;
 }
 
-.tableau-grid, .count-grid {
+.tableau-grid, .count-grid, .history-modal-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   text-align: center;
 }
 
-.tableau-grid th, .count-grid th {
+.tableau-grid th, .count-grid th, .history-modal-table th {
   background: #153b66;
   color: #ffd700;
   padding: 8px 6px;
@@ -983,7 +916,7 @@ body {
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.tableau-grid td, .count-grid td {
+.tableau-grid td, .count-grid td, .history-modal-table td {
   padding: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -1038,6 +971,28 @@ body {
   font-size: 0.75rem;
   color: #90caf9;
   line-height: 1.4;
+}
+
+/* History Modal Custom Styling */
+.hist-out-player {
+  color: #64b5f6;
+  font-weight: bold;
+}
+
+.hist-out-banker {
+  color: #ef5350;
+  font-weight: bold;
+}
+
+.hist-out-tie {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.no-history-cell {
+  padding: 24px 0 !important;
+  color: #90caf9;
+  font-style: italic;
 }
 
 .pause-card {
@@ -1120,10 +1075,6 @@ body {
     font-size: 0.58rem;
   }
 
-  .history-board {
-    display: none;
-  }
-
   .betting-rings-area {
     gap: 10px;
     margin-bottom: 12px;
@@ -1182,8 +1133,7 @@ body {
 
 /* ========================================================
    LANDSCAPE MOBILE (max-height: 500px, orientation: landscape)
-   PHASE-FOCUS CAMERA ARCHITECTURE:
-   Eliminates all overlaps by dynamically prioritizing active zones.
+   PHASE-FOCUS CAMERA ARCHITECTURE
    ======================================================== */
 @media (max-height: 500px) and (orientation: landscape) {
   .casino-stage {
@@ -1191,7 +1141,6 @@ body {
     height: 100dvh;
   }
 
-  /* Compact Header pinned to top edges */
   .top-nav {
     top: 4px;
     left: 8px;
@@ -1234,25 +1183,6 @@ body {
     font-size: 0.9rem;
   }
 
-  /* Miniature History Board tucked far left */
-  .history-board {
-    top: 36px;
-    left: 8px;
-    width: 54px;
-    font-size: 0.65rem;
-  }
-
-  .history-header {
-    font-size: 0.55rem;
-    padding: 1px 0;
-  }
-
-  .hist-row span {
-    padding: 1px 0;
-    font-size: 0.65rem;
-  }
-
-  /* Small Shoe Stack parked upper right, clear of deck & buttons */
   .card-shoe-stack {
     top: 36px;
     right: 8px;
@@ -1260,7 +1190,6 @@ body {
     height: 60px;
   }
 
-  /* Middle-Right Action Panel docked along the far right side */
   .middle-right-panel {
     top: auto;
     bottom: 46px;
@@ -1282,7 +1211,6 @@ body {
     margin-top: 1px;
   }
 
-  /* Compact Bottom Armrest */
   .table-armrest-bar {
     padding: 4px 10px;
     height: 42px;
@@ -1321,7 +1249,6 @@ body {
     font-size: 1rem;
   }
 
-  /* Deal Area Scaling */
   .deal-area {
     top: 34px;
     left: 48%;
@@ -1353,7 +1280,6 @@ body {
   .card-rank { font-size: 0.7rem; }
   .card-suit-center { font-size: 1rem; }
 
-  /* Betting Rings Scaling */
   .betting-rings-area {
     gap: 16px;
     margin-bottom: 6px;
@@ -1401,9 +1327,7 @@ body {
     top: 48%;
   }
 
-  /* --- PHASE FOCUS STATES IN LANDSCAPE --- */
-  
-  /* State 1: BETTING PHASE (Default) -> Focus Lower Half */
+  /* Phase Focus States */
   .casino-stage.phase-betting .deal-area {
     opacity: 0.25;
     transform: translateX(-50%) scale(0.85);
@@ -1415,7 +1339,6 @@ body {
     transform: translateY(-8px) scale(1.08);
   }
 
-  /* State 2: DEALING & RESOLUTION PHASE -> Focus Upper Half */
   .casino-stage.phase-dealing .deal-area {
     opacity: 1;
     transform: translateX(-50%) scale(1.05);
