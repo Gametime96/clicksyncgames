@@ -45,10 +45,10 @@ body {
 #top-bar {
   flex-shrink: 0;
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   background: linear-gradient(180deg, #0e243f 0%, #081729 100%);
   display: flex;
-  flex-wrap: wrap; /* Allows safe second-row wrapping instead of overlapping */
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   padding: 6px max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
@@ -57,7 +57,7 @@ body {
   gap: 8px 12px;
 }
 
-/* Cluster 1: Left Brand & Instructions */
+/* Cluster 1: Left Brand Logo & Instructions */
 .top-nav-cluster {
   display: flex;
   align-items: center;
@@ -68,7 +68,7 @@ body {
 .nav-back-link {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   text-decoration: none;
   color: #8ecae6;
   font-weight: 600;
@@ -76,13 +76,13 @@ body {
   white-space: nowrap;
 }
 
-.brand-text {
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.brand-sync {
-  color: #00d9ff;
+.brand-logo-img {
+  height: 28px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  border-radius: 4px;
+  display: block;
 }
 
 /* Cluster 2: HUD Data Items */
@@ -209,7 +209,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Touch D-Pad Controls (+10% Larger & Spaced)
+   Touch D-Pad Controls (+5% Size, +2% Spacing)
    --------------------------------------------------------- */
 #touch-controls {
   position: absolute;
@@ -218,23 +218,23 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   z-index: 100;
   touch-action: none;
 }
 
 .dpad-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
 }
 
 .dpad-btn {
-  width: 52px;
-  height: 52px;
+  width: 55px;  /* 52px * 1.05 = ~55px */
+  height: 55px;
   background: rgba(255, 255, 255, 0.94);
   border: 2.5px solid #002b5c;
-  border-radius: 10px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -250,8 +250,8 @@ body {
 }
 
 .arrow-svg {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   fill: #002b5c;
 }
 
@@ -488,7 +488,6 @@ body {
     gap: 4px 8px;
   }
 
-  /* Keep brand & pause/mute on Row 1 */
   .top-nav-cluster {
     order: 1;
   }
@@ -496,7 +495,6 @@ body {
     order: 2;
   }
 
-  /* Wrap stats cleanly to Row 2 across full width without crowding */
   .hud-stats-group {
     order: 3;
     width: 100%;
@@ -514,13 +512,14 @@ body {
   .hud-val {
     font-size: 12px;
   }
+  .brand-logo-img {
+    height: 24px;
+    max-width: 110px;
+  }
 }
 
 /* Extra Compact Phones */
 @media (max-width: 480px) {
-  .brand-text {
-    font-size: 12px;
-  }
   #instructions-btn {
     font-size: 10px;
     padding: 4px 6px;
@@ -533,6 +532,10 @@ body {
     min-height: 30px;
     padding: 3px 8px;
   }
+  .brand-logo-img {
+    height: 22px;
+    max-width: 95px;
+  }
 }
 
 /* Mobile Landscape Viewport Constraints */
@@ -543,6 +546,10 @@ body {
   }
   .nav-back-link {
     font-size: 11px;
+  }
+  .brand-logo-img {
+    height: 22px;
+    max-width: 100px;
   }
   .hud-item {
     padding: 2px 5px;
@@ -568,18 +575,18 @@ body {
   #touch-controls {
     bottom: max(8px, env(safe-area-inset-bottom));
     left: max(8px, env(safe-area-inset-left));
-    gap: 6px;
+    gap: 8px;
   }
   .dpad-row {
-    gap: 6px;
+    gap: 8px;
   }
   .dpad-btn {
-    width: 42px;
-    height: 42px;
+    width: 44px; /* 42px * 1.05 = ~44px */
+    height: 44px;
   }
   .arrow-svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
   }
   .boat-grid {
     grid-template-columns: repeat(4, 1fr);
