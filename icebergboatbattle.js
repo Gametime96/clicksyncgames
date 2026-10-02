@@ -36,7 +36,7 @@ const btnLeft = document.getElementById("btn-left");
 const btnRight = document.getElementById("btn-right");
 
 /* =========================================================
-   Web Audio API Engine: Procedural Sound System
+   Web Audio API Engine
    ========================================================= */
 
 let audioCtx = null;
@@ -110,7 +110,6 @@ function stopEngineSound() {
   }
 }
 
-// Procedural Sound Effects
 function playCrashSound() {
   if (isMuted || !audioCtx) return;
   initAudio();
@@ -152,8 +151,8 @@ function playCoinSound() {
   osc1.type = "sine";
   osc2.type = "sine";
 
-  osc1.frequency.setValueAtTime(880, now); // A5
-  osc1.frequency.exponentialRampToValueAtTime(1760, now + 0.12); // A6
+  osc1.frequency.setValueAtTime(880, now);
+  osc1.frequency.exponentialRampToValueAtTime(1760, now + 0.12);
 
   osc2.frequency.setValueAtTime(1100, now);
   osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.12);
@@ -187,7 +186,7 @@ function toggleMute() {
 muteBtn.addEventListener("click", toggleMute);
 
 /* =========================================================
-   High-Definition Vector Boat Renderers (Scaled Up 10%)
+   High-Definition Vector Boat Renderers (+10% Scaled)
    ========================================================= */
 
 const BOAT_SPECS = {
@@ -198,9 +197,9 @@ const BOAT_SPECS = {
     maxSpeed: 3.2,
     accel: 0.08,
     turnSpeed: 0.042,
-    length: 51,      // 46 * 1.10
-    width: 24,       // 22 * 1.10
-    radius: 18,      // 16 * 1.10
+    length: 51,
+    width: 24,
+    radius: 18,
     draw(c) {
       c.save();
       c.scale(1.10, 1.10);
@@ -209,7 +208,6 @@ const BOAT_SPECS = {
       c.shadowOffsetX = 2;
       c.shadowOffsetY = 3;
 
-      // Pointed V-Hull (Red)
       c.beginPath();
       c.moveTo(23, 0);
       c.quadraticCurveTo(8, -11, -21, -11);
@@ -228,7 +226,6 @@ const BOAT_SPECS = {
       c.strokeStyle = "#ffffff";
       c.stroke();
 
-      // Sleek Center White Deck
       c.beginPath();
       c.moveTo(15, 0);
       c.quadraticCurveTo(5, -6, -13, -6);
@@ -241,7 +238,6 @@ const BOAT_SPECS = {
       c.lineWidth = 1;
       c.stroke();
 
-      // Tinted Windshield
       c.fillStyle = "rgba(0, 229, 255, 0.85)";
       c.beginPath();
       c.moveTo(4, -5);
@@ -252,7 +248,6 @@ const BOAT_SPECS = {
       c.closePath();
       c.fill();
 
-      // Exhaust
       c.fillStyle = "#263238";
       c.fillRect(-20, -7, 4, 3);
       c.fillRect(-20, 4, 4, 3);
@@ -266,9 +261,9 @@ const BOAT_SPECS = {
     maxSpeed: 2.6,
     accel: 0.06,
     turnSpeed: 0.034,
-    length: 53,      // 48 * 1.10
-    width: 29,       // 26 * 1.10
-    radius: 19,      // 17 * 1.10
+    length: 53,
+    width: 29,
+    radius: 19,
     draw(c) {
       c.save();
       c.scale(1.10, 1.10);
@@ -326,9 +321,9 @@ const BOAT_SPECS = {
     maxSpeed: 2.2,
     accel: 0.05,
     turnSpeed: 0.028,
-    length: 62,      // 56 * 1.10
-    width: 31,       // 28 * 1.10
-    radius: 21,      // 19 * 1.10
+    length: 62,
+    width: 31,
+    radius: 21,
     draw(c) {
       c.save();
       c.scale(1.10, 1.10);
@@ -389,9 +384,9 @@ const BOAT_SPECS = {
     maxSpeed: 2.6,
     accel: 0.06,
     turnSpeed: 0.034,
-    length: 55,      // 50 * 1.10
-    width: 29,       // 26 * 1.10
-    radius: 20,      // 18 * 1.10
+    length: 55,
+    width: 29,
+    radius: 20,
     draw(c) {
       c.save();
       c.scale(1.10, 1.10);
@@ -436,14 +431,12 @@ const BOAT_SPECS = {
   }
 };
 
-// Level Configuration
 const LEVEL_CONFIG = {
   1: { time: 60, coins: 3, icebergs: 8 },
   2: { time: 50, coins: 4, icebergs: 13 },
   3: { time: 40, coins: 5, icebergs: 18 }
 };
 
-// State Variables
 let currentLevel = 1;
 let lives = 3;
 let selectedBoatType = "speedBoat";
@@ -455,7 +448,6 @@ let wasPausedBeforeInstructions = false;
 let timerInterval = null;
 let animationFrameId = null;
 
-// Controls
 const keys = {
   forward: false,
   reverse: false,
@@ -463,7 +455,6 @@ const keys = {
   right: false
 };
 
-// Game Entities
 let player = {
   x: 80,
   y: 300,
@@ -477,7 +468,6 @@ let coins = [];
 let particles = [];
 let ambientWaves = [];
 
-// Initialize Waves
 for (let i = 0; i < 25; i++) {
   ambientWaves.push({
     x: Math.random() * canvas.width,
@@ -561,7 +551,6 @@ function highlightButton(btn, active) {
   }
 }
 
-// On-screen D-Pad Binding
 function attachDPad(element, keyName) {
   const start = (e) => {
     e.preventDefault();
@@ -590,7 +579,6 @@ attachDPad(btnDown, "reverse");
 attachDPad(btnLeft, "left");
 attachDPad(btnRight, "right");
 
-// Pause & Resume Event Handlers
 pauseBtn.addEventListener("click", () => {
   initAudio();
   if (isPlaying) togglePause();
@@ -616,7 +604,6 @@ function togglePause() {
   }
 }
 
-// Instructions Modal Handlers
 instructionsBtn.addEventListener("click", () => {
   initAudio();
   if (isPlaying && !isPaused) {
@@ -663,7 +650,7 @@ boatCards.forEach((card) => {
 });
 
 /* =========================================================
-   Level Setup & Flow Management
+   Level Flow Management
    ========================================================= */
 
 function promptBoatSelection() {
@@ -883,7 +870,7 @@ function handleLevelSuccess() {
 }
 
 /* =========================================================
-   Particles & Visual Effects
+   Particles
    ========================================================= */
 
 function createExplosion(x, y, count) {
@@ -938,11 +925,9 @@ function gameLoop() {
 function update() {
   const spec = BOAT_SPECS[selectedBoatType];
 
-  // Rotation
   if (keys.left) player.angle -= spec.turnSpeed;
   if (keys.right) player.angle += spec.turnSpeed;
 
-  // Acceleration & Braking
   if (keys.forward) {
     player.speed += spec.accel;
     if (player.speed > spec.maxSpeed) player.speed = spec.maxSpeed;
@@ -965,7 +950,6 @@ function update() {
     if (Math.abs(player.speed) < 0.02) player.speed = 0;
   }
 
-  // Audio Update
   const speedRatio = Math.abs(player.speed) / spec.maxSpeed;
   updateEngineAudio(speedRatio, keys.forward);
 
@@ -1042,7 +1026,6 @@ function update() {
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Ocean Gradient
   const oceanGrad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
   oceanGrad.addColorStop(0, "#061d38");
   oceanGrad.addColorStop(0.5, "#041529");
@@ -1050,7 +1033,6 @@ function render() {
   ctx.fillStyle = oceanGrad;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Reflections
   ctx.save();
   ambientWaves.forEach((wave) => {
     ctx.strokeStyle = `rgba(100, 220, 255, ${wave.opacity})`;
@@ -1062,7 +1044,6 @@ function render() {
   });
   ctx.restore();
 
-  // Wakes
   player.wake.forEach((w) => {
     ctx.beginPath();
     ctx.arc(w.x, w.y, w.radius, 0, Math.PI * 2);
@@ -1070,7 +1051,6 @@ function render() {
     ctx.fill();
   });
 
-  // Icebergs
   icebergs.forEach((berg) => {
     ctx.save();
     ctx.translate(berg.x, berg.y);
@@ -1111,7 +1091,6 @@ function render() {
     ctx.restore();
   });
 
-  // Collectible Coins
   coins.forEach((coin) => {
     ctx.save();
     ctx.translate(coin.x, coin.y);
@@ -1145,7 +1124,6 @@ function render() {
     ctx.restore();
   });
 
-  // Boat
   if (isPlaying) {
     ctx.save();
     ctx.translate(player.x, player.y);
@@ -1154,7 +1132,6 @@ function render() {
     ctx.restore();
   }
 
-  // Particles
   particles.forEach((p) => {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -1165,5 +1142,4 @@ function render() {
   });
 }
 
-// Initial Boot
 promptBoatSelection();
