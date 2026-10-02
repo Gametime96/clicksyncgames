@@ -11,6 +11,7 @@
      * "HISTORY" button placed beneath "HOW TO COUNT"
      * Dedicated modal displays round number, scores, and outcome
    - Phase-Focus Camera System for Mobile Landscape
+   - Zero-Latency Web Audio Engine (Instant Attacks, No Ambience)
    ======================================================== */
 
 (function () {
@@ -135,94 +136,182 @@
     }
   }
 
-  // Synthesized Web Audio
+  // ========================================================
+  // ZERO-LATENCY WEB AUDIO ENGINE
+  // ========================================================
   const AudioEngine = {
     ctx: null,
+    masterGain: null,
+
     init() {
       if (!this.ctx) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (AudioCtx) this.ctx = new AudioCtx();
+        if (AudioCtx) {
+          this.ctx = new AudioCtx({ latencyHint: 'interactive' });
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.setValueAtTime(soundEnabled ? 1.0 : 0.0, this.ctx.currentTime);
+          this.masterGain.connect(this.ctx.destination);
+        }
       }
       if (this.ctx && this.ctx.state === 'suspended') {
         this.ctx.resume();
       }
     },
+
+    toggleSound(enabled) {
+      if (!this.masterGain || !this.ctx) return;
+      this.masterGain.gain.setValueAtTime(enabled ? 1.0 : 0.0, this.ctx.currentTime);
+    },
+
+    // Instant ceramic chip clack
     playChip() {
       if (!soundEnabled || !this.ctx) return;
-      const osc = this.ctx.createOscillator();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const t0 = this.ctx.currentTime;
+      const osc1 = this.ctx.createOscillator();
+      const osc2 = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(950, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1600, this.ctx.currentTime + 0.03);
-      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
+
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(1400, t0);
+      osc1.frequency.exponentialRampToValueAtTime(700, t0 + 0.025);
+
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(2200, t0);
+      osc2.frequency.exponentialRampToValueAtTime(1100, t0 + 0.015);
+
+      gain.gain.setValueAtTime(0.24, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.03);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(this.masterGain);
+
+      osc1.start(t0);
+      osc2.start(t0);
+      osc1.stop(t0 + 0.03);
+      osc2.stop(t0 + 0.03);
     },
+
+    // Fast felt card slide / deal flick
     playCardSlide() {
       if (!soundEnabled || !this.ctx) return;
-      const osc = this.ctx.createOscillator();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const t0 = this.ctx.currentTime;
+      // Filtered white noise burst for real card friction
+      const bufferSize = Math.floor(this.ctx.sampleRate * 0.06);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = this.ctx.createBufferSource();
+      whiteNoise.buffer = buffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1100, t0);
+      filter.frequency.exponentialRampToValueAtTime(450, t0 + 0.06);
+      filter.Q.setValueAtTime(1.5, t0);
+
       const gain = this.ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(280, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.06);
-      gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.07);
+      gain.gain.setValueAtTime(0.22, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.06);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
+
+      whiteNoise.start(t0);
+      whiteNoise.stop(t0 + 0.06);
     },
+
+    // Sharp card snap / flip
     playFlip() {
       if (!soundEnabled || !this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const t0 = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
+
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(450, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.04);
-      gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+      osc.frequency.setValueAtTime(650, t0);
+      osc.frequency.exponentialRampToValueAtTime(1250, t0 + 0.035);
+
+      gain.gain.setValueAtTime(0.18, t0);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.04);
+
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.05);
+      gain.connect(this.masterGain);
+
+      osc.start(t0);
+      osc.stop(t0 + 0.04);
     },
+
+    // Rapid riffling shuffle wash
     playShuffle() {
       if (!soundEnabled || !this.ctx) return;
-      const now = this.ctx.currentTime;
-      for (let i = 0; i < 26; i++) {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const baseTime = this.ctx.currentTime;
+      for (let i = 0; i < 22; i++) {
+        const t = baseTime + (i * 0.16);
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = 170 + Math.random() * 240;
-        const t = now + (i * 0.15);
-        gain.gain.setValueAtTime(0.05, t);
-        gain.gain.linearRampToValueAtTime(0.001, t + 0.05);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200 + Math.random() * 220, t);
+        osc.frequency.exponentialRampToValueAtTime(80, t + 0.045);
+
+        gain.gain.setValueAtTime(0.08, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.masterGain);
+
         osc.start(t);
-        osc.stop(t + 0.05);
+        osc.stop(t + 0.045);
       }
     },
+
+    // Clean, crisp victory chime (no droning tail)
     playWin() {
       if (!soundEnabled || !this.ctx) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+
+      const t0 = this.ctx.currentTime;
       [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
+
         osc.type = 'sine';
-        osc.frequency.value = freq;
-        const t = this.ctx.currentTime + idx * 0.08;
-        gain.gain.setValueAtTime(0.12, t);
-        gain.gain.linearRampToValueAtTime(0.001, t + 0.28);
+        osc.frequency.setValueAtTime(freq, t0 + idx * 0.06);
+
+        const noteStart = t0 + idx * 0.06;
+        gain.gain.setValueAtTime(0.16, noteStart);
+        gain.gain.exponentialRampToValueAtTime(0.001, noteStart + 0.18);
+
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(t);
-        osc.stop(t + 0.28);
+        gain.connect(this.masterGain);
+
+        osc.start(noteStart);
+        osc.stop(noteStart + 0.18);
       });
     }
   };
+
+  // Pre-unlock AudioContext on initial tap/click
+  const unlockAudio = () => {
+    AudioEngine.init();
+    window.removeEventListener('pointerdown', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+  };
+  window.addEventListener('pointerdown', unlockAudio, { passive: true });
+  window.addEventListener('keydown', unlockAudio, { passive: true });
 
   // Running Count Update Display
   function renderRunningCount() {
@@ -232,7 +321,6 @@
 
   // Running Count Toggle
   btnRunningCount.addEventListener('click', () => {
-    AudioEngine.init();
     AudioEngine.playChip();
     isCountVisible = !isCountVisible;
     if (isCountVisible) {
@@ -247,7 +335,7 @@
 
   // How to Count Modal
   btnHowToCount.addEventListener('click', () => {
-    AudioEngine.init();
+    AudioEngine.playChip();
     countModal.classList.add('open');
   });
 
@@ -284,7 +372,7 @@
   }
 
   btnHistory.addEventListener('click', () => {
-    AudioEngine.init();
+    AudioEngine.playChip();
     renderHistoryModal();
     historyModal.classList.add('open');
   });
@@ -303,7 +391,6 @@
     btnDeal.disabled = true;
     btnClear.disabled = true;
 
-    AudioEngine.init();
     AudioEngine.playShuffle();
 
     shuffleContainer.innerHTML = '';
@@ -384,7 +471,6 @@
 
   function drawCard() {
     if (shoe.length < 15) perform4SecondShuffle();
-    AudioEngine.playCardSlide();
     return shoe.pop();
   }
 
@@ -455,7 +541,6 @@
 
   chipButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      AudioEngine.init();
       AudioEngine.playChip();
       chipButtons.forEach(b => b.classList.remove('active-chip'));
       btn.classList.add('active-chip');
@@ -463,11 +548,10 @@
     });
   });
 
-  // Betting Spots Interaction
+  // Betting Spots Interaction (Instant audio & UI response)
   Object.keys(spots).forEach(t => {
-    spots[t].addEventListener('click', () => {
+    spots[t].addEventListener('pointerdown', (e) => {
       if (isDealing || isPaused) return;
-      AudioEngine.init();
 
       if (bets[t] + activeChipValue > MAX_BETS[t]) {
         elStatusBanner.textContent = `MAX BET FOR ${t.toUpperCase()} IS $${MAX_BETS[t]}`;
@@ -479,22 +563,23 @@
         return;
       }
 
+      // Fire audio immediately on touch/click contact
+      AudioEngine.playChip();
+
       bankroll -= activeChipValue;
       bets[t] += activeChipValue;
-      AudioEngine.playChip();
       updateUI();
     });
   });
 
   btnClear.addEventListener('click', () => {
     if (isDealing || isPaused) return;
-    AudioEngine.init();
     const totalWager = bets.player + bets.tie + bets.banker;
     if (totalWager === 0) return;
 
+    AudioEngine.playChip();
     bankroll += totalWager;
     bets = { player: 0, tie: 0, banker: 0 };
-    AudioEngine.playChip();
     updateUI();
     elStatusBanner.textContent = 'BETS CLEARED';
   });
@@ -538,7 +623,6 @@
     const totalWager = bets.player + bets.tie + bets.banker;
     if (totalWager === 0 || isDealing || isPaused) return;
 
-    AudioEngine.init();
     isDealing = true;
     btnDeal.disabled = true;
     btnClear.disabled = true;
@@ -576,32 +660,36 @@
       flipper.style.top = `${shoeY + offsetY}px`;
       flipper.style.transform = `rotate(${rot}deg)`;
       flipper.style.zIndex = '35';
-      flipper.style.transition = 'all 0.4s ease';
+      flipper.style.transition = 'all 0.35s ease';
       tableFelt.appendChild(flipper);
       return flipper;
     }
 
     // Step 1: Draw card 1 (Player)
-    await sleep(250);
+    await sleep(150);
     pHand.push(drawCard());
+    AudioEngine.playCardSlide();
     const c1 = spawnStagingCard(pHand[0], 0, 0, -8);
 
     // Step 2: Draw card 2 (Banker)
-    await sleep(250);
+    await sleep(220);
     bHand.push(drawCard());
+    AudioEngine.playCardSlide();
     const c2 = spawnStagingCard(bHand[0], 0, 60, 4);
 
     // Step 3: Draw card 3 (Player)
-    await sleep(250);
+    await sleep(220);
     pHand.push(drawCard());
+    AudioEngine.playCardSlide();
     const c3 = spawnStagingCard(pHand[1], 18, 0, -8);
 
     // Step 4: Draw card 4 (Banker)
-    await sleep(250);
+    await sleep(220);
     bHand.push(drawCard());
+    AudioEngine.playCardSlide();
     const c4 = spawnStagingCard(bHand[1], 18, 60, 4);
 
-    await sleep(350);
+    await sleep(300);
 
     // Glide pairs to Player & Banker spots
     const p1Rect = slots.p1.getBoundingClientRect();
@@ -626,7 +714,7 @@
     c4.style.top = `${b2Rect.top - feltRect.top}px`;
     c4.style.transform = 'rotate(0deg)';
 
-    await sleep(400);
+    await sleep(360);
 
     c1.remove();
     c2.remove();
@@ -645,14 +733,14 @@
 
     void flipperP1.offsetHeight;
 
-    // Flip face-up immediately
+    // Flip face-up immediately with snappy audio
     AudioEngine.playFlip();
     flipperP1.classList.add('flipped');
     flipperP2.classList.add('flipped');
     flipperB1.classList.add('flipped');
     flipperB2.classList.add('flipped');
 
-    // Update count only after face-up flip
+    // Update count immediately as cards flip face-up
     runningCount += (pHand[0].count + pHand[1].count + bHand[0].count + bHand[1].count);
     renderRunningCount();
 
@@ -677,14 +765,17 @@
     let playerThird = null;
     if (pScore <= 5) {
       elStatusBanner.textContent = 'PLAYER DRAWS 3RD CARD...';
-      await sleep(350);
+      await sleep(250);
       playerThird = drawCard();
       pHand.push(playerThird);
 
+      AudioEngine.playCardSlide();
       const p3Flipper = createCardFlipper(playerThird, true);
       slots.p3.appendChild(p3Flipper);
 
-      await sleep(450);
+      void p3Flipper.offsetHeight;
+      await sleep(250);
+
       AudioEngine.playFlip();
       p3Flipper.classList.add('flipped');
 
@@ -693,7 +784,7 @@
 
       pScore = calcTotal(pHand);
       elPlayerBadge.textContent = pScore;
-      await sleep(600);
+      await sleep(550);
     }
 
     // Step 8: Banker 3rd Card Rule
@@ -712,14 +803,17 @@
 
     if (bankerDraws) {
       elStatusBanner.textContent = 'BANKER DRAWS 3RD CARD...';
-      await sleep(350);
+      await sleep(250);
       const bankerThird = drawCard();
       bHand.push(bankerThird);
 
+      AudioEngine.playCardSlide();
       const b3Flipper = createCardFlipper(bankerThird, true);
       slots.b3.appendChild(b3Flipper);
 
-      await sleep(450);
+      void b3Flipper.offsetHeight;
+      await sleep(250);
+
       AudioEngine.playFlip();
       b3Flipper.classList.add('flipped');
 
@@ -728,7 +822,7 @@
 
       bScore = calcTotal(bHand);
       elBankerBadge.textContent = bScore;
-      await sleep(600);
+      await sleep(550);
     }
 
     concludeHand(pHand, bHand);
@@ -756,9 +850,9 @@
         slots.b1.classList.add('winning-slide');
         slots.b2.classList.add('winning-slide');
       }
-      await sleep(1000);
+      await sleep(800);
     } else {
-      await sleep(300);
+      await sleep(250);
     }
 
     if (isTie) {
@@ -787,7 +881,7 @@
       elStatusBanner.textContent = outcomeText;
     }
 
-    await sleep(2200);
+    await sleep(2000);
 
     winnerDropBanner.classList.remove('dropped');
 
@@ -799,7 +893,7 @@
       }
     });
 
-    await sleep(800);
+    await sleep(700);
 
     Object.values(slots).forEach(slot => {
       slot.innerHTML = '';
