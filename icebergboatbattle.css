@@ -10,13 +10,15 @@
 html, body {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  background-color: #030a14;
+  background-color: #02070e;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(circle at center, #07192f 0%, #030a14 100%);
+  background: radial-gradient(circle at center, #07192f 0%, #02070e 100%);
   color: #e2f1ff;
   display: flex;
   justify-content: center;
@@ -25,33 +27,36 @@ body {
 }
 
 #game-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
-  width: 100vw;
+  width: 100dvw;
   height: 100dvh;
-  max-width: 1020px;
-  max-height: 100dvh;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 180, 255, 0.15);
+  max-width: 1080px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 180, 255, 0.15);
   border: 1px solid rgba(0, 200, 255, 0.25);
   background: #061527;
   overflow: hidden;
 }
 
-/* Top Bar & HUD */
+/* ---------------------------------------------------------
+   Top Bar & HUD (Strict Non-Wrapping Flex Architecture)
+   --------------------------------------------------------- */
 #top-bar {
   flex-shrink: 0;
   width: 100%;
-  min-height: 48px;
-  background: linear-gradient(180deg, #0f2744 0%, #091a2e 100%);
+  height: 48px;
+  background: linear-gradient(180deg, #0e243f 0%, #081729 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 12px;
-  border-bottom: 1.5px solid rgba(0, 217, 255, 0.3);
-  gap: 8px;
-  z-index: 10;
+  padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+  border-bottom: 1.5px solid rgba(0, 217, 255, 0.35);
+  z-index: 300;
+  gap: 6px;
 }
 
+/* Zone 1 */
 .top-bar-left {
   display: flex;
   align-items: center;
@@ -62,22 +67,16 @@ body {
 .nav-back-link {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   text-decoration: none;
   color: #8ecae6;
   font-weight: 600;
   font-size: 13px;
   white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.nav-back-link:hover {
-  color: #ffffff;
 }
 
 .brand-text {
   font-weight: 800;
-  letter-spacing: 0.5px;
   color: #ffffff;
 }
 
@@ -85,21 +84,24 @@ body {
   color: #00d9ff;
 }
 
-.hud-stats {
+/* Zone 2 */
+.hud-stats-group {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .hud-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.55);
   padding: 4px 8px;
   border-radius: 5px;
-  border: 1px solid rgba(0, 217, 255, 0.2);
+  border: 1px solid rgba(0, 217, 255, 0.25);
   white-space: nowrap;
 }
 
@@ -120,43 +122,54 @@ body {
   color: #ff5252;
 }
 
-/* Action Buttons */
+/* Zone 3: Persistent Controls */
+.hud-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .hud-btn, .hud-btn-secondary, .hud-icon-btn {
   border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  padding: 5px 10px;
-  transition: all 0.2s ease;
+  padding: 5px 11px;
+  transition: all 0.15s ease;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   outline: none;
+  border: none;
 }
 
 .hud-btn {
   background: linear-gradient(180deg, #1e4976 0%, #0f2b48 100%);
   border: 1px solid #00d9ff;
   color: #ffffff;
+  min-height: 32px;
 }
 
 .hud-btn-secondary {
   background: rgba(0, 217, 255, 0.12);
   border: 1px solid rgba(0, 217, 255, 0.4);
   color: #8edeff;
+  min-height: 32px;
 }
 
 .hud-icon-btn {
   background: rgba(15, 39, 68, 0.85);
-  border: 1px solid rgba(0, 217, 255, 0.35);
+  border: 1px solid rgba(0, 217, 255, 0.4);
   color: #8edeff;
   width: 32px;
   height: 32px;
   padding: 0;
+  flex-shrink: 0;
 }
 
-.hud-btn .btn-icon {
+.pause-action-btn .btn-icon {
   display: none;
 }
 
@@ -165,12 +178,13 @@ body {
   height: 18px;
 }
 
-.hud-btn:hover, .hud-btn-secondary:hover, .hud-icon-btn:hover {
-  filter: brightness(1.2);
-  transform: translateY(-1px);
+.hud-btn:active, .hud-btn-secondary:active, .hud-icon-btn:active {
+  transform: scale(0.94);
 }
 
-/* Canvas Container */
+/* ---------------------------------------------------------
+   Canvas Area & Proportional Fit
+   --------------------------------------------------------- */
 #canvas-container {
   position: relative;
   flex: 1 1 auto;
@@ -191,7 +205,9 @@ body {
   object-fit: contain;
 }
 
-/* Bottom-Left D-Pad Controls */
+/* ---------------------------------------------------------
+   Touch D-Pad Controls
+   --------------------------------------------------------- */
 #touch-controls {
   position: absolute;
   bottom: 12px;
@@ -200,7 +216,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 5px;
-  z-index: 50;
+  z-index: 100;
   touch-action: none;
 }
 
@@ -211,16 +227,16 @@ body {
 }
 
 .dpad-btn {
-  width: 44px;
-  height: 44px;
-  background: rgba(255, 255, 255, 0.9);
+  width: 46px;
+  height: 46px;
+  background: rgba(255, 255, 255, 0.92);
   border: 2px solid #002b5c;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
   transition: transform 0.08s, background-color 0.08s;
   outline: none;
 }
@@ -236,7 +252,9 @@ body {
   fill: #002b5c;
 }
 
-/* Modals */
+/* ---------------------------------------------------------
+   Modals
+   --------------------------------------------------------- */
 .modal-overlay {
   position: absolute;
   top: 0;
@@ -248,7 +266,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
+  z-index: 200;
   opacity: 1;
   transition: opacity 0.2s ease;
   padding: 10px;
@@ -284,7 +302,6 @@ body {
   margin-bottom: 10px;
 }
 
-/* Selection Grid */
 .boat-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -299,12 +316,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.15s, border-color 0.15s;
-}
-
-.boat-card:hover {
-  transform: translateY(-2px);
-  border-color: #00d9ff;
 }
 
 .boat-card h3 {
@@ -378,14 +389,8 @@ body {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: filter 0.2s;
 }
 
-.select-btn:hover, .primary-action-btn:hover {
-  filter: brightness(1.15);
-}
-
-/* Status & Instruction Modals */
 .status-card {
   background: linear-gradient(145deg, #0f2a4a, #061629);
   border: 2px solid #00d9ff;
@@ -449,29 +454,60 @@ body {
   color: #a1d2f7;
 }
 
-/* Responsive Rules for Mobile Landscape & Portrait */
-@media (max-width: 768px) {
+/* ---------------------------------------------------------
+   Mobile Responsive Rules (Landscape & Portrait Safeguards)
+   --------------------------------------------------------- */
+@media (max-width: 820px) {
   .back-arrow {
     display: none;
   }
   .hud-label {
+    font-size: 10px;
+  }
+  .hud-val {
+    font-size: 12px;
+  }
+  .pause-action-btn .btn-text {
     display: none;
   }
-  .hud-btn .btn-text {
-    display: none;
-  }
-  .hud-btn .btn-icon {
+  .pause-action-btn .btn-icon {
     display: inline;
+    font-size: 12px;
   }
-  .hud-btn {
+  .pause-action-btn {
+    padding: 5px 9px;
+  }
+  #instructions-btn {
     padding: 5px 8px;
+    font-size: 10px;
   }
 }
 
+@media (max-width: 580px) {
+  #top-bar {
+    height: 42px;
+    padding: 0 6px;
+  }
+  .brand-text {
+    font-size: 12px;
+  }
+  .hud-item {
+    padding: 2px 4px;
+  }
+  .hud-label {
+    display: none;
+  }
+  .dpad-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Mobile Landscape Constraints (Short Height) */
 @media (max-height: 520px) {
   #top-bar {
-    min-height: 38px;
-    padding: 2px 8px;
+    height: 38px;
+    padding: 0 max(6px, env(safe-area-inset-right)) 0 max(6px, env(safe-area-inset-left));
   }
   .nav-back-link {
     font-size: 11px;
@@ -480,11 +516,15 @@ body {
     padding: 2px 6px;
   }
   .hud-val {
-    font-size: 12px;
+    font-size: 11px;
   }
   .hud-icon-btn {
     width: 28px;
     height: 28px;
+  }
+  .pause-action-btn {
+    min-height: 28px;
+    padding: 2px 8px;
   }
   .sound-icon {
     width: 15px;
@@ -507,7 +547,7 @@ body {
   }
   .canvas-preview-box {
     width: 90px;
-    height: 42px;
+    height: 40px;
   }
   .modal-card {
     padding: 6px 10px;
