@@ -40,24 +40,25 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Top Bar & HUD (Strict Non-Wrapping Flex Architecture)
+   Top Bar & HUD (Safe Multi-Row Responsive Architecture)
    --------------------------------------------------------- */
 #top-bar {
   flex-shrink: 0;
   width: 100%;
-  height: 48px;
+  min-height: 44px;
   background: linear-gradient(180deg, #0e243f 0%, #081729 100%);
   display: flex;
+  flex-wrap: wrap; /* Allows safe second-row wrapping instead of overlapping */
   align-items: center;
   justify-content: space-between;
-  padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left));
+  padding: 6px max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
   border-bottom: 1.5px solid rgba(0, 217, 255, 0.35);
   z-index: 300;
-  gap: 6px;
+  gap: 8px 12px;
 }
 
-/* Zone 1 */
-.top-bar-left {
+/* Cluster 1: Left Brand & Instructions */
+.top-nav-cluster {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -84,14 +85,14 @@ body {
   color: #00d9ff;
 }
 
-/* Zone 2 */
+/* Cluster 2: HUD Data Items */
 .hud-stats-group {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  flex: 1 1 auto;
-  min-width: 0;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
 }
 
 .hud-item {
@@ -99,10 +100,11 @@ body {
   align-items: center;
   gap: 4px;
   background: rgba(0, 0, 0, 0.55);
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 5px;
   border: 1px solid rgba(0, 217, 255, 0.25);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hud-label {
@@ -122,11 +124,11 @@ body {
   color: #ff5252;
 }
 
-/* Zone 3: Persistent Controls */
+/* Cluster 3: Audio & Pause Controls */
 .hud-controls-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -135,7 +137,7 @@ body {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  padding: 5px 11px;
+  padding: 5px 12px;
   transition: all 0.15s ease;
   white-space: nowrap;
   display: inline-flex;
@@ -143,6 +145,7 @@ body {
   justify-content: center;
   outline: none;
   border: none;
+  flex-shrink: 0;
 }
 
 .hud-btn {
@@ -183,7 +186,7 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Canvas Area & Proportional Fit
+   Canvas Area & Responsive Containment
    --------------------------------------------------------- */
 #canvas-container {
   position: relative;
@@ -206,37 +209,37 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Touch D-Pad Controls
+   Touch D-Pad Controls (+10% Larger & Spaced)
    --------------------------------------------------------- */
 #touch-controls {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
   z-index: 100;
   touch-action: none;
 }
 
 .dpad-row {
   display: flex;
-  gap: 5px;
+  gap: 10px;
   justify-content: center;
 }
 
 .dpad-btn {
-  width: 46px;
-  height: 46px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 2px solid #002b5c;
-  border-radius: 8px;
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 2.5px solid #002b5c;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.55);
   transition: transform 0.08s, background-color 0.08s;
   outline: none;
 }
@@ -247,8 +250,8 @@ body {
 }
 
 .arrow-svg {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   fill: #002b5c;
 }
 
@@ -455,11 +458,55 @@ body {
 }
 
 /* ---------------------------------------------------------
-   Mobile Responsive Rules (Landscape & Portrait Safeguards)
+   Safe Dynamic Adjustments (Portrait & Landscape Fallbacks)
    --------------------------------------------------------- */
 @media (max-width: 820px) {
   .back-arrow {
     display: none;
+  }
+  .pause-action-btn .btn-text {
+    display: none;
+  }
+  .pause-action-btn .btn-icon {
+    display: inline;
+    font-size: 13px;
+  }
+  .pause-action-btn {
+    padding: 5px 10px;
+  }
+  #instructions-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Mobile Screens where wrapping occurs */
+@media (max-width: 720px) {
+  #top-bar {
+    justify-content: space-between;
+    padding: 4px max(6px, env(safe-area-inset-right)) 4px max(6px, env(safe-area-inset-left));
+    gap: 4px 8px;
+  }
+
+  /* Keep brand & pause/mute on Row 1 */
+  .top-nav-cluster {
+    order: 1;
+  }
+  .hud-controls-group {
+    order: 2;
+  }
+
+  /* Wrap stats cleanly to Row 2 across full width without crowding */
+  .hud-stats-group {
+    order: 3;
+    width: 100%;
+    justify-content: space-around;
+    padding-top: 2px;
+    border-top: 1px solid rgba(0, 217, 255, 0.15);
+  }
+
+  .hud-item {
+    padding: 2px 6px;
   }
   .hud-label {
     font-size: 10px;
@@ -467,53 +514,38 @@ body {
   .hud-val {
     font-size: 12px;
   }
-  .pause-action-btn .btn-text {
-    display: none;
-  }
-  .pause-action-btn .btn-icon {
-    display: inline;
-    font-size: 12px;
-  }
-  .pause-action-btn {
-    padding: 5px 9px;
-  }
-  #instructions-btn {
-    padding: 5px 8px;
-    font-size: 10px;
-  }
 }
 
-@media (max-width: 580px) {
-  #top-bar {
-    height: 42px;
-    padding: 0 6px;
-  }
+/* Extra Compact Phones */
+@media (max-width: 480px) {
   .brand-text {
     font-size: 12px;
   }
-  .hud-item {
-    padding: 2px 4px;
+  #instructions-btn {
+    font-size: 10px;
+    padding: 4px 6px;
   }
-  .hud-label {
-    display: none;
+  .hud-icon-btn {
+    width: 30px;
+    height: 30px;
   }
-  .dpad-btn {
-    width: 40px;
-    height: 40px;
+  .pause-action-btn {
+    min-height: 30px;
+    padding: 3px 8px;
   }
 }
 
-/* Mobile Landscape Constraints (Short Height) */
+/* Mobile Landscape Viewport Constraints */
 @media (max-height: 520px) {
   #top-bar {
-    height: 38px;
-    padding: 0 max(6px, env(safe-area-inset-right)) 0 max(6px, env(safe-area-inset-left));
+    padding: 3px max(8px, env(safe-area-inset-right)) 3px max(8px, env(safe-area-inset-left));
+    gap: 4px 10px;
   }
   .nav-back-link {
     font-size: 11px;
   }
   .hud-item {
-    padding: 2px 6px;
+    padding: 2px 5px;
   }
   .hud-val {
     font-size: 11px;
@@ -533,13 +565,21 @@ body {
   #controls-footer {
     display: none;
   }
+  #touch-controls {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    gap: 6px;
+  }
+  .dpad-row {
+    gap: 6px;
+  }
   .dpad-btn {
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
   }
   .arrow-svg {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
   .boat-grid {
     grid-template-columns: repeat(4, 1fr);
