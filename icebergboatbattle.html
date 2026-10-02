@@ -10,6 +10,7 @@
   <div id="game-wrapper">
     <!-- Top Navigation & Stats Bar -->
     <header id="top-bar">
+      <!-- Zone 1: Navigation & Instructions -->
       <div class="top-bar-left">
         <a href="https://clicksyncgames.com" class="nav-back-link" title="Return to ClickSyncGames">
           <span class="back-arrow">&larr; Return to</span>
@@ -18,9 +19,10 @@
         <button id="instructions-btn" class="hud-btn-secondary" title="View Instructions">INSTRUCTIONS</button>
       </div>
 
-      <div class="hud-stats">
+      <!-- Zone 2: Level & In-Game Counters -->
+      <div class="hud-stats-group">
         <div class="hud-item">
-          <span class="hud-label">Level:</span>
+          <span class="hud-label">Lvl:</span>
           <span id="level-display" class="hud-val">1</span>
         </div>
         <div class="hud-item">
@@ -35,20 +37,19 @@
           <span class="hud-label">Lives:</span>
           <span class="hud-val"><span id="lives-left">3</span>/3</span>
         </div>
+      </div>
 
-        <!-- Audio Mute/Unmute Toggle -->
+      <!-- Zone 3: Persistent Controls (Always Visible) -->
+      <div class="hud-controls-group">
         <button id="mute-btn" class="hud-icon-btn" aria-label="Toggle Sound" title="Mute/Unmute Sound">
           <svg viewBox="0 0 24 24" class="sound-icon" id="sound-icon-svg">
-            <!-- Speaker Body -->
             <path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor"/>
-            <!-- Sound Waves -->
             <path id="sound-waves" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/>
-            <!-- Slash line (shown when muted) -->
             <line id="mute-slash" x1="2" y1="2" x2="22" y2="22" stroke="#ff5252" stroke-width="2.5" stroke-linecap="round" style="display: none;" />
           </svg>
         </button>
 
-        <button id="pause-btn" class="hud-btn" title="Pause Game (P)">
+        <button id="pause-btn" class="hud-btn pause-action-btn" title="Pause Game (P)">
           <span class="btn-text">❚❚ Pause</span>
           <span class="btn-icon">❚❚</span>
         </button>
@@ -82,9 +83,9 @@
       <!-- Instructions Modal -->
       <div id="instructions-modal" class="modal-overlay hidden">
         <div class="status-card instructions-card">
-          <h2 style="color: #00d9ff; margin-bottom: 12px;">Instructions</h2>
+          <h2 style="color: #00d9ff; margin-bottom: 10px;">Instructions</h2>
           <div class="instructions-content">
-            <p><strong>Mission:</strong> Navigate treacherous glacial waters, avoid drifting icebergs, and collect all golden stars before the timer hits 0.</p>
+            <p><strong>Mission:</strong> Navigate through arctic waters, avoid drifting icebergs, and collect all golden stars before time runs out.</p>
             <ul class="instructions-list">
               <li><strong>Up Arrow:</strong> Accelerate engine forward</li>
               <li><strong>Down Arrow:</strong> Reverse / Brake</li>
