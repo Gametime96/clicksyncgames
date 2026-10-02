@@ -45,19 +45,19 @@ body {
 #top-bar {
   flex-shrink: 0;
   width: 100%;
-  min-height: 46px;
+  min-height: 44px;
   background: linear-gradient(180deg, #0e243f 0%, #081729 100%);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 6px max(10px, env(safe-area-inset-right)) 6px max(10px, env(safe-area-inset-left));
+  padding: 5px max(10px, env(safe-area-inset-right)) 5px max(10px, env(safe-area-inset-left));
   border-bottom: 1.5px solid rgba(0, 217, 255, 0.35);
   z-index: 300;
   gap: 8px 12px;
 }
 
-/* Cluster 1: Left Brand Logo & Instructions */
+/* Cluster 1: Return to + Contained Logo Button + Instructions */
 .top-nav-cluster {
   display: flex;
   align-items: center;
@@ -65,23 +65,53 @@ body {
   flex-shrink: 0;
 }
 
-.nav-back-link {
+.return-group {
   display: flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.back-arrow {
   color: #8ecae6;
   font-weight: 600;
   font-size: 13px;
   white-space: nowrap;
 }
 
+/* Logo Button Formatted to Match the Size of the Instructions Button */
+.brand-logo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 2px 8px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 217, 255, 0.5);
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.brand-logo-btn:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  border-color: #00d9ff;
+}
+
+.brand-logo-btn:active {
+  transform: scale(0.96);
+}
+
 .brand-logo-img {
-  height: 28px;
+  height: 22px;
+  max-height: 100%;
   width: auto;
-  max-width: 140px;
+  max-width: 120px;
   object-fit: contain;
-  border-radius: 4px;
   display: block;
 }
 
@@ -146,20 +176,19 @@ body {
   outline: none;
   border: none;
   flex-shrink: 0;
+  height: 32px;
 }
 
 .hud-btn {
   background: linear-gradient(180deg, #1e4976 0%, #0f2b48 100%);
   border: 1px solid #00d9ff;
   color: #ffffff;
-  min-height: 32px;
 }
 
 .hud-btn-secondary {
   background: rgba(0, 217, 255, 0.12);
   border: 1px solid rgba(0, 217, 255, 0.4);
   color: #8edeff;
-  min-height: 32px;
 }
 
 .hud-icon-btn {
@@ -169,7 +198,6 @@ body {
   width: 32px;
   height: 32px;
   padding: 0;
-  flex-shrink: 0;
 }
 
 .pause-action-btn .btn-icon {
@@ -230,7 +258,7 @@ body {
 }
 
 .dpad-btn {
-  width: 55px;  /* 52px * 1.05 = ~55px */
+  width: 55px;
   height: 55px;
   background: rgba(255, 255, 255, 0.94);
   border: 2.5px solid #002b5c;
@@ -512,9 +540,13 @@ body {
   .hud-val {
     font-size: 12px;
   }
+  .brand-logo-btn {
+    height: 28px;
+    padding: 2px 6px;
+  }
   .brand-logo-img {
-    height: 24px;
-    max-width: 110px;
+    height: 18px;
+    max-width: 100px;
   }
 }
 
@@ -523,18 +555,15 @@ body {
   #instructions-btn {
     font-size: 10px;
     padding: 4px 6px;
+    height: 28px;
   }
   .hud-icon-btn {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
   .pause-action-btn {
-    min-height: 30px;
+    height: 28px;
     padding: 3px 8px;
-  }
-  .brand-logo-img {
-    height: 22px;
-    max-width: 95px;
   }
 }
 
@@ -544,12 +573,16 @@ body {
     padding: 3px max(8px, env(safe-area-inset-right)) 3px max(8px, env(safe-area-inset-left));
     gap: 4px 10px;
   }
-  .nav-back-link {
+  .back-arrow {
     font-size: 11px;
   }
+  .brand-logo-btn {
+    height: 26px;
+    padding: 2px 5px;
+  }
   .brand-logo-img {
-    height: 22px;
-    max-width: 100px;
+    height: 16px;
+    max-width: 90px;
   }
   .hud-item {
     padding: 2px 5px;
@@ -558,16 +591,18 @@ body {
     font-size: 11px;
   }
   .hud-icon-btn {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
+  }
+  .hud-btn, .hud-btn-secondary {
+    height: 26px;
   }
   .pause-action-btn {
-    min-height: 28px;
     padding: 2px 8px;
   }
   .sound-icon {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
   }
   #controls-footer {
     display: none;
@@ -581,7 +616,7 @@ body {
     gap: 8px;
   }
   .dpad-btn {
-    width: 44px; /* 42px * 1.05 = ~44px */
+    width: 44px;
     height: 44px;
   }
   .arrow-svg {
