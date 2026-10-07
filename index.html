@@ -784,4 +784,96 @@
             const filteredGames = gamesData.filter(game => {
                 const matchesSearch = game.title.toLowerCase().includes(currentSearchTerm) || 
                                       game.desc.toLowerCase().includes(currentSearchTerm);
-                const matchesCategory = activeCategory === '' || game.category.toLowerCase().includes(active
+                const matchesCategory = activeCategory === '' || game.category.toLowerCase().includes(activeCategory);
+                return matchesSearch && matchesCategory;
+            });
+
+            // 2. Calculate Paging Tiers
+            const totalItems = filteredGames.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            }
+
+            // 3. Render Both Paging Component Containers Synchronously
+            buildPaginationTrack(paginationTop, totalItems, totalPages, filteredGames);
+            buildPaginationTrack(paginationBottom, totalItems, totalPages, filteredGames);
+
+            // 4. Update Main Content Container Area
+            renderGridSection(filteredGames);
+        }
+
+        function buildPaginationTrack(containerNode, totalItems, totalPages, dataset) {
+            containerNode.innerHTML = '';
+            
+            // Render only if strictly greater than maximum display bounds (12 items)
+            if (totalItems > ITEMS_PER_PAGE) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBox = document.createElement('button');
+                    pageBox.className = 'page-box';
+                    pageBox.textContent = i;
+                    
+                    if (i === currentPage) {
+                        pageBox.classList.add('active-page');
+                    }
+                    
+                    pageBox.addEventListener('click', () => {
+                        currentPage = i;
+                        // Synchronize active states across both paths instantly
+                        document.querySelectorAll('.pagination-container').forEach(track => {
+                            const boxes = track.querySelectorAll('.page-box');
+                            boxes.forEach((box, index) => {
+                                box.classList.remove('active-page');
+                                if (index === (i - 1)) {
+                                    box.classList.add('active-page');
+                                }
+                            });
+                        });
+                        
+                        renderGridSection(dataset);
+                        
+                        // Scroll view smoothly up to top of library window
+                        document.getElementById('paginationTop').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
+                    
+                    containerNode.appendChild(pageBox);
+                }
+            }
+        }
+
+        function renderGridSection(itemsList) {
+            gameGrid.innerHTML = '';
+
+            if (itemsList.length === 0) {
+                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #065f46; font-weight: bold;">No games found matching your filters.</div>';
+                paginationBottom.innerHTML = '';
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, itemsList.length);
+            const pageItems = itemsList.slice(startIndex, endIndex);
+
+            pageItems.forEach(game => {
+                const cardLink = document.createElement('a');
+                cardLink.href = game.href;
+                cardLink.className = 'game-card';
+                cardLink.setAttribute('data-category', game.category);
+
+                cardLink.innerHTML = `
+                    <div class="thumbnail-container ${game.thumbClass}">
+                        <img src="${game.imgSrc}" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="${game.title}">
+                    </div>
+                    <div class="game-title">${game.title}</div>
+                    <div class="game-desc">${game.desc}</div>
+                `;
+                gameGrid.appendChild(cardLink);
+            });
+        }
+
+        // Initialize Rendering Matrix Thread on System Mount
+        filterAndRender();
+    </script>
+</body>
+</html>
