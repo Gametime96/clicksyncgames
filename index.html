@@ -17,28 +17,27 @@
         /* --- DEFAULT: LIGHT GREY THEME --- */
         :root {
             --bg-color: #ebecef;
-            --header-bg: #ffffff; /* Seamless match for clicksyncgameslogo.jpeg perimeter */
+            --header-bg: #ffffff;
             --header-border: #cbd5e1;
             --panel-bg: #ffffff;
-            --card-border: #d1d5db;
+            --card-border: #cbd5e1;
             --text-primary: #0f172a;
             --text-muted: #334155;
-            --accent-green: #059669;
-            --accent-green-hover: #047857;
-            --accent-light: #10b981;
-            --section-title-color: #000000; /* Explicitly black in light mode */
+            --section-title-color: #000000;
             --section-title-border: #000000;
             --search-bg: #ffffff;
-            --search-border: #000000; /* Bold black outline in light mode */
+            --search-border: #000000;
+            --search-focus-border: #000000;
+            --search-focus-shadow: 0 0 0 3px rgba(0, 0, 0, 0.15);
             --search-text: #000000;
-            --search-placeholder: #000000; /* Bold dark placeholder */
+            --search-placeholder: #000000;
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --card-hover-border: #059669;
-            --card-hover-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
+            --card-hover-border: #000000; /* Black hover outline in light mode */
+            --card-hover-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
             --footer-bg: #e2e8f0;
             --footer-border: #cbd5e1;
             --legal-text: #475569;
-            --contact-btn-bg: #000000; /* Black with white text */
+            --contact-btn-bg: #000000;
             --contact-btn-hover: #1f2937;
             --contact-btn-text: #ffffff;
             --contact-btn-border: #000000;
@@ -63,18 +62,17 @@
             --card-border: #143820;
             --text-primary: #34d399;
             --text-muted: #10b981;
-            --accent-green: #15803d;
-            --accent-green-hover: #166534;
-            --accent-light: #22c55e;
             --section-title-color: #22c55e;
             --section-title-border: #15803d;
             --search-bg: #030805;
-            --search-border: #22c55e;
+            --search-border: #15803d;
+            --search-focus-border: #22c55e;
+            --search-focus-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
             --search-text: #34d399;
             --search-placeholder: #22c55e;
             --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
             --card-hover-border: #22c55e;
-            --card-hover-shadow: 0 8px 20px rgba(22, 101, 52, 0.4);
+            --card-hover-shadow: 0 8px 20px rgba(22, 101, 52, 0.45);
             --footer-bg: #000000;
             --footer-border: #143820;
             --legal-text: #065f46;
@@ -126,43 +124,31 @@
             align-items: center;
         }
 
-        /* Seamless Blend Light Mode Logo */
+        /* Responsive Logo Elements */
         .logo-img {
             max-height: 48px;
             width: auto;
             display: block;
             object-fit: contain;
-            mix-blend-mode: multiply; /* Blends any surrounding perimeter flush with header background */
         }
 
-        /* Dark Mode Logo: Stylized Green Typography */
-        .logo-text {
-            margin: 0;
-            font-size: 32px;
-            color: #10b981;
-            letter-spacing: 1px;
-            font-weight: 900;
+        /* Light Mode: clicksyncgameslogo.jpeg visible */
+        .logo-light {
+            display: block;
+            mix-blend-mode: multiply;
+        }
+
+        /* Dark Mode: clicksyncgameslogo2.jpeg visible */
+        .logo-dark {
             display: none;
-            align-items: flex-start;
         }
 
-        .logo-text span { 
-            color: #166534; 
-        }
-        
-        .tm-symbol {
-            font-size: 14px;
-            color: #10b981;
-            margin-left: 2px;
-            font-weight: bold;
-        }
-
-        body.dark-mode .logo-img {
+        body.dark-mode .logo-light {
             display: none !important;
         }
 
-        body.dark-mode .logo-text {
-            display: flex !important;
+        body.dark-mode .logo-dark {
+            display: block !important;
         }
 
         .header-controls {
@@ -179,11 +165,11 @@
             position: relative;
         }
 
-        /* Bold outline and bold search text styling */
+        /* Search input styling with disappearing placeholder */
         .search-bar {
             width: 100%;
             padding: 12px 20px;
-            border: 3px solid var(--search-border); /* Bold outline */
+            border: 3px solid var(--search-border);
             border-radius: 25px;
             font-size: 16px;
             font-weight: 700;
@@ -196,13 +182,20 @@
 
         .search-bar::placeholder {
             color: var(--search-placeholder);
-            font-weight: 800; /* Bolded "Search" word inside */
+            font-weight: 800;
             opacity: 1;
+            transition: color 0.15s ease, opacity 0.15s ease;
+        }
+
+        /* Disappear "Search" word immediately when focused */
+        .search-bar:focus::placeholder {
+            color: transparent !important;
+            opacity: 0 !important;
         }
 
         .search-bar:focus {
-            border-color: #22c55e;
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+            border-color: var(--search-focus-border);
+            box-shadow: var(--search-focus-shadow);
         }
 
         /* --- OPTION 1B ARCADE BEVELED DIAL SWITCH --- */
@@ -281,11 +274,11 @@
             box-sizing: border-box;
         }
 
-        /* Categories & Game Library Headings */
+        /* Section Headings */
         h2.section-title {
             font-size: 24px;
             font-weight: 900;
-            color: var(--section-title-color); /* Black in light mode, Green in dark mode */
+            color: var(--section-title-color);
             border-bottom: 3px solid var(--section-title-border);
             padding-bottom: 10px;
             margin-bottom: 25px;
@@ -297,56 +290,75 @@
         .category-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
+            gap: 16px;
             margin-bottom: 40px;
         }
 
-        /* --- CATEGORIES: WHITE TEXT WITH BLACK OUTLINE --- */
+        /* --- VIBRANT 3D BUTTONS: CATEGORIES --- */
         .category-btn {
             color: #ffffff !important;
-            padding: 20px 10px;
+            padding: 18px 10px;
             border-radius: 12px;
             text-align: center;
             font-weight: 900;
             font-size: 17px;
             letter-spacing: 0.5px;
             text-decoration: none;
-            -webkit-text-stroke: 1px #000000; /* Crisp black outline */
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.85); 
-            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            -webkit-text-stroke: 1px #000000;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
             cursor: pointer;
             user-select: none;
-            border: 2px solid rgba(0, 0, 0, 0.3);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+            position: relative;
+            transform: translateY(0);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
         }
 
-        /* Specified dark color cycle for each category */
-        .category-btn[data-cat="action"]       { background: linear-gradient(135deg, #172554, #1e3a8a); } /* Dark Blue */
-        .category-btn[data-cat="adventure"]    { background: linear-gradient(135deg, #1f2937, #374151); } /* Dark Grey */
-        .category-btn[data-cat="arcade"]       { background: linear-gradient(135deg, #7c2d12, #9a3412); } /* Dark Orange */
-        .category-btn[data-cat="billiards"]    { background: linear-gradient(135deg, #3b0764, #581c87); } /* Dark Purple */
-        .category-btn[data-cat="casino"]       { background: linear-gradient(135deg, #450a0a, #7f1d1d); } /* Dark Red */
-        .category-btn[data-cat="idle"]         { background: linear-gradient(135deg, #042f2e, #115e59); } /* Dark Teal */
-        .category-btn[data-cat="multiplayer"]  { background: linear-gradient(135deg, #0f172a, #1e293b); } /* Dark Navy */
-        .category-btn[data-cat="puzzle"]       { background: linear-gradient(135deg, #022c22, #064e3b); } /* Dark Emerald */
-        .category-btn[data-cat="racing"]       { background: linear-gradient(135deg, #78350f, #92400e); } /* Dark Amber/Crimson */
-        .category-btn[data-cat="simulation"]   { background: linear-gradient(135deg, #2e1065, #4c1d95); } /* Dark Violet */
-        .category-btn[data-cat="sports"]       { background: linear-gradient(135deg, #083344, #155e75); } /* Dark Cyan */
-        .category-btn[data-cat="strategy"]     { background: linear-gradient(135deg, #111827, #1f2937); } /* Dark Slate */
+        /* Light Mode: Alive, Vibrant 3D Color Set */
+        .category-btn[data-cat="action"]       { background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 2px solid #1e40af; box-shadow: 0 5px 0 #1e3a8a, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="adventure"]    { background: linear-gradient(180deg, #64748b, #475569); border: 2px solid #334155; box-shadow: 0 5px 0 #1e293b, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="arcade"]       { background: linear-gradient(180deg, #f97316, #ea580c); border: 2px solid #c2410c; box-shadow: 0 5px 0 #9a3412, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="billiards"]    { background: linear-gradient(180deg, #a855f7, #9333ea); border: 2px solid #7e22ce; box-shadow: 0 5px 0 #581c87, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="casino"]       { background: linear-gradient(180deg, #ef4444, #dc2626); border: 2px solid #b91c1c; box-shadow: 0 5px 0 #7f1d1d, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="idle"]         { background: linear-gradient(180deg, #14b8a6, #0d9488); border: 2px solid #0f766e; box-shadow: 0 5px 0 #115e59, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="multiplayer"]  { background: linear-gradient(180deg, #6366f1, #4f46e5); border: 2px solid #4338ca; box-shadow: 0 5px 0 #312e81, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="puzzle"]       { background: linear-gradient(180deg, #10b981, #059669); border: 2px solid #047857; box-shadow: 0 5px 0 #064e3b, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="racing"]       { background: linear-gradient(180deg, #e11d48, #be123c); border: 2px solid #9f1239; box-shadow: 0 5px 0 #881337, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="simulation"]   { background: linear-gradient(180deg, #8b5cf6, #7c3aed); border: 2px solid #6d28d9; box-shadow: 0 5px 0 #4c1d95, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="sports"]       { background: linear-gradient(180deg, #06b6d4, #0891b2); border: 2px solid #0e7490; box-shadow: 0 5px 0 #155e75, 0 8px 12px rgba(0,0,0,0.25); }
+        .category-btn[data-cat="strategy"]     { background: linear-gradient(180deg, #f59e0b, #d97706); border: 2px solid #b45309; box-shadow: 0 5px 0 #78350f, 0 8px 12px rgba(0,0,0,0.25); }
 
+        /* Tactile 3D Button Actions */
         .category-btn:hover {
-            transform: scale(1.05);
-            filter: brightness(1.15);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+            filter: brightness(1.12);
+            transform: translateY(-2px);
+        }
+
+        .category-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4) !important;
         }
 
         .category-btn.active-filter {
-            transform: scale(1.05);
+            transform: translateY(2px);
             outline: 3px solid #22c55e;
             outline-offset: 3px;
         }
 
-        /* --- PAGINATION BOXES (FOLLOWING SUIT COLOR METHOD) --- */
+        /* Dark Mode: All Category Buttons Switch to Dark Green 3D */
+        body.dark-mode .category-btn {
+            background: linear-gradient(180deg, #15803d, #14532d) !important;
+            border: 2px solid #166534 !important;
+            box-shadow: 0 5px 0 #052e16, 0 8px 14px rgba(0, 0, 0, 0.8) !important;
+            color: #ffffff !important;
+            -webkit-text-stroke: 1px #000000 !important;
+        }
+
+        body.dark-mode .category-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #052e16 !important;
+        }
+
+        /* --- VIBRANT 3D BUTTONS: GAME LIBRARY NUMBERS --- */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -370,36 +382,55 @@
             font-weight: 900;
             -webkit-text-stroke: 1px #000000;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
-            border: 2px solid rgba(0, 0, 0, 0.4);
-            width: 45px;
-            height: 45px;
+            width: 46px;
+            height: 46px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 16px;
+            font-size: 17px;
             cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            border-radius: 8px;
             user-select: none;
             box-sizing: border-box;
+            position: relative;
+            transform: translateY(0);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
         }
 
-        /* Follow-suit colors for page numbers */
-        .page-box[data-page="1"] { background: linear-gradient(135deg, #172554, #1e3a8a); } /* Dark Blue like Action */
-        .page-box[data-page="2"] { background: linear-gradient(135deg, #1f2937, #374151); } /* Dark Grey like Adventure */
-        .page-box[data-page="3"] { background: linear-gradient(135deg, #7c2d12, #9a3412); } /* Dark Orange like Arcade */
-        .page-box[data-page="4"] { background: linear-gradient(135deg, #3b0764, #581c87); } /* Dark Purple like Billiards */
+        /* Alive, 3D Color Suit for Page Numbers */
+        .page-box[data-page="1"] { background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 2px solid #1e40af; box-shadow: 0 5px 0 #1e3a8a, 0 6px 10px rgba(0,0,0,0.25); }
+        .page-box[data-page="2"] { background: linear-gradient(180deg, #64748b, #475569); border: 2px solid #334155; box-shadow: 0 5px 0 #1e293b, 0 6px 10px rgba(0,0,0,0.25); }
+        .page-box[data-page="3"] { background: linear-gradient(180deg, #f97316, #ea580c); border: 2px solid #c2410c; box-shadow: 0 5px 0 #9a3412, 0 6px 10px rgba(0,0,0,0.25); }
+        .page-box[data-page="4"] { background: linear-gradient(180deg, #a855f7, #9333ea); border: 2px solid #7e22ce; box-shadow: 0 5px 0 #581c87, 0 6px 10px rgba(0,0,0,0.25); }
 
         .page-box:hover {
-            transform: scale(1.1);
-            filter: brightness(1.2);
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+        }
+
+        .page-box:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4) !important;
         }
 
         .page-box.active-page {
-            transform: scale(1.15) !important;
+            transform: translateY(2px) !important;
             outline: 3px solid #22c55e;
             outline-offset: 3px;
+        }
+
+        /* Dark Mode: All Page Number Buttons Switch to Dark Green 3D */
+        body.dark-mode .page-box {
+            background: linear-gradient(180deg, #15803d, #14532d) !important;
+            border: 2px solid #166534 !important;
+            box-shadow: 0 5px 0 #052e16, 0 6px 10px rgba(0, 0, 0, 0.8) !important;
+            color: #ffffff !important;
+            -webkit-text-stroke: 1px #000000 !important;
+        }
+
+        body.dark-mode .page-box:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #052e16 !important;
         }
 
         .game-grid {
@@ -408,9 +439,10 @@
             gap: 25px;
         }
 
+        /* Game Card Styling (Hover Outline Strictly Controlled by Theme Variable) */
         .game-card {
             background-color: var(--panel-bg);
-            border: 1px solid var(--card-border);
+            border: 2px solid var(--card-border);
             border-radius: 12px;
             padding: 20px;
             text-decoration: none;
@@ -423,7 +455,7 @@
 
         .game-card:hover {
             transform: translateY(-5px);
-            border-color: var(--card-hover-border);
+            border-color: var(--card-hover-border); /* Solid Black in Light Mode, Green in Dark Mode */
             box-shadow: var(--card-hover-shadow);
         }
 
@@ -435,7 +467,11 @@
             overflow: hidden; 
             position: relative;
             background-color: #000000;
-            border: 1px solid #0f2e1a;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        body.dark-mode .thumbnail-container {
+            border: 1px solid #143820;
         }
 
         .game-thumbnail {
@@ -481,7 +517,7 @@
 
         .hidden { display: none !important; }
 
-        /* --- FOOTER: BLACK WITH WHITE TEXT CONTACT BUTTON --- */
+        /* --- FOOTER: BLACK CONTACT BUTTON WITH WHITE TEXT --- */
         footer {
             background-color: var(--footer-bg);
             padding: 40px 20px;
@@ -509,8 +545,8 @@
         }
 
         .contact-btn {
-            background-color: var(--contact-btn-bg); /* Pure black */
-            color: var(--contact-btn-text);           /* White text */
+            background-color: var(--contact-btn-bg);
+            color: var(--contact-btn-text);
             border: 2px solid var(--contact-btn-border);
             padding: 12px 26px;
             border-radius: 6px;
@@ -546,10 +582,6 @@
             .search-container {
                 max-width: 100%;
             }
-            
-            .logo-text {
-                font-size: 28px;
-            }
         }
     </style>
 </head>
@@ -558,11 +590,11 @@
     <header>
         <div class="logo-container">
             <a href="index.html">
-                <!-- Light Mode Logo: JPEG seamlessly matched -->
-                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="logo-img">
+                <!-- Light Mode Logo: clicksyncgameslogo.jpeg -->
+                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="logo-img logo-light">
 
-                <!-- Dark Mode Logo: Green Typography -->
-                <h1 class="logo-text">ClickSync<span>Games</span><sup class="tm-symbol">™</sup></h1>
+                <!-- Dark Mode Logo: clicksyncgameslogo2.jpeg -->
+                <img src="clicksyncgameslogo2.jpeg" alt="ClickSyncGames Logo" class="logo-img logo-dark">
             </a>
         </div>
 
@@ -967,7 +999,7 @@
         if (savedTheme === 'dark') {
             applyTheme(true);
         } else {
-            applyTheme(false); // Clean Light Mode entry
+            applyTheme(false);
         }
 
         themeToggleBtn.addEventListener('click', () => {
