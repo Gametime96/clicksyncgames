@@ -14,71 +14,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClickSyncGames | Premium Browser Games</title>
     <style>
-        /* --- THEME PALETTES --- */
         :root {
-            /* Default: Light Grey Mode */
-            --bg-color: #eceef1;
-            --panel-bg: #ffffff;
-            --card-border: #d1d5db;
-            --header-bg: #f9fafb;
-            --header-border: #cbd5e1;
-            --text-primary: #0f172a;
-            --text-muted: #475569;
-            --title-color: #047857;
-            --accent-green: #059669;
-            --accent-hover: #047857;
-            --search-bg: #ffffff;
-            --search-border: #94a3b8;
-            --search-text: #0f172a;
-            --search-placeholder: #64748b;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --footer-bg: #e2e8f0;
-            --footer-border: #cbd5e1;
-            --legal-text: #475569;
-            --contact-btn-bg: #059669;
-            --contact-btn-text: #ffffff;
-            --contact-btn-border: #047857;
-
-            /* Toggle 1B Dial Colors */
-            --switch-bg: #0f172a;
-            --switch-border: #334155;
-            --switch-track: #e2e8f0;
-            --switch-thumb: #f8fafc;
-            --switch-thumb-border: #94a3b8;
-            --switch-text: #0f172a;
-        }
-
-        body.dark-mode {
-            /* Dark Mode: Pitch Black & Neon Green */
             --bg-color: #000000;
             --panel-bg: #050d08;
             --card-border: #143820;
-            --header-bg: #000000;
-            --header-border: #15803d;
-            --text-primary: #34d399;
-            --text-muted: #10b981;
-            --title-color: #22c55e;
-            --accent-green: #15803d;
-            --accent-hover: #166534;
+            --text-primary: #34d399; /* Vibrant dark-mode green */
+            --text-muted: #15803d;   /* Deep/dark green */
+            --accent-green: #15803d; /* Classic dark green */
+            --accent-green-hover: #166534;
+            --accent-light: #22c55e;
             --search-bg: #030805;
-            --search-border: #166534;
-            --search-text: #34d399;
-            --search-placeholder: #065f46;
-            --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
-            --footer-bg: #000000;
-            --footer-border: #143820;
-            --legal-text: #065f46;
-            --contact-btn-bg: #14532d;
-            --contact-btn-text: #a7f3d0;
-            --contact-btn-border: #166534;
-
-            /* Toggle 1B Dark Dial Colors */
-            --switch-bg: #030704;
-            --switch-border: #166534;
-            --switch-track: #052e16;
-            --switch-thumb: #22c55e;
-            --switch-thumb-border: #4ade80;
-            --switch-text: #34d399;
         }
 
         body {
@@ -90,50 +35,36 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         header {
-            background-color: var(--header-bg);
-            padding: 16px 40px;
+            background-color: var(--bg-color);
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--header-border);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-bottom: 2px solid var(--accent-green);
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.2);
             position: sticky;
             top: 0;
             z-index: 100;
-            transition: background-color 0.25s ease, border-color 0.25s ease;
         }
 
-        /* --- LOGO DISPLAY MODES --- */
         .logo-container a {
             text-decoration: none;
-            display: flex;
-            align-items: center;
         }
 
-        /* Light Mode: JPEG Logo Active */
-        .logo-img {
-            max-height: 48px;
-            width: auto;
-            display: block;
-            object-fit: contain;
-        }
-
-        /* Dark Mode: Neon Typography Active */
-        .logo-text {
+        .logo-container h1 {
             margin: 0;
             font-size: 32px;
             color: #10b981;
             letter-spacing: 1px;
             font-weight: 900;
-            display: none;
+            display: flex;
             align-items: flex-start;
         }
 
-        .logo-text span { 
+        .logo-container span { 
             color: #166534; 
         }
         
@@ -144,118 +75,32 @@
             font-weight: bold;
         }
 
-        body.dark-mode .logo-img {
-            display: none !important;
-        }
-
-        body.dark-mode .logo-text {
-            display: flex !important;
-        }
-
-        .header-controls {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            justify-content: flex-end;
-            gap: 28px;
-        }
-
         .search-container {
             flex: 1;
-            max-width: 480px;
+            max-width: 500px;
+            margin-left: 40px;
             position: relative;
         }
 
         .search-bar {
             width: 100%;
-            padding: 11px 20px;
-            border: 2px solid var(--search-border);
+            padding: 12px 20px;
+            border: 2px solid #166534;
             border-radius: 25px;
             font-size: 16px;
-            color: var(--search-text);
+            color: #34d399;
             background-color: var(--search-bg);
             outline: none;
-            box-sizing: border-box;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .search-bar::placeholder {
-            color: var(--search-placeholder);
+            color: #065f46;
         }
 
         .search-bar:focus {
             border-color: #22c55e;
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
-        }
-
-        /* --- OPTION 1B: ARCADE BEVELED PILL SWITCH --- */
-        .arcade-toggle-btn {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            user-select: none;
-            outline: none;
-        }
-
-        .arcade-toggle-capsule {
-            display: inline-flex;
-            align-items: center;
-            gap: 11px;
-            padding: 6px 14px 6px 9px;
-            border-radius: 9999px;
-            background: var(--switch-bg);
-            border: 2px solid var(--switch-border);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.15);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .arcade-pill-track {
-            width: 48px;
-            height: 24px;
-            border-radius: 9999px;
-            background: var(--switch-track);
-            border: 1.5px solid var(--switch-border);
-            position: relative;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.45);
-            display: flex;
-            align-items: center;
-            transition: background 0.25s ease, border-color 0.25s ease;
-        }
-
-        .arcade-pill-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--switch-thumb);
-            border: 1px solid var(--switch-thumb-border);
-            position: absolute;
-            left: 2px;
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
-        }
-
-        body.dark-mode .arcade-pill-thumb {
-            transform: translateX(24px);
-            box-shadow: 0 0 10px #22c55e, 0 0 15px rgba(34, 197, 94, 0.6);
-        }
-
-        .arcade-toggle-label {
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: color 0.25s ease, text-shadow 0.25s ease;
-        }
-
-        body.dark-mode .arcade-toggle-label {
-            color: #34d399;
-            text-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
         }
 
         main {
@@ -264,18 +109,16 @@
             margin: 40px auto;
             padding: 0 20px;
             flex: 1; 
-            box-sizing: border-box;
         }
 
         h2.section-title {
             font-size: 24px;
-            color: var(--title-color);
+            color: #22c55e;
             border-bottom: 3px solid var(--accent-green);
             padding-bottom: 10px;
             margin-bottom: 25px;
             display: inline-block;
             letter-spacing: 0.5px;
-            transition: color 0.25s ease, border-color 0.25s ease;
         }
 
         .category-grid {
@@ -286,23 +129,24 @@
         }
 
         .category-btn {
-            color: #ffffff;
-            padding: 18px 10px;
+            color: #a7f3d0;
+            padding: 20px 10px;
             border-radius: 12px;
             text-align: center;
             font-weight: 900;
-            font-size: 16px;
+            font-size: 17px;
             letter-spacing: 0.5px;
             text-decoration: none;
             border: 1px solid #14532d;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); 
-            filter: saturate(85%) opacity(0.95);
-            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            -webkit-text-stroke: 0.5px #022c22;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); 
+            filter: saturate(70%) opacity(0.9);
+            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
             user-select: none;
         }
 
-        /* Distinct green gradients */
+        /* Dark green gradient palette across categories */
         .category-btn:nth-child(5n+1) { background: linear-gradient(135deg, #052e16, #022c22); } 
         .category-btn:nth-child(5n+2) { background: linear-gradient(135deg, #14532d, #064e3b); } 
         .category-btn:nth-child(5n+3) { background: linear-gradient(135deg, #166534, #052e16); } 
@@ -310,16 +154,16 @@
         .category-btn:nth-child(5n+5) { background: linear-gradient(135deg, #15803d, #14532d); } 
 
         .category-btn:hover {
-            transform: scale(1.04);
+            transform: scale(1.05);
             filter: saturate(120%) opacity(1);
             border-color: #22c55e;
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
         }
 
         .category-btn.active-filter {
-            transform: scale(1.04);
+            transform: scale(1.05);
             filter: saturate(120%) opacity(1);
-            box-shadow: 0 0 0 3px var(--bg-color), 0 0 0 5px #22c55e;
+            box-shadow: 0 0 0 3px #000000, 0 0 0 5px #22c55e;
             border-color: #22c55e;
         }
 
@@ -354,8 +198,8 @@
             align-items: center;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border-radius: 0px !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             user-select: none;
             box-sizing: border-box;
@@ -388,8 +232,8 @@
             padding: 20px;
             text-decoration: none;
             color: var(--text-primary);
-            box-shadow: var(--card-shadow);
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: column;
         }
@@ -397,7 +241,7 @@
         .game-card:hover {
             transform: translateY(-5px);
             border-color: #22c55e;
-            box-shadow: 0 8px 22px rgba(22, 101, 52, 0.35);
+            box-shadow: 0 8px 20px rgba(22, 101, 52, 0.4);
         }
 
         .thumbnail-container {
@@ -408,49 +252,57 @@
             overflow: hidden; 
             position: relative;
             background-color: #000000;
-            border: 1px solid #14532d;
+            border: 1px solid #0f2e1a;
         }
 
         .game-thumbnail {
             width: 100%;
             height: 100%;
             display: block;
-            object-fit: cover;
-            object-position: center;
         }
+
+        .css-thumb::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 20% 30%, rgba(22, 101, 52, 0.4) 0%, transparent 50%);
+            opacity: 0.8;
+        }
+        
+        .thumb-battery::after { background-image: radial-gradient(circle at 50% 50%, rgba(234, 179, 8, 0.4) 0%, transparent 60%); }
+        .thumb-cards::after { background-image: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.4) 0%, transparent 60%); }
+        .thumb-pool::after { background-image: radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.4) 0%, transparent 60%); }
+        .thumb-flora::after { background-image: radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.5) 0%, transparent 60%); }
+        .thumb-sync::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.4) 0%, transparent 60%); }
+        .thumb-pulse::after { background-image: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.5) 0%, transparent 60%); }
+        .thumb-train::after { background-image: radial-gradient(circle at 50% 50%, rgba(26, 188, 156, 0.5) 0%, transparent 60%); }
+        .thumb-twelve::after { background-image: radial-gradient(circle at 50% 50%, rgba(22, 101, 52, 0.45) 0%, transparent 65%); }
 
         .game-title { 
             font-size: 19px; 
             font-weight: 800; 
             margin-bottom: 8px; 
             text-transform: uppercase; 
-            color: var(--text-primary);
-            letter-spacing: 0.5px;
-            transition: color 0.25s ease;
-        }
-
-        body.dark-mode .game-title {
             color: #34d399;
+            letter-spacing: 0.5px;
         }
 
         .game-desc { 
             font-size: 14px; 
             line-height: 1.5; 
-            color: var(--text-muted); 
-            opacity: 0.95;
-            transition: color 0.25s ease;
+            color: #10b981; 
+            opacity: 0.85;
         }
 
         .hidden { display: none !important; }
 
         /* --- FOOTER STYLES --- */
         footer {
-            background-color: var(--footer-bg);
+            background-color: #000000;
             padding: 40px 20px;
             margin-top: 60px;
             text-align: center;
-            border-top: 2px solid var(--footer-border);
-            transition: background-color 0.25s ease, border-color 0.25s ease;
+            border-top: 2px solid #143820;
         }
 
         .footer-content {
@@ -460,10 +312,9 @@
 
         .legal-text {
             font-size: 11px;
-            color: var(--legal-text);
+            color: #065f46;
             line-height: 1.6;
             margin-bottom: 30px;
-            transition: color 0.25s ease;
         }
 
         .contact-section {
@@ -471,9 +322,9 @@
         }
 
         .contact-btn {
-            background-color: var(--contact-btn-bg);
-            color: var(--contact-btn-text);
-            border: 1px solid var(--contact-btn-border);
+            background-color: #14532d;
+            color: #a7f3d0;
+            border: 1px solid #166534;
             padding: 12px 24px;
             border-radius: 6px;
             cursor: pointer;
@@ -483,31 +334,31 @@
         }
 
         .contact-btn:hover { 
-            background-color: var(--accent-hover); 
+            background-color: #166534; 
             color: #ffffff; 
             border-color: #22c55e; 
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
         }
 
         /* --- MOBILE RESPONSIVE FIXES --- */
-        @media (max-width: 860px) {
+        @media (max-width: 768px) {
             header {
                 flex-direction: column;
                 padding: 15px 20px;
                 gap: 15px;
             }
-
-            .header-controls {
-                width: 100%;
-                justify-content: space-between;
-                gap: 15px;
-            }
             
             .search-container {
+                margin-left: 0;
+                width: 100%;
                 max-width: 100%;
             }
+
+            .search-bar {
+                box-sizing: border-box;
+            }
             
-            .logo-text {
+            .logo-container h1 {
                 font-size: 28px;
             }
         }
@@ -518,28 +369,11 @@
     <header>
         <div class="logo-container">
             <a href="index.html">
-                <!-- Light Mode Logo: JPEG -->
-                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="logo-img">
-                
-                <!-- Dark Mode Logo: Green Typography -->
-                <h1 class="logo-text">ClickSync<span>Games</span><sup class="tm-symbol">™</sup></h1>
+                <h1>ClickSync<span>Games</span><sup class="tm-symbol">™</sup></h1>
             </a>
         </div>
-
-        <div class="header-controls">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-bar" placeholder="Search">
-            </div>
-
-            <!-- OPTION 1B ARCADE BEVELED DIAL SWITCH -->
-            <button id="themeToggleBtn" class="arcade-toggle-btn" aria-label="Toggle site theme">
-                <div class="arcade-toggle-capsule">
-                    <div class="arcade-pill-track">
-                        <div class="arcade-pill-thumb"></div>
-                    </div>
-                    <span id="themeToggleLabel" class="arcade-toggle-label">Light Mode</span>
-                </div>
-            </button>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search">
         </div>
     </header>
 
@@ -576,3 +410,470 @@
             </p>
             <div class="contact-section">
                 <a href="contact.html" class="contact-btn" style="display: inline-block; text-decoration: none;">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Centralized Game Array Data Matrix
+        const gamesData = [
+            {
+                href: "3dbilliardsgame2026.html",
+                category: "billiards sports simulation strategy",
+                imgSrc: "clicksyncgames3dbilliardsgame2026.jpeg",
+                thumbClass: "",
+                title: "3D Billiards Game 2026",
+                desc: "High-definition 3D pool with customizable table themes, cue sticks, pivot aim dial, and behind-the-cue ball camera views."
+            },
+            {
+                href: "airtrafficcontroller.html",
+                category: "airport simulation strategy",
+                imgSrc: "AIRTRAFFICCONTROL.jpg",
+                thumbClass: "",
+                title: "Air Traffic Control",
+                desc: "Manage the skies and safely guide aircraft to their runways without collisions."
+            },
+            {
+                href: "badguyladder.html",
+                category: "strategy",
+                imgSrc: "badguyladder.png",
+                thumbClass: "",
+                title: "Bad Guy Ladder",
+                desc: "Build ladders to escape the levels, but watch out for the bad guys trying to break your path!"
+            },
+            {
+                href: "Balltrapcraze.html",
+                category: "arcade simulation strategy",
+                imgSrc: "balltrapcrazegame.jpg",
+                thumbClass: "",
+                title: "Ball Trap Craze",
+                desc: "Trap the bouncing balls by rapidly building walls to clear 75% of the board in this intense arcade game."
+            },
+            {
+                href: "batterybash.html",
+                category: "arcade strategy",
+                imgSrc: "batterybash.jpg",
+                thumbClass: "",
+                title: "Battery Bash",
+                desc: "High-voltage action! Protect the power grid and bash through charging obstacles."
+            },
+            {
+                href: "blackjackcraze.html",
+                category: "casino cards blackjack strategy",
+                imgSrc: "blackjackcraze.jpeg",
+                thumbClass: "",
+                title: "Blackjack Craze",
+                desc: "6-deck casino blackjack featuring interactive shoe cutting, an opening burn card, Hi-Lo card counting, and dynamic chip payouts."
+            },
+            {
+                href: "bubbleshooter2026.html",
+                category: "arcade puzzle logic",
+                imgSrc: "bubbleshooter2026.jpg",
+                thumbClass: "",
+                title: "Bubble Shooter 2026",
+                desc: "Match 3 or more bubbles to clear the board before they reach the bottom in this neon puzzle classic."
+            },
+            {
+                href: "cardcountingbaccarat.html",
+                category: "casino cards baccarat strategy",
+                imgSrc: "cardcountingbaccarat.jpeg",
+                thumbClass: "",
+                title: "Card Counting Baccarat",
+                desc: "Experience high-stakes casino baccarat with interactive card counting, natural hand rules, and third-card drawing tableaus."
+            },
+            {
+                href: "cardcountingblackjack.html",
+                category: "casino cards blackjack poker",
+                imgSrc: "cardcountingblackjack.jpg",
+                thumbClass: "",
+                title: "Card Counting Blackjack",
+                desc: "Master the odds and practice your card counting skills in this classic casino game."
+            },
+            {
+                href: "billiardsgame.html",
+                category: "billiards multiplayer",
+                imgSrc: "billiardsgame.jpg",
+                thumbClass: "",
+                title: "Classic Billiards",
+                desc: "Line up your shots and clear the table in this physics-based pool simulator."
+            },
+            {
+                href: "classicbowlingpro.html",
+                category: "sports multiplayer arcade",
+                imgSrc: "classicbowlinggame.jpg",
+                thumbClass: "",
+                title: "Classic Bowling Pro",
+                desc: "Hit the lanes in this classic 10-pin bowling simulator featuring up to 4 players and CPU opponents!"
+            },
+            {
+                href: "clicksyncroller.html",
+                category: "arcade racing strategy",
+                imgSrc: "clicksyncroller.jpg",
+                thumbClass: "",
+                title: "ClickSync Roller",
+                desc: "Race down an anti-gravity half-pipe, ride the high walls, and reach maximum velocity to clear structural gaps!"
+            },
+            {
+                href: "crashtestextreme20.html",
+                category: "action simulation strategy",
+                imgSrc: "crashtestextreme20.jpeg",
+                thumbClass: "",
+                title: "Crash Test Extreme 2.0",
+                desc: "Survive all levels of crash test simulations."
+            },
+            {
+                href: "cyberpath.html",
+                category: "puzzle strategy arcade",
+                imgSrc: "cyberpath.jpg",
+                thumbClass: "",
+                title: "Cyber Path",
+                desc: "Rotate neon data pipes to route a secure signal from the Mainframe to the Terminal while avoiding firewalls!"
+            },
+            {
+                href: "defendthevehicle.html",
+                category: "strategy action simulation",
+                imgSrc: "defendthevehicle.jpg",
+                thumbClass: "",
+                title: "Defend the Vehicle",
+                desc: "Survive 10 levels of escalating chaos, tornadoes, zombies, and alien attacks in the desert."
+            },
+            {
+                href: "destroytheenemyterritory.html",
+                category: "action simulation strategy",
+                imgSrc: "destroytheenemyterritory.jpg",
+                thumbClass: "",
+                title: "Destroy the Enemy Territory",
+                desc: "Pilot a Boeing B-29 Superfortress, descend through cloud cover, and drop payloads to neutralize enemy military bases."
+            },
+            {
+                href: "fastclickmadness.html",
+                category: "arcade action idle clicker",
+                imgSrc: "fastclickmadnesspic.jpg",
+                thumbClass: "",
+                title: "Fast Click Madness",
+                desc: "Test your reflexes and speed! Click as fast as you can before the clock runs out to dominate the scoreboard."
+            },
+            {
+                href: "fieldgoal101madness.html",
+                category: "sports strategy simulation",
+                imgSrc: "fieldgoal101madness.jpeg",
+                thumbClass: "",
+                title: "Field Goal 101 Madness",
+                desc: "Step up to the tee, gauge the wind and direction, and drill the football through the levitating target ring and uprights!"
+            },
+            {
+                href: "fishenergysurvival.html",
+                category: "adventure racing simulation strategy",
+                imgSrc: "fishenergysurvival.jpeg",
+                thumbClass: "",
+                title: "Fish Energy Survival",
+                desc: "Control your glowing fish to eat worms, maintain your energy level, and avoid deadly apex sharks across 8 levels!"
+            },
+            {
+                href: "florasys.html",
+                category: "arcade strategy",
+                imgSrc: "flora.jpg",
+                thumbClass: "",
+                title: "Flora",
+                desc: "Extract nutrients from infected roots to build a canopy defense system."
+            },
+            {
+                href: "golfcardgame.html",
+                category: "casino cards blackjack poker strategy",
+                imgSrc: "golfcardgame3.jpg",
+                thumbClass: "",
+                title: "Golf Card Game",
+                desc: "Swap and match cards to get the lowest score possible in this classic 9-card golf game against the computer."
+            },
+            {
+                href: "golfgamecraze.html",
+                category: "arcade racing sports simulation",
+                imgSrc: "golfgamecraze.JPEG",
+                thumbClass: "",
+                title: "Golf Game Craze",
+                desc: "Maneuver a large golf ball through a fast-paced, 3D obstacle course with traps, speed lanes, and moving gates."
+            },
+            {
+                href: "golfballstrategy.html",
+                category: "sports arcade simulation strategy",
+                imgSrc: "golfballstrategy.JPEG",
+                thumbClass: "",
+                title: "Golf Ball Strategy 2026",
+                desc: "Smoothly glide the top dispenser beaker to line up with the moving target funnel and catch the required golf balls!"
+            },
+            {
+                href: "holeintwelve.html",
+                category: "sports arcade simulation strategy",
+                imgSrc: "holeintwelve.JPEG",
+                thumbClass: "thumb-twelve",
+                title: "Hole in Twelve",
+                desc: "Test your patience and precision to sink your shots in exactly twelve strokes or fewer!"
+            },
+            {
+                href: "icebergboatbattle.html",
+                category: "action adventure racing simulation strategy",
+                imgSrc: "icebergboatbattle.jpeg",
+                thumbClass: "",
+                title: "Iceberg Boat Battle",
+                desc: "Navigate icy waters, choose your vessel, dodge drifting icebergs, and collect all gold coins before time expires!"
+            },
+            {
+                href: "icebreaksurvival2026.html",
+                category: "action adventure racing simulation strategy",
+                imgSrc: "icebreaksurvival2026.JPEG",
+                thumbClass: "",
+                title: "Ice Break Survival 2026",
+                desc: "Drive across thinning ice, dodge sudden cracks and open water, and collect all gold coins before time runs out!"
+            },
+            {
+                href: "impossibletictactoe.html",
+                category: "arcade multiplayer puzzle strategy",
+                imgSrc: "tictactoe.jpg",
+                thumbClass: "",
+                title: "Impossible Tic Tac Toe",
+                desc: "Take on the impossible AI or challenge a friend in this classic 2D strategy game."
+            },
+            {
+                href: "mirrorbreakstrategy.html",
+                category: "strategy puzzle logic",
+                imgSrc: "mirrorbreakstrategy.JPEG",
+                thumbClass: "",
+                title: "Mirror Break Strategy",
+                desc: "Shatter tactical challenges by aligning your reflections and outsmarting geometric puzzles."
+            },
+            {
+                href: "neontilt.html",
+                category: "arcade action strategy",
+                imgSrc: "neontilt.jpg",
+                thumbClass: "",
+                title: "Neon Tilt Collector",
+                desc: "Roll the neon marble to collect yellow cubes while avoiding deadly red glitch blocks!"
+            },
+            {
+                href: "pulsecapture.html",
+                category: "arcade puzzle",
+                imgSrc: "pulsecapture.jpg",
+                thumbClass: "",
+                title: "Pulse Capture",
+                desc: "Test your reflexes and perception across 15 advanced levels of timing and synchronization."
+            },
+            {
+                href: "quantumgridlock.html",
+                category: "action adventure arcade strategy",
+                imgSrc: "quantumgridlock.jpeg",
+                thumbClass: "",
+                title: "Quantum Gridlock",
+                desc: "Navigate complex pathways, outmaneuver hazards, and master strategic positioning to restore core stability."
+            },
+            {
+                href: "savethegolfballs.html",
+                category: "strategy simulation",
+                imgSrc: "savethegolfballsthumbnail.jpg",
+                thumbClass: "",
+                title: "Save the Golf Balls",
+                desc: "Tilt the 3D box to save as many balls as you can before the walls fall away! Survive 10 rounds to win."
+            },
+            {
+                href: "spacedustanddescent.html",
+                category: "action adventure arcade simulation strategy",
+                imgSrc: "spacedustanddescent.jpeg",
+                thumbClass: "",
+                title: "Space Dust and Descent",
+                desc: "Pilot an astronaut through space dust and guide approach corridors to land softly across 8 planetary sectors!"
+            },
+            {
+                href: "speedboatstrategy2026.html",
+                category: "action adventure racing simulation strategy",
+                imgSrc: "speedboatstrategy2026.JPEG",
+                thumbClass: "",
+                title: "Speed Boat Strategy 2026",
+                desc: "Navigate open ocean waters, power through bright red rainbow arches, dodge tropical islands, and master water currents!"
+            },
+            {
+                href: "survivalinthedeepforest.html",
+                category: "action adventure simulation strategy",
+                imgSrc: "survivalinthedeepforest.jpeg",
+                thumbClass: "",
+                title: "Survival in the Deep Forest",
+                desc: "Survive deep in the forest by chopping timber, hunting game, and tending the nocturnal campfire across 8 challenging levels."
+            },
+            {
+                href: "synctime.html",
+                category: "arcade strategy",
+                imgSrc: "synctime.jpg",
+                thumbClass: "",
+                title: "Synctime",
+                desc: "Defend your vulnerable cores while swinging a lethal laser tether in this 12-level survival game."
+            },
+            {
+                href: "tabletenniscraze.html",
+                category: "arcade simulation sports",
+                imgSrc: "tabletenniscraze.jpg",
+                thumbClass: "",
+                title: "Table Tennis Craze",
+                desc: "Experience an immersive first-person table tennis game. Battle the AI across three extreme difficulty levels!"
+            },
+            {
+                href: "train-track-madness-pro.html",
+                category: "strategy puzzle",
+                imgSrc: "traintrackmadnesspro.jpg",
+                thumbClass: "",
+                title: "Train Track Madness Pro",
+                desc: "Manage finite track resources to guide your train to pick up passengers in this 12-level puzzle game."
+            }
+        ];
+
+        // Strict Natural Alphabetical Sorting Algorithm (Numbers/Symbols Supercede Letters)
+        gamesData.sort((a, b) => {
+            return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+        // Application State Matrices
+        const ITEMS_PER_PAGE = 12;
+        let currentPage = 1;
+        let activeCategory = '';
+        let currentSearchTerm = '';
+
+        const searchInput = document.getElementById('searchInput');
+        const gameGrid = document.getElementById('gameGrid');
+        const paginationTop = document.getElementById('paginationTop');
+        const paginationBottom = document.getElementById('paginationBottom');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+        // Layout Event Attachments
+        searchBarEvents();
+
+        function searchBarEvents() {
+            searchInput.addEventListener('input', () => {
+                currentSearchTerm = searchInput.value.toLowerCase().trim();
+                currentPage = 1; 
+                filterAndRender();
+            });
+
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const clickedCategory = this.textContent.toLowerCase().trim();
+                    
+                    if (activeCategory === clickedCategory) {
+                        activeCategory = '';
+                        this.classList.remove('active-filter');
+                    } else {
+                        categoryBtns.forEach(b => b.classList.remove('active-filter'));
+                        activeCategory = clickedCategory;
+                        this.classList.add('active-filter');
+                    }
+
+                    currentPage = 1; 
+                    filterAndRender();
+                });
+            });
+        }
+
+        function filterAndRender() {
+            // 1. Process Filtering Matrices Across Categories and Input Strings
+            categoryBtns.forEach(btn => {
+                const catName = btn.textContent.toLowerCase();
+                const searchKeywords = btn.getAttribute('data-search');
+                if (catName.includes(currentSearchTerm) || searchKeywords.includes(currentSearchTerm)) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            });
+
+            const filteredGames = gamesData.filter(game => {
+                const matchesSearch = game.title.toLowerCase().includes(currentSearchTerm) || 
+                                      game.desc.toLowerCase().includes(currentSearchTerm);
+                const matchesCategory = activeCategory === '' || game.category.toLowerCase().includes(activeCategory);
+                return matchesSearch && matchesCategory;
+            });
+
+            // 2. Calculate Paging Tiers
+            const totalItems = filteredGames.length;
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+            if (currentPage > totalPages && totalPages > 0) {
+                currentPage = totalPages;
+            }
+
+            // 3. Render Both Paging Component Containers Synchronously
+            buildPaginationTrack(paginationTop, totalItems, totalPages, filteredGames);
+            buildPaginationTrack(paginationBottom, totalItems, totalPages, filteredGames);
+
+            // 4. Update Main Content Container Area
+            renderGridSection(filteredGames);
+        }
+
+        function buildPaginationTrack(containerNode, totalItems, totalPages, dataset) {
+            containerNode.innerHTML = '';
+            
+            // Render only if strictly greater than maximum display bounds (12 items)
+            if (totalItems > ITEMS_PER_PAGE) {
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageBox = document.createElement('button');
+                    pageBox.className = 'page-box';
+                    pageBox.textContent = i;
+                    
+                    if (i === currentPage) {
+                        pageBox.classList.add('active-page');
+                    }
+                    
+                    pageBox.addEventListener('click', () => {
+                        currentPage = i;
+                        // Synchronize active states across both paths instantly
+                        document.querySelectorAll('.pagination-container').forEach(track => {
+                            const boxes = track.querySelectorAll('.page-box');
+                            boxes.forEach((box, index) => {
+                                box.classList.remove('active-page');
+                                if (index === (i - 1)) {
+                                    box.classList.add('active-page');
+                                }
+                            });
+                        });
+                        
+                        renderGridSection(dataset);
+                        
+                        // Scroll view smoothly up to top of library window
+                        document.getElementById('paginationTop').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    });
+                    
+                    containerNode.appendChild(pageBox);
+                }
+            }
+        }
+
+        function renderGridSection(itemsList) {
+            gameGrid.innerHTML = '';
+
+            if (itemsList.length === 0) {
+                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #065f46; font-weight: bold;">No games found matching your filters.</div>';
+                paginationBottom.innerHTML = '';
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, itemsList.length);
+            const pageItems = itemsList.slice(startIndex, endIndex);
+
+            pageItems.forEach(game => {
+                const cardLink = document.createElement('a');
+                cardLink.href = game.href;
+                cardLink.className = 'game-card';
+                cardLink.setAttribute('data-category', game.category);
+
+                cardLink.innerHTML = `
+                    <div class="thumbnail-container ${game.thumbClass}">
+                        <img src="${game.imgSrc}" class="game-thumbnail" style="object-fit: cover; object-position: center; width: 100%; height: 100%;" alt="${game.title}">
+                    </div>
+                    <div class="game-title">${game.title}</div>
+                    <div class="game-desc">${game.desc}</div>
+                `;
+                gameGrid.appendChild(cardLink);
+            });
+        }
+
+        // Initialize Rendering Matrix Thread on System Mount
+        filterAndRender();
+    </script>
+</body>
+</html>
