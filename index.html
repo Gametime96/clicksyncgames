@@ -14,16 +14,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClickSyncGames | Premium Browser Games</title>
     <style>
+        /* --- DEFAULT: LIGHT GREY THEME --- */
         :root {
+            --bg-color: #ebecef;
+            --header-bg: #f8fafc;
+            --header-border: #cbd5e1;
+            --panel-bg: #ffffff;
+            --card-border: #d1d5db;
+            --text-primary: #0f172a;
+            --text-muted: #334155;
+            --accent-green: #059669;
+            --accent-green-hover: #047857;
+            --accent-light: #10b981;
+            --section-title-color: #065f46;
+            --search-bg: #ffffff;
+            --search-border: #94a3b8;
+            --search-text: #0f172a;
+            --search-placeholder: #64748b;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --card-hover-border: #059669;
+            --card-hover-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
+            --footer-bg: #e2e8f0;
+            --footer-border: #cbd5e1;
+            --legal-text: #475569;
+            --contact-btn-bg: #059669;
+            --contact-btn-hover: #047857;
+            --contact-btn-text: #ffffff;
+            --contact-btn-border: #047857;
+
+            /* Option 1B Switch (Light State) */
+            --switch-capsule-bg: #0f172a;
+            --switch-capsule-border: #334155;
+            --switch-track-bg: #cbd5e1;
+            --switch-track-border: #475569;
+            --switch-thumb-bg: #ffffff;
+            --switch-thumb-border: #94a3b8;
+            --switch-thumb-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+            --switch-label-color: #ffffff;
+        }
+
+        /* --- ACTIVE: DARK BLACK & GREEN THEME --- */
+        body.dark-mode {
             --bg-color: #000000;
+            --header-bg: #000000;
+            --header-border: #15803d;
             --panel-bg: #050d08;
             --card-border: #143820;
-            --text-primary: #34d399; /* Vibrant dark-mode green */
-            --text-muted: #15803d;   /* Deep/dark green */
-            --accent-green: #15803d; /* Classic dark green */
+            --text-primary: #34d399;
+            --text-muted: #10b981;
+            --accent-green: #15803d;
             --accent-green-hover: #166534;
             --accent-light: #22c55e;
+            --section-title-color: #22c55e;
             --search-bg: #030805;
+            --search-border: #166534;
+            --search-text: #34d399;
+            --search-placeholder: #065f46;
+            --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            --card-hover-border: #22c55e;
+            --card-hover-shadow: 0 8px 20px rgba(22, 101, 52, 0.4);
+            --footer-bg: #000000;
+            --footer-border: #143820;
+            --legal-text: #065f46;
+            --contact-btn-bg: #14532d;
+            --contact-btn-hover: #166534;
+            --contact-btn-text: #a7f3d0;
+            --contact-btn-border: #166534;
+
+            /* Option 1B Switch (Dark State) */
+            --switch-capsule-bg: #030805;
+            --switch-capsule-border: #166534;
+            --switch-track-bg: #052e16;
+            --switch-track-border: #15803d;
+            --switch-thumb-bg: #22c55e;
+            --switch-thumb-border: #4ade80;
+            --switch-thumb-shadow: 0 0 10px #22c55e, 0 0 15px rgba(34, 197, 94, 0.6);
+            --switch-label-color: #34d399;
         }
 
         body {
@@ -35,36 +101,49 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
         header {
-            background-color: var(--bg-color);
-            padding: 20px 40px;
+            background-color: var(--header-bg);
+            padding: 16px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--accent-green);
-            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.2);
+            border-bottom: 2px solid var(--header-border);
+            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.15);
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
         }
 
         .logo-container a {
             text-decoration: none;
+            display: flex;
+            align-items: center;
         }
 
-        .logo-container h1 {
+        /* Default Light Mode Logo (Image) */
+        .logo-img {
+            max-height: 48px;
+            width: auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* Dark Mode Logo (Stylized Green Typography) */
+        .logo-text {
             margin: 0;
             font-size: 32px;
             color: #10b981;
             letter-spacing: 1px;
             font-weight: 900;
-            display: flex;
+            display: none;
             align-items: flex-start;
         }
 
-        .logo-container span { 
+        .logo-text span { 
             color: #166534; 
         }
         
@@ -75,32 +154,116 @@
             font-weight: bold;
         }
 
+        /* Logo State Transformation */
+        body.dark-mode .logo-img {
+            display: none !important;
+        }
+
+        body.dark-mode .logo-text {
+            display: flex !important;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: flex-end;
+            gap: 30px;
+        }
+
         .search-container {
             flex: 1;
-            max-width: 500px;
-            margin-left: 40px;
+            max-width: 480px;
             position: relative;
         }
 
         .search-bar {
             width: 100%;
             padding: 12px 20px;
-            border: 2px solid #166534;
+            border: 2px solid var(--search-border);
             border-radius: 25px;
             font-size: 16px;
-            color: #34d399;
+            color: var(--search-text);
             background-color: var(--search-bg);
             outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease, color 0.25s ease;
         }
 
         .search-bar::placeholder {
-            color: #065f46;
+            color: var(--search-placeholder);
         }
 
         .search-bar:focus {
             border-color: #22c55e;
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+        }
+
+        /* --- OPTION 1B ARCADE BEVELED DIAL SWITCH --- */
+        .arcade-toggle-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            outline: none;
+            user-select: none;
+        }
+
+        .arcade-toggle-capsule {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 14px 6px 8px;
+            border-radius: 9999px;
+            background: var(--switch-capsule-bg);
+            border: 2px solid var(--switch-capsule-border);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .arcade-pill-track {
+            width: 48px;
+            height: 24px;
+            border-radius: 9999px;
+            background: var(--switch-track-bg);
+            border: 1.5px solid var(--switch-track-border);
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .arcade-pill-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--switch-thumb-bg);
+            border: 1px solid var(--switch-thumb-border);
+            position: absolute;
+            left: 2px;
+            box-shadow: var(--switch-thumb-shadow);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        body.dark-mode .arcade-pill-thumb {
+            transform: translateX(24px);
+        }
+
+        .arcade-toggle-label {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--switch-label-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: color 0.25s ease, text-shadow 0.25s ease;
+        }
+
+        body.dark-mode .arcade-toggle-label {
+            text-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
         }
 
         main {
@@ -109,16 +272,18 @@
             margin: 40px auto;
             padding: 0 20px;
             flex: 1; 
+            box-sizing: border-box;
         }
 
         h2.section-title {
             font-size: 24px;
-            color: #22c55e;
+            color: var(--section-title-color);
             border-bottom: 3px solid var(--accent-green);
             padding-bottom: 10px;
             margin-bottom: 25px;
             display: inline-block;
             letter-spacing: 0.5px;
+            transition: color 0.25s ease, border-color 0.25s ease;
         }
 
         .category-grid {
@@ -163,7 +328,7 @@
         .category-btn.active-filter {
             transform: scale(1.05);
             filter: saturate(120%) opacity(1);
-            box-shadow: 0 0 0 3px #000000, 0 0 0 5px #22c55e;
+            box-shadow: 0 0 0 3px var(--bg-color), 0 0 0 5px #22c55e;
             border-color: #22c55e;
         }
 
@@ -232,16 +397,16 @@
             padding: 20px;
             text-decoration: none;
             color: var(--text-primary);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease;
             display: flex;
             flex-direction: column;
         }
 
         .game-card:hover {
             transform: translateY(-5px);
-            border-color: #22c55e;
-            box-shadow: 0 8px 20px rgba(22, 101, 52, 0.4);
+            border-color: var(--card-hover-border);
+            box-shadow: var(--card-hover-shadow);
         }
 
         .thumbnail-container {
@@ -283,26 +448,29 @@
             font-weight: 800; 
             margin-bottom: 8px; 
             text-transform: uppercase; 
-            color: #34d399;
+            color: var(--text-primary);
             letter-spacing: 0.5px;
+            transition: color 0.25s ease;
         }
 
         .game-desc { 
             font-size: 14px; 
             line-height: 1.5; 
-            color: #10b981; 
+            color: var(--text-muted); 
             opacity: 0.85;
+            transition: color 0.25s ease;
         }
 
         .hidden { display: none !important; }
 
         /* --- FOOTER STYLES --- */
         footer {
-            background-color: #000000;
+            background-color: var(--footer-bg);
             padding: 40px 20px;
             margin-top: 60px;
             text-align: center;
-            border-top: 2px solid #143820;
+            border-top: 2px solid var(--footer-border);
+            transition: background-color 0.25s ease, border-color 0.25s ease;
         }
 
         .footer-content {
@@ -312,9 +480,10 @@
 
         .legal-text {
             font-size: 11px;
-            color: #065f46;
+            color: var(--legal-text);
             line-height: 1.6;
             margin-bottom: 30px;
+            transition: color 0.25s ease;
         }
 
         .contact-section {
@@ -322,9 +491,9 @@
         }
 
         .contact-btn {
-            background-color: #14532d;
-            color: #a7f3d0;
-            border: 1px solid #166534;
+            background-color: var(--contact-btn-bg);
+            color: var(--contact-btn-text);
+            border: 1px solid var(--contact-btn-border);
             padding: 12px 24px;
             border-radius: 6px;
             cursor: pointer;
@@ -334,31 +503,31 @@
         }
 
         .contact-btn:hover { 
-            background-color: #166534; 
+            background-color: var(--contact-btn-hover); 
             color: #ffffff; 
             border-color: #22c55e; 
             box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
         }
 
         /* --- MOBILE RESPONSIVE FIXES --- */
-        @media (max-width: 768px) {
+        @media (max-width: 860px) {
             header {
                 flex-direction: column;
                 padding: 15px 20px;
                 gap: 15px;
             }
             
-            .search-container {
-                margin-left: 0;
+            .header-controls {
                 width: 100%;
-                max-width: 100%;
+                justify-content: space-between;
+                gap: 15px;
             }
 
-            .search-bar {
-                box-sizing: border-box;
+            .search-container {
+                max-width: 100%;
             }
             
-            .logo-container h1 {
+            .logo-text {
                 font-size: 28px;
             }
         }
@@ -369,11 +538,28 @@
     <header>
         <div class="logo-container">
             <a href="index.html">
-                <h1>ClickSync<span>Games</span><sup class="tm-symbol">™</sup></h1>
+                <!-- Light Mode Logo: JPEG -->
+                <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="logo-img">
+
+                <!-- Dark Mode Logo: Green Typography -->
+                <h1 class="logo-text">ClickSync<span>Games</span><sup class="tm-symbol">™</sup></h1>
             </a>
         </div>
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-bar" placeholder="Search">
+
+        <div class="header-controls">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-bar" placeholder="Search">
+            </div>
+
+            <!-- OPTION 1B ARCADE BEVELED DIAL SWITCH -->
+            <button id="themeToggleBtn" class="arcade-toggle-btn" aria-label="Toggle site theme">
+                <div class="arcade-toggle-capsule">
+                    <div class="arcade-pill-track">
+                        <div class="arcade-pill-thumb"></div>
+                    </div>
+                    <span id="themeToggleLabel" class="arcade-toggle-label">Light Mode</span>
+                </div>
+            </button>
         </div>
     </header>
 
@@ -740,6 +926,35 @@
         const paginationBottom = document.getElementById('paginationBottom');
         const categoryBtns = document.querySelectorAll('.category-btn');
 
+        // Theme Switch Elements
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeToggleLabel = document.getElementById('themeToggleLabel');
+
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                themeToggleLabel.textContent = 'Dark Mode';
+                localStorage.setItem('csg_theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggleLabel.textContent = 'Light Mode';
+                localStorage.setItem('csg_theme', 'light');
+            }
+        }
+
+        // Initialize: Strict default to Light Mode unless previously saved as 'dark'
+        const savedTheme = localStorage.getItem('csg_theme');
+        if (savedTheme === 'dark') {
+            applyTheme(true);
+        } else {
+            applyTheme(false); // Clean Light Mode entry
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            applyTheme(!isCurrentlyDark);
+        });
+
         // Layout Event Attachments
         searchBarEvents();
 
@@ -773,7 +988,7 @@
             // 1. Process Filtering Matrices Across Categories and Input Strings
             categoryBtns.forEach(btn => {
                 const catName = btn.textContent.toLowerCase();
-                const searchKeywords = btn.getAttribute('data-search');
+                const searchKeywords = btn.getAttribute('data-search') || '';
                 if (catName.includes(currentSearchTerm) || searchKeywords.includes(currentSearchTerm)) {
                     btn.classList.remove('hidden');
                 } else {
@@ -846,7 +1061,7 @@
             gameGrid.innerHTML = '';
 
             if (itemsList.length === 0) {
-                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #065f46; font-weight: bold;">No games found matching your filters.</div>';
+                gameGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted); font-weight: bold;">No games found matching your filters.</div>';
                 paginationBottom.innerHTML = '';
                 return;
             }
