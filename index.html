@@ -17,7 +17,7 @@
         /* --- DEFAULT: LIGHT GREY THEME --- */
         :root {
             --bg-color: #ebecef;
-            --header-bg: #f8fafc;
+            --header-bg: #ffffff; /* Seamless match for clicksyncgameslogo.jpeg perimeter */
             --header-border: #cbd5e1;
             --panel-bg: #ffffff;
             --card-border: #d1d5db;
@@ -26,21 +26,22 @@
             --accent-green: #059669;
             --accent-green-hover: #047857;
             --accent-light: #10b981;
-            --section-title-color: #065f46;
+            --section-title-color: #000000; /* Explicitly black in light mode */
+            --section-title-border: #000000;
             --search-bg: #ffffff;
-            --search-border: #94a3b8;
-            --search-text: #0f172a;
-            --search-placeholder: #64748b;
+            --search-border: #000000; /* Bold black outline in light mode */
+            --search-text: #000000;
+            --search-placeholder: #000000; /* Bold dark placeholder */
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             --card-hover-border: #059669;
             --card-hover-shadow: 0 8px 20px rgba(5, 150, 105, 0.25);
             --footer-bg: #e2e8f0;
             --footer-border: #cbd5e1;
             --legal-text: #475569;
-            --contact-btn-bg: #059669;
-            --contact-btn-hover: #047857;
+            --contact-btn-bg: #000000; /* Black with white text */
+            --contact-btn-hover: #1f2937;
             --contact-btn-text: #ffffff;
-            --contact-btn-border: #047857;
+            --contact-btn-border: #000000;
 
             /* Option 1B Switch (Light State) */
             --switch-capsule-bg: #0f172a;
@@ -66,20 +67,21 @@
             --accent-green-hover: #166534;
             --accent-light: #22c55e;
             --section-title-color: #22c55e;
+            --section-title-border: #15803d;
             --search-bg: #030805;
-            --search-border: #166534;
+            --search-border: #22c55e;
             --search-text: #34d399;
-            --search-placeholder: #065f46;
+            --search-placeholder: #22c55e;
             --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
             --card-hover-border: #22c55e;
             --card-hover-shadow: 0 8px 20px rgba(22, 101, 52, 0.4);
             --footer-bg: #000000;
             --footer-border: #143820;
             --legal-text: #065f46;
-            --contact-btn-bg: #14532d;
+            --contact-btn-bg: #000000;
             --contact-btn-hover: #166534;
-            --contact-btn-text: #a7f3d0;
-            --contact-btn-border: #166534;
+            --contact-btn-text: #ffffff;
+            --contact-btn-border: #22c55e;
 
             /* Option 1B Switch (Dark State) */
             --switch-capsule-bg: #030805;
@@ -111,7 +113,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid var(--header-border);
-            box-shadow: 0 4px 15px rgba(21, 128, 61, 0.15);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -124,15 +126,16 @@
             align-items: center;
         }
 
-        /* Default Light Mode Logo (Image) */
+        /* Seamless Blend Light Mode Logo */
         .logo-img {
             max-height: 48px;
             width: auto;
             display: block;
             object-fit: contain;
+            mix-blend-mode: multiply; /* Blends any surrounding perimeter flush with header background */
         }
 
-        /* Dark Mode Logo (Stylized Green Typography) */
+        /* Dark Mode Logo: Stylized Green Typography */
         .logo-text {
             margin: 0;
             font-size: 32px;
@@ -154,7 +157,6 @@
             font-weight: bold;
         }
 
-        /* Logo State Transformation */
         body.dark-mode .logo-img {
             display: none !important;
         }
@@ -177,12 +179,14 @@
             position: relative;
         }
 
+        /* Bold outline and bold search text styling */
         .search-bar {
             width: 100%;
             padding: 12px 20px;
-            border: 2px solid var(--search-border);
+            border: 3px solid var(--search-border); /* Bold outline */
             border-radius: 25px;
             font-size: 16px;
+            font-weight: 700;
             color: var(--search-text);
             background-color: var(--search-bg);
             outline: none;
@@ -192,11 +196,13 @@
 
         .search-bar::placeholder {
             color: var(--search-placeholder);
+            font-weight: 800; /* Bolded "Search" word inside */
+            opacity: 1;
         }
 
         .search-bar:focus {
             border-color: #22c55e;
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
         }
 
         /* --- OPTION 1B ARCADE BEVELED DIAL SWITCH --- */
@@ -275,10 +281,12 @@
             box-sizing: border-box;
         }
 
+        /* Categories & Game Library Headings */
         h2.section-title {
             font-size: 24px;
-            color: var(--section-title-color);
-            border-bottom: 3px solid var(--accent-green);
+            font-weight: 900;
+            color: var(--section-title-color); /* Black in light mode, Green in dark mode */
+            border-bottom: 3px solid var(--section-title-border);
             padding-bottom: 10px;
             margin-bottom: 25px;
             display: inline-block;
@@ -293,8 +301,9 @@
             margin-bottom: 40px;
         }
 
+        /* --- CATEGORIES: WHITE TEXT WITH BLACK OUTLINE --- */
         .category-btn {
-            color: #a7f3d0;
+            color: #ffffff !important;
             padding: 20px 10px;
             border-radius: 12px;
             text-align: center;
@@ -302,37 +311,42 @@
             font-size: 17px;
             letter-spacing: 0.5px;
             text-decoration: none;
-            border: 1px solid #14532d;
-            -webkit-text-stroke: 0.5px #022c22;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); 
-            filter: saturate(70%) opacity(0.9);
-            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+            -webkit-text-stroke: 1px #000000; /* Crisp black outline */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.85); 
+            transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             cursor: pointer;
             user-select: none;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
         }
 
-        /* Dark green gradient palette across categories */
-        .category-btn:nth-child(5n+1) { background: linear-gradient(135deg, #052e16, #022c22); } 
-        .category-btn:nth-child(5n+2) { background: linear-gradient(135deg, #14532d, #064e3b); } 
-        .category-btn:nth-child(5n+3) { background: linear-gradient(135deg, #166534, #052e16); } 
-        .category-btn:nth-child(5n+4) { background: linear-gradient(135deg, #064e3b, #042f2e); } 
-        .category-btn:nth-child(5n+5) { background: linear-gradient(135deg, #15803d, #14532d); } 
+        /* Specified dark color cycle for each category */
+        .category-btn[data-cat="action"]       { background: linear-gradient(135deg, #172554, #1e3a8a); } /* Dark Blue */
+        .category-btn[data-cat="adventure"]    { background: linear-gradient(135deg, #1f2937, #374151); } /* Dark Grey */
+        .category-btn[data-cat="arcade"]       { background: linear-gradient(135deg, #7c2d12, #9a3412); } /* Dark Orange */
+        .category-btn[data-cat="billiards"]    { background: linear-gradient(135deg, #3b0764, #581c87); } /* Dark Purple */
+        .category-btn[data-cat="casino"]       { background: linear-gradient(135deg, #450a0a, #7f1d1d); } /* Dark Red */
+        .category-btn[data-cat="idle"]         { background: linear-gradient(135deg, #042f2e, #115e59); } /* Dark Teal */
+        .category-btn[data-cat="multiplayer"]  { background: linear-gradient(135deg, #0f172a, #1e293b); } /* Dark Navy */
+        .category-btn[data-cat="puzzle"]       { background: linear-gradient(135deg, #022c22, #064e3b); } /* Dark Emerald */
+        .category-btn[data-cat="racing"]       { background: linear-gradient(135deg, #78350f, #92400e); } /* Dark Amber/Crimson */
+        .category-btn[data-cat="simulation"]   { background: linear-gradient(135deg, #2e1065, #4c1d95); } /* Dark Violet */
+        .category-btn[data-cat="sports"]       { background: linear-gradient(135deg, #083344, #155e75); } /* Dark Cyan */
+        .category-btn[data-cat="strategy"]     { background: linear-gradient(135deg, #111827, #1f2937); } /* Dark Slate */
 
         .category-btn:hover {
             transform: scale(1.05);
-            filter: saturate(120%) opacity(1);
-            border-color: #22c55e;
-            box-shadow: 0 0 12px rgba(34, 197, 94, 0.35);
+            filter: brightness(1.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
         }
 
         .category-btn.active-filter {
             transform: scale(1.05);
-            filter: saturate(120%) opacity(1);
-            box-shadow: 0 0 0 3px var(--bg-color), 0 0 0 5px #22c55e;
-            border-color: #22c55e;
+            outline: 3px solid #22c55e;
+            outline-offset: 3px;
         }
 
-        /* --- PAGINATION BOX STYLES --- */
+        /* --- PAGINATION BOXES (FOLLOWING SUIT COLOR METHOD) --- */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -352,10 +366,11 @@
         }
 
         .page-box {
-            background: linear-gradient(135deg, #064e3b, #022c22); 
-            color: #a7f3d0;
-            font-weight: bold;
-            border: 1px solid #14532d;
+            color: #ffffff !important;
+            font-weight: 900;
+            -webkit-text-stroke: 1px #000000;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+            border: 2px solid rgba(0, 0, 0, 0.4);
             width: 45px;
             height: 45px;
             display: flex;
@@ -363,24 +378,27 @@
             align-items: center;
             font-size: 16px;
             cursor: pointer;
-            border-radius: 0px !important;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
             user-select: none;
             box-sizing: border-box;
         }
 
+        /* Follow-suit colors for page numbers */
+        .page-box[data-page="1"] { background: linear-gradient(135deg, #172554, #1e3a8a); } /* Dark Blue like Action */
+        .page-box[data-page="2"] { background: linear-gradient(135deg, #1f2937, #374151); } /* Dark Grey like Adventure */
+        .page-box[data-page="3"] { background: linear-gradient(135deg, #7c2d12, #9a3412); } /* Dark Orange like Arcade */
+        .page-box[data-page="4"] { background: linear-gradient(135deg, #3b0764, #581c87); } /* Dark Purple like Billiards */
+
         .page-box:hover {
             transform: scale(1.1);
-            border-color: #22c55e;
-            color: #ecfdf5;
+            filter: brightness(1.2);
         }
 
         .page-box.active-page {
             transform: scale(1.15) !important;
-            background: #14532d;
-            color: #ffffff;
-            outline: 2px solid #22c55e;
+            outline: 3px solid #22c55e;
             outline-offset: 3px;
         }
 
@@ -463,7 +481,7 @@
 
         .hidden { display: none !important; }
 
-        /* --- FOOTER STYLES --- */
+        /* --- FOOTER: BLACK WITH WHITE TEXT CONTACT BUTTON --- */
         footer {
             background-color: var(--footer-bg);
             padding: 40px 20px;
@@ -491,22 +509,24 @@
         }
 
         .contact-btn {
-            background-color: var(--contact-btn-bg);
-            color: var(--contact-btn-text);
-            border: 1px solid var(--contact-btn-border);
-            padding: 12px 24px;
+            background-color: var(--contact-btn-bg); /* Pure black */
+            color: var(--contact-btn-text);           /* White text */
+            border: 2px solid var(--contact-btn-border);
+            padding: 12px 26px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
-            transition: 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
         }
 
         .contact-btn:hover { 
             background-color: var(--contact-btn-hover); 
             color: #ffffff; 
-            border-color: #22c55e; 
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+            transform: scale(1.04);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
 
         /* --- MOBILE RESPONSIVE FIXES --- */
@@ -538,7 +558,7 @@
     <header>
         <div class="logo-container">
             <a href="index.html">
-                <!-- Light Mode Logo: JPEG -->
+                <!-- Light Mode Logo: JPEG seamlessly matched -->
                 <img src="clicksyncgameslogo.jpeg" alt="ClickSyncGames Logo" class="logo-img">
 
                 <!-- Dark Mode Logo: Green Typography -->
@@ -566,18 +586,18 @@
     <main>
         <h2 class="section-title">Categories</h2>
         <div class="category-grid">
-            <div class="category-btn" data-search="action">Action</div>
-            <div class="category-btn" data-search="adventure rpg">Adventure</div>
-            <div class="category-btn" data-search="arcade retro">Arcade</div>
-            <div class="category-btn" data-search="billiards pool">Billiards</div>
-            <div class="category-btn" data-search="casino cards blackjack poker baccarat">Casino</div>
-            <div class="category-btn" data-search="idle clicker">Idle</div>
-            <div class="category-btn" data-search="multiplayer online pvp">Multiplayer</div>
-            <div class="category-btn" data-search="puzzle logic">Puzzle</div>
-            <div class="category-btn" data-search="racing cars driving">Racing</div>
-            <div class="category-btn" data-search="simulation management">Simulation</div>
-            <div class="category-btn" data-search="sports soccer basketball">Sports</div>
-            <div class="category-btn" data-search="strategy tactics">Strategy</div>
+            <div class="category-btn" data-cat="action" data-search="action">Action</div>
+            <div class="category-btn" data-cat="adventure" data-search="adventure rpg">Adventure</div>
+            <div class="category-btn" data-cat="arcade" data-search="arcade retro">Arcade</div>
+            <div class="category-btn" data-cat="billiards" data-search="billiards pool">Billiards</div>
+            <div class="category-btn" data-cat="casino" data-search="casino cards blackjack poker baccarat">Casino</div>
+            <div class="category-btn" data-cat="idle" data-search="idle clicker">Idle</div>
+            <div class="category-btn" data-cat="multiplayer" data-search="multiplayer online pvp">Multiplayer</div>
+            <div class="category-btn" data-cat="puzzle" data-search="puzzle logic">Puzzle</div>
+            <div class="category-btn" data-cat="racing" data-search="racing cars driving">Racing</div>
+            <div class="category-btn" data-cat="simulation" data-search="simulation management">Simulation</div>
+            <div class="category-btn" data-cat="sports" data-search="sports soccer basketball">Sports</div>
+            <div class="category-btn" data-cat="strategy" data-search="strategy tactics">Strategy</div>
         </div>
 
         <h2 class="section-title">Game Library</h2>
@@ -595,7 +615,7 @@
                 clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
             </p>
             <div class="contact-section">
-                <a href="contact.html" class="contact-btn" style="display: inline-block; text-decoration: none;">Contact Us</a>
+                <a href="contact.html" class="contact-btn">Contact Us</a>
             </div>
         </div>
     </footer>
@@ -1028,6 +1048,7 @@
                     const pageBox = document.createElement('button');
                     pageBox.className = 'page-box';
                     pageBox.textContent = i;
+                    pageBox.setAttribute('data-page', i);
                     
                     if (i === currentPage) {
                         pageBox.classList.add('active-page');
