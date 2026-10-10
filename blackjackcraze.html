@@ -41,117 +41,160 @@
     </div>
   </header>
 
-  <!-- Table Viewport -->
+  <!-- Responsive Scaling Wrapper -->
   <main class="table-container">
-    <div class="felt-surface">
+    <div id="table-scale-root" class="table-scale-root">
+      <div class="felt-surface">
 
-      <!-- Discard Tray (Top Left) -->
-      <div id="discard-tray" class="discard-tray">
-        <span class="tray-label">DISCARDS</span>
-        <div id="discard-stack" class="discard-stack"></div>
+        <!-- Discard Tray (Top Left) -->
+        <div id="discard-tray" class="discard-tray">
+          <span class="tray-label">DISCARD</span>
+          <div id="discard-stack" class="discard-stack"></div>
+        </div>
+
+        <!-- Dealing Shoe (Top Right) -->
+        <div id="dealing-shoe" class="dealing-shoe">
+          <div class="shoe-body">
+            <div class="shoe-top-card"></div>
+          </div>
+          <span class="shoe-label">SHOE</span>
+        </div>
+
+        <!-- Floating Animated Burn Card Container -->
+        <div id="burn-card-container" class="burn-card-container hidden"></div>
+
+        <!-- Right-Side Floating HUD -->
+        <aside class="right-hud-dock">
+          <div class="hud-card">
+            <span class="hud-card-lbl">BANKROLL</span>
+            <span id="bankroll" class="hud-card-val gold-txt">$1,000</span>
+          </div>
+          <div class="hud-card">
+            <span class="hud-card-lbl">SHOE</span>
+            <span id="shoe-count" class="hud-card-val">312</span>
+          </div>
+          <button id="count-toggle-btn" class="count-toggle-btn">COUNT ▾</button>
+          <div id="count-drawer" class="count-drawer hidden">
+            <div class="hud-mini-stat">
+              <span class="mini-lbl">RUNNING</span>
+              <span id="running-count" class="mini-val">0</span>
+            </div>
+            <div class="hud-mini-stat">
+              <span class="mini-lbl">TRUE</span>
+              <span id="true-count" class="mini-val">0.0</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Dealer Play Area -->
+        <section class="area dealer-area">
+          <div class="area-tag">DEALER <span id="dealer-score" class="score-bubble">0</span></div>
+          <div id="dealer-cards" class="cards-holder"></div>
+        </section>
+
+        <!-- Center Table & Bet Circles -->
+        <div class="felt-center-stage">
+          <div class="table-rules-banner">BLACKJACK PAYS 3 TO 2 • DEALER MUST HIT SOFT 17</div>
+          <div id="game-status" class="status-ticker"></div>
+
+          <div class="bet-spot-wrapper">
+            <!-- Hand 1 Bet Circle -->
+            <div class="bet-circle-box" id="bet-box-0">
+              <div id="bet-circle" class="bet-circle pulse-halo">
+                <span class="circle-center-txt">BET</span>
+                <div id="placed-chips-stack" class="placed-chips-stack"></div>
+                <div id="payout-chips-stack" class="payout-chips-stack hidden"></div>
+              </div>
+            </div>
+
+            <!-- Hand 2 Bet Circle (For Split) -->
+            <div class="bet-circle-box hidden" id="bet-box-1">
+              <div id="bet-circle-split" class="bet-circle">
+                <span class="circle-center-txt">SPLIT</span>
+                <div id="placed-chips-stack-split" class="placed-chips-stack"></div>
+                <div id="payout-chips-stack-split" class="payout-chips-stack hidden"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Player Hand Area -->
+        <section class="area player-area">
+          <div class="area-tag">PLAYER <span id="player-score" class="score-bubble">0</span></div>
+          <div id="player-hands-container" class="player-hands-wrap"></div>
+        </section>
+
+        <!-- Bottom Interactive Controls Container -->
+        <footer class="bottom-controls-dock">
+          <!-- Betting & Chips Panel -->
+          <div id="betting-panel" class="control-row">
+            <div class="chips-selector">
+              <button class="casino-chip chip-1" data-val="1" id="chip-btn-1">
+                <span class="chip-inner">$1</span>
+              </button>
+              <button class="casino-chip chip-5" data-val="5" id="chip-btn-5">
+                <span class="chip-inner">$5</span>
+              </button>
+              <button class="casino-chip chip-10" data-val="10" id="chip-btn-10">
+                <span class="chip-inner">$10</span>
+              </button>
+              <button class="casino-chip chip-25" data-val="25" id="chip-btn-25">
+                <span class="chip-inner">$25</span>
+              </button>
+              <button class="casino-chip chip-100" data-val="100" id="chip-btn-100">
+                <span class="chip-inner">$100</span>
+              </button>
+              <button id="clear-bet-btn" class="utility-btn">CLEAR</button>
+            </div>
+
+            <div class="wager-commit-group">
+              <div class="wager-indicator">BET: $<span id="current-bet">0</span></div>
+              <button id="deal-btn" class="primary-btn deal-gold-btn">DEAL HAND</button>
+            </div>
+          </div>
+
+          <!-- In-Round Actions Panel -->
+          <div id="action-panel" class="control-row hidden">
+            <button id="hit-btn" class="primary-btn">HIT</button>
+            <button id="stand-btn" class="primary-btn">STAND</button>
+            <button id="double-btn" class="primary-btn">DOUBLE</button>
+            <button id="split-btn" class="primary-btn hidden">SPLIT</button>
+          </div>
+        </footer>
+
       </div>
-
-      <!-- Dealing Shoe (Top Right) - Clean face-down top card -->
-      <div id="dealing-shoe" class="dealing-shoe">
-        <div class="shoe-body">
-          <div class="shoe-top-card"></div>
-        </div>
-        <span class="shoe-label">SHOE</span>
-      </div>
-
-      <!-- Floating Animated Burn Card Container -->
-      <div id="burn-card-container" class="burn-card-container hidden"></div>
-
-      <!-- Right-Side Floating HUD -->
-      <aside class="right-hud-dock">
-        <div class="hud-card">
-          <span class="hud-card-lbl">BANKROLL</span>
-          <span id="bankroll" class="hud-card-val gold-txt">$1,000</span>
-        </div>
-        <div class="hud-card">
-          <span class="hud-card-lbl">SHOE</span>
-          <span id="shoe-count" class="hud-card-val">312</span>
-        </div>
-        <button id="count-toggle-btn" class="count-toggle-btn">COUNT ▾</button>
-        <div id="count-drawer" class="count-drawer hidden">
-          <div class="hud-mini-stat">
-            <span class="mini-lbl">RUNNING</span>
-            <span id="running-count" class="mini-val">0</span>
-          </div>
-          <div class="hud-mini-stat">
-            <span class="mini-lbl">TRUE</span>
-            <span id="true-count" class="mini-val">0.0</span>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Dealer Play Area -->
-      <section class="area dealer-area">
-        <div class="area-tag">DEALER <span id="dealer-score" class="score-bubble">0</span></div>
-        <div id="dealer-cards" class="cards-holder"></div>
-      </section>
-
-      <!-- Center Table & Bet Circle (No curved text banner) -->
-      <div class="felt-center-stage">
-        <div class="table-rules-banner">BLACKJACK PAYS 3 TO 2 • DEALER MUST HIT SOFT 17</div>
-        <div id="game-status" class="status-ticker"></div>
-
-        <div class="bet-spot-wrapper">
-          <div id="bet-circle" class="bet-circle pulse-halo">
-            <span class="circle-center-txt">BET</span>
-            <div id="placed-chips-stack" class="placed-chips-stack"></div>
-            <div id="payout-chips-stack" class="payout-chips-stack hidden"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Player Hand Area -->
-      <section class="area player-area">
-        <div class="area-tag">PLAYER <span id="player-score" class="score-bubble">0</span></div>
-        <div id="player-hands-container" class="player-hands-wrap"></div>
-      </section>
-
-      <!-- Bottom Interactive Controls Container -->
-      <footer class="bottom-controls-dock">
-        <!-- Betting & Chips Panel -->
-        <div id="betting-panel" class="control-row">
-          <div class="chips-selector">
-            <button class="casino-chip chip-1" data-val="1" id="chip-btn-1">
-              <span class="chip-inner">$1</span>
-            </button>
-            <button class="casino-chip chip-5" data-val="5" id="chip-btn-5">
-              <span class="chip-inner">$5</span>
-            </button>
-            <button class="casino-chip chip-10" data-val="10" id="chip-btn-10">
-              <span class="chip-inner">$10</span>
-            </button>
-            <button class="casino-chip chip-25" data-val="25" id="chip-btn-25">
-              <span class="chip-inner">$25</span>
-            </button>
-            <button class="casino-chip chip-100" data-val="100" id="chip-btn-100">
-              <span class="chip-inner">$100</span>
-            </button>
-            <button id="clear-bet-btn" class="utility-btn">CLEAR</button>
-          </div>
-
-          <div class="wager-commit-group">
-            <div class="wager-indicator">BET: $<span id="current-bet">0</span></div>
-            <button id="deal-btn" class="primary-btn deal-gold-btn">DEAL HAND</button>
-          </div>
-        </div>
-
-        <!-- In-Round Actions Panel -->
-        <div id="action-panel" class="control-row hidden">
-          <button id="hit-btn" class="primary-btn">HIT</button>
-          <button id="stand-btn" class="primary-btn">STAND</button>
-          <button id="double-btn" class="primary-btn">DOUBLE</button>
-          <button id="split-btn" class="primary-btn hidden">SPLIT</button>
-          <button id="insurance-btn" class="primary-btn alert-btn hidden">INSURANCE</button>
-        </div>
-      </footer>
-
     </div>
   </main>
+
+  <!-- Interactive Insurance Modal -->
+  <div id="insurance-modal" class="overlay-modal hidden">
+    <div class="cut-box">
+      <h3 id="insurance-modal-title">INSURANCE?</h3>
+      <p id="insurance-modal-desc">Dealer shows an Ace. Bet up to half your wager ($<span id="max-insurance-val">0</span>). Pays 2:1 if Dealer has Blackjack.</p>
+      <div id="insurance-slider-container" style="margin: 15px 0;">
+        <input type="range" id="insurance-range" min="1" max="10" value="1" style="width: 80%; accent-color: #ffd866;">
+        <div style="margin-top: 8px; font-weight: 800; font-size: 14px; color: #ffd866;">
+          Wager: $<span id="insurance-wager-display">0</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+        <button id="accept-insurance-btn" class="primary-btn deal-gold-btn">TAKE INSURANCE</button>
+        <button id="decline-insurance-btn" class="primary-btn alert-btn">DECLINE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Even Money Modal -->
+  <div id="even-money-modal" class="overlay-modal hidden">
+    <div class="cut-box">
+      <h3>EVEN MONEY?</h3>
+      <p>You have Blackjack and the Dealer shows an Ace. Take an immediate 1:1 payout instead of risking a push?</p>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+        <button id="accept-even-money-btn" class="primary-btn deal-gold-btn">ACCEPT (1:1)</button>
+        <button id="decline-even-money-btn" class="primary-btn alert-btn">DECLINE</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Interactive Shoe Cut Modal -->
   <div id="cut-shoe-modal" class="overlay-modal hidden">
@@ -186,12 +229,13 @@
       <div class="dialog-body">
         <ul>
           <li>6-Deck shoe (312 cards total), auto-shuffled when the hidden cut card is drawn.</li>
-          <li>First card of the shoe is burned face-up over 4 seconds.</li>
+          <li>First card of the shoe is burned face-up over 4 seconds into Discard.</li>
           <li>Blackjack pays 3:2. Dealer hits Soft 17 and stands on Hard 17+.</li>
-          <li>Split allowed on cards of equal value (e.g. 10, J, Q, K).</li>
+          <li>Splitting allowed once per round on cards of equal value (e.g. 10, J, Q, K). A separate bet circle tracks the split hand.</li>
           <li>Split Aces receive strictly 1 card per hand.</li>
-          <li>Double Down on first 2 cards.</li>
-          <li>Insurance offered at 2:1 when Dealer shows an Ace.</li>
+          <li>Double Down available on first 2 cards.</li>
+          <li>Dealer Ace triggers Insurance (up to half wager, pays 2:1) or Even Money (1:1 on natural player blackjack).</li>
+          <li>If Dealer shows a 10 and holds a hole Ace, Blackjack is flipped immediately with no insurance offered.</li>
         </ul>
         <h4 style="margin-top:12px; color:#ffd866;">Hi-Lo Values:</h4>
         <div class="matrix-grid">
