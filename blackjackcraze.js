@@ -1,7 +1,9 @@
 /**
  * Blackjack Craze Engine
  * Click Sync Games - 6-Deck Hi-Lo Shoe Engine with Dynamic Viewport,
- * Bottom Chip Win Animations, Insurance/Even Money, Peek Logic, Single-Split & Clean Discards.
+ * Bottom Chip Win Animations, Insurance/Even Money, Peek Logic, Single-Split,
+ * Variable Double Down (up to hand bet, post-split DDAS on 2 cards),
+ * Clean On-Screen Discard Tray, and Game Over Out-of-Funds System.
  */
 
 const SUITS = [
@@ -145,7 +147,7 @@ let discardCount = 0;
 let hasSplit = false;
 let insuranceBet = 0;
 
-// DOM Elements
+// DOM Selectors
 const introScreen = document.getElementById('intro-screen');
 const shoeCountEl = document.getElementById('shoe-count');
 const runningCountEl = document.getElementById('running-count');
@@ -183,6 +185,13 @@ const splitBtn = document.getElementById('split-btn');
 const clearBetBtn = document.getElementById('clear-bet-btn');
 
 // Modals
+const doubleModal = document.getElementById('double-modal');
+const doubleRange = document.getElementById('double-range');
+const doubleWagerDisplay = document.getElementById('double-wager-display');
+const maxDoubleVal = document.getElementById('max-double-val');
+const confirmDoubleBtn = document.getElementById('confirm-double-btn');
+const cancelDoubleBtn = document.getElementById('cancel-double-btn');
+
 const insuranceModal = document.getElementById('insurance-modal');
 const insuranceRange = document.getElementById('insurance-range');
 const insuranceWagerDisplay = document.getElementById('insurance-wager-display');
@@ -193,6 +202,9 @@ const declineInsuranceBtn = document.getElementById('decline-insurance-btn');
 const evenMoneyModal = document.getElementById('even-money-modal');
 const acceptEvenMoneyBtn = document.getElementById('accept-even-money-btn');
 const declineEvenMoneyBtn = document.getElementById('decline-even-money-btn');
+
+const gameOverModal = document.getElementById('game-over-modal');
+const restartGameBtn = document.getElementById('restart-game-btn');
 
 const cutShoeModal = document.getElementById('cut-shoe-modal');
 const shoeCutSpread = document.getElementById('shoe-cut-spread');
@@ -327,7 +339,7 @@ function executeBurnCard() {
   playCardDealSound();
 
   burnCardContainer.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 4s ease';
-  burnCardContainer.style.transform = `translate(${discardRect.left + 8}px, ${discardRect.top + 8}px) scale(0.75) rotate(0deg)`;
+  burnCardContainer.style.transform = `translate(${discardRect.left + 10}px, ${discardRect.top + 10}px) scale(0.7) rotate(0deg)`;
 
   setTimeout(() => {
     burnCardContainer.classList.add('hidden');
@@ -337,12 +349,13 @@ function executeBurnCard() {
   }, 4050);
 }
 
-// Neat discard stacking
+// Discard Tray Card Stacking - Strictly centered on screen with bounded offset
 function addFaceDownToDiscardTray() {
   discardCount++;
   const card = document.createElement('div');
   card.className = 'discard-card-item';
-  card.style.transform = `translateY(-${Math.min(discardCount, 18) * 1.5}px)`;
+  const stackOffset = Math.min(discardCount, 16) * 1.2;
+  card.style.transform = `translateY(-${stackOffset}px)`;
   discardStackEl.appendChild(card);
 }
 
@@ -515,6 +528,10 @@ function startRound() {
   playButtonSound();
 
   if (roundSettling) return;
+  if (bankroll < 1) {
+    triggerGameOver();
+    return;
+  }
   if (currentBet <= 0) {
     gameStatusEl.textContent = 'Place chips in the circle to bet!';
     return;
@@ -538,6 +555,7 @@ function startRound() {
   playerHands = [{
     cards: [],
     bet: currentBet,
+    originalBet: currentBet,
     status: 'playing',
     isDoubled: false,
     isSplitAce: false
@@ -577,17 +595,15 @@ function evaluateInitialDeal() {
   const dUpCard = dealerCards[0];
   const dHoleCard = dealerCards[1];
 
-  // Case 1: Dealer Upcard is a 10-value card (10, J, Q, K)
+  // Case 1: Dealer Upcard has a 10 value (10, J, Q, K)
   if (dUpCard.pointValue === 10) {
     if (dHoleCard.value === 'A') {
-      // Dealer has Blackjack with hole Ace: Flip immediately, no insurance offered
       gameStatusEl.textContent = 'Dealer has Blackjack!';
       setTimeout(() => {
         resolveDealerTurn();
       }, 600);
       return;
     }
-    // Dealer does not have BJ, continue normally
     checkPlayerInitialBlackjack(isPlayerBJ);
     return;
   }
@@ -595,11 +611,9 @@ function evaluateInitialDeal() {
   // Case 2: Dealer Upcard is an Ace
   if (dUpCard.value === 'A') {
     if (isPlayerBJ) {
-      // Even Money Prompt
       openEvenMoneyModal();
       return;
     } else {
-      // Insurance Prompt
       if (bankroll >= 1) {
         openInsuranceModal();
         return;
@@ -607,7 +621,6 @@ function evaluateInitialDeal() {
     }
   }
 
-  // Standard evaluation
   checkPlayerInitialBlackjack(isPlayerBJ);
 }
 
@@ -621,7 +634,6 @@ acceptEvenMoneyBtn.onclick = () => {
   evenMoneyModal.classList.add('hidden');
   gameStatusEl.textContent = 'Even Money Accepted (1:1 Payout).';
 
-  // Settle immediately as Even Money: Pay 1:1 on original wager
   bankroll += playerHands[0].bet * 2;
   bankrollEl.textContent = `$${bankroll}`;
   playerHands[0].status = 'even_money';
@@ -686,7 +698,7 @@ function verifyDealerBlackjackAfterInsurance() {
 
   if (insuranceBet > 0) {
     if (dealerHasBJ) {
-      const payout = insuranceBet * 3; // Original bet returned + 2:1
+      const payout = insuranceBet * 3;
       bankroll += payout;
       bankrollEl.textContent = `$${bankroll}`;
       gameStatusEl.textContent = `Insurance Won! (+$${insuranceBet * 2})`;
@@ -712,17 +724,26 @@ function checkPlayerInitialBlackjack(isPlayerBJ) {
     return;
   }
 
-  // Allow split only once and only on matching point values
-  const canSplit = (!hasSplit && playerHands[0].cards[0].pointValue === playerHands[0].cards[1].pointValue && bankroll >= currentBet);
-  splitBtn.classList.toggle('hidden', !canSplit);
-  doubleBtn.classList.remove('hidden');
+  updateActionButtons();
   updatePlayerScoresDisplay();
+}
+
+function updateActionButtons() {
+  const currentH = playerHands[currentHandIdx];
+  if (!currentH) return;
+
+  // Split eligibility: must have 2 cards of equal point value, bankroll sufficient, and not split before
+  const canSplit = (!hasSplit && playerHands.length === 1 && currentH.cards.length === 2 && currentH.cards[0].pointValue === currentH.cards[1].pointValue && bankroll >= currentH.bet);
+  splitBtn.classList.toggle('hidden', !canSplit);
+
+  // Doubling eligibility: hand must have strictly 2 cards, bankroll >= 1, and not split-aces
+  const canDouble = (currentH.cards.length === 2 && !currentH.isSplitAce && bankroll >= 1);
+  doubleBtn.classList.toggle('hidden', !canDouble);
 }
 
 // 8. Player Actions
 function handleHit() {
   playButtonSound();
-  doubleBtn.classList.add('hidden');
   splitBtn.classList.add('hidden');
 
   const hand = playerHands[currentHandIdx];
@@ -730,6 +751,9 @@ function handleHit() {
 
   hand.cards.push(drawCard(true));
   renderPlayerHands();
+
+  // Once hit, card count > 2, so cannot double
+  doubleBtn.classList.add('hidden');
 
   const calc = calculateHandValue(hand.cards);
   if (calc.score >= 21) {
@@ -744,18 +768,50 @@ function handleStand() {
   advancePlayerHand();
 }
 
-function handleDouble() {
+function handleDoublePrompt() {
   playButtonSound();
   const hand = playerHands[currentHandIdx];
-  if (bankroll < hand.bet || hand.isSplitAce) return;
+  if (hand.cards.length !== 2 || hand.isSplitAce || bankroll < 1) return;
 
+  // Max double is up to that hand's original wager, capped by bankroll
+  const maxWager = Math.min(hand.originalBet, bankroll);
+  maxDoubleVal.textContent = maxWager;
+  doubleRange.min = 1;
+  doubleRange.max = maxWager;
+  doubleRange.value = maxWager;
+  doubleWagerDisplay.textContent = maxWager;
+  doubleModal.classList.remove('hidden');
+}
+
+doubleRange.oninput = () => {
+  doubleWagerDisplay.textContent = doubleRange.value;
+};
+
+cancelDoubleBtn.onclick = () => {
+  initAudioContext();
+  playButtonSound();
+  doubleModal.classList.add('hidden');
+};
+
+confirmDoubleBtn.onclick = () => {
+  initAudioContext();
+  playButtonSound();
+  doubleModal.classList.add('hidden');
+
+  const addWager = parseInt(doubleRange.value, 10);
+  executeDoubleDown(addWager);
+};
+
+function executeDoubleDown(addedAmount) {
+  const hand = playerHands[currentHandIdx];
   playChipSound();
-  bankroll -= hand.bet;
-  hand.bet *= 2;
+
+  bankroll -= addedAmount;
+  hand.bet += addedAmount;
   hand.isDoubled = true;
   bankrollEl.textContent = `$${bankroll}`;
 
-  // Reflect doubled bet visually in the respective bet circle
+  // Reflect bet visually in the active hand's bet circle
   if (currentHandIdx === 0) {
     renderStackInContainer(breakDownBet(hand.bet), placedChipsStack0);
   } else {
@@ -770,7 +826,7 @@ function handleDouble() {
 }
 
 function handleSplit() {
-  if (hasSplit) return; // Strict limit: split up to once
+  if (hasSplit) return;
   playButtonSound();
   const hand = playerHands[currentHandIdx];
   if (bankroll < hand.bet) return;
@@ -781,11 +837,11 @@ function handleSplit() {
   bankrollEl.textContent = `$${bankroll}`;
 
   const isAceSplit = (hand.cards[0].value === 'A' && hand.cards[1].value === 'A');
-
   const card2 = hand.cards.pop();
   const newHand = {
     cards: [card2],
     bet: hand.bet,
+    originalBet: hand.bet,
     status: 'playing',
     isDoubled: false,
     isSplitAce: isAceSplit
@@ -798,11 +854,8 @@ function handleSplit() {
   newHand.cards.push(drawCard(true));
   playerHands.push(newHand);
 
-  // Render dedicated second bet circle above split hand
   renderSplitCircleChips(newHand.bet);
-
   splitBtn.classList.add('hidden');
-  doubleBtn.classList.add('hidden');
   renderPlayerHands();
 
   if (isAceSplit) {
@@ -811,6 +864,8 @@ function handleSplit() {
     setTimeout(() => {
       resolveDealerTurn();
     }, 600);
+  } else {
+    updateActionButtons();
   }
 }
 
@@ -822,6 +877,8 @@ function advancePlayerHand() {
     if (currentH.isSplitAce) {
       currentH.status = 'stood';
       advancePlayerHand();
+    } else {
+      updateActionButtons();
     }
   } else {
     resolveDealerTurn();
@@ -859,7 +916,6 @@ function finishRoundWithEvenMoney() {
   roundSettling = true;
   betCircle0.classList.remove('dimmed');
 
-  // Slide chips down towards the player screen bottom
   const winStack = breakDownBet(playerHands[0].bet);
   renderStackInContainer(winStack, payoutChipsStack0);
   payoutChipsStack0.classList.remove('hidden');
@@ -875,7 +931,6 @@ function finishRound() {
   roundSettling = true;
   const dVal = calculateHandValue(dealerCards).score;
   let totalWinnings = 0;
-  let netPnl = 0;
   let summary = '';
 
   playerHands.forEach((hand, idx) => {
@@ -885,7 +940,6 @@ function finishRound() {
 
     if (hand.status === 'busted') {
       outcome = 'Loss (Bust)';
-      netPnl -= hand.bet;
     } else if (hand.status === 'blackjack') {
       if (dVal === 21 && dealerCards.length === 2) {
         outcome = 'Push';
@@ -893,25 +947,22 @@ function finishRound() {
       } else {
         outcome = 'Blackjack!';
         handWin = hand.bet + (hand.bet * 1.5);
-        netPnl += hand.bet * 1.5;
       }
     } else if (dVal > 21 || pVal > dVal) {
       outcome = 'Win';
       handWin = hand.bet * 2;
-      netPnl += hand.bet;
     } else if (pVal === dVal) {
       outcome = 'Push';
       handWin = hand.bet;
     } else {
       outcome = 'Loss';
-      netPnl -= hand.bet;
     }
 
     totalWinnings += handWin;
     summary += `Hand ${idx + 1}: ${outcome}. `;
     logRoundHistory(idx + 1, pVal, dVal, outcome);
 
-    // Render winning chips in corresponding bet circle
+    // Show winning chips in corresponding bet circle
     if (handWin > hand.bet) {
       const profitStack = breakDownBet(handWin - hand.bet);
       if (idx === 0) {
@@ -932,7 +983,6 @@ function finishRound() {
     betCircle0.classList.remove('dimmed');
 
     if (totalWinnings > 0) {
-      // Both original chips and winning chips go toward the bottom of the screen
       playChipSound();
       const stacksToAnimate = [placedChipsStack0, payoutChipsStack0];
       if (hasSplit) {
@@ -941,7 +991,6 @@ function finishRound() {
       animateChipsDownwards(stacksToAnimate);
       postHandCleanup(1400);
     } else {
-      // Dealer collects lost chips upward
       playChipSound();
       placedChipsStack0.style.transform = 'translateY(-140px)';
       placedChipsStack0.style.opacity = '0';
@@ -988,6 +1037,12 @@ function postHandCleanup(delayMs) {
       roundSettling = false;
       bettingPanel.classList.remove('hidden');
 
+      // Check if player has run out of adequate funds (< $1)
+      if (bankroll < 1) {
+        triggerGameOver();
+        return;
+      }
+
       if (cutCardReached) {
         triggerShuffle();
       }
@@ -995,6 +1050,14 @@ function postHandCleanup(delayMs) {
 
   }, delayMs);
 }
+
+function triggerGameOver() {
+  gameOverModal.classList.remove('hidden');
+}
+
+restartGameBtn.onclick = () => {
+  window.location.reload();
+};
 
 function logRoundHistory(handNum, pVal, dVal, outcome) {
   roundCounter++;
@@ -1010,7 +1073,7 @@ function logRoundHistory(handNum, pVal, dVal, outcome) {
   historyList.prepend(row);
 }
 
-// 10. Event Wiring
+// 10. Event Listeners
 document.querySelectorAll('.casino-chip').forEach(btn => {
   btn.addEventListener('click', () => {
     initAudioContext();
@@ -1052,7 +1115,7 @@ muteToggleBtn.addEventListener('click', () => {
 dealBtn.addEventListener('click', startRound);
 hitBtn.addEventListener('click', handleHit);
 standBtn.addEventListener('click', handleStand);
-doubleBtn.addEventListener('click', handleDouble);
+doubleBtn.addEventListener('click', handleDoublePrompt);
 splitBtn.addEventListener('click', handleSplit);
 
 rulesBtn.addEventListener('click', () => { initAudioContext(); playButtonSound(); rulesModal.classList.remove('hidden'); });
@@ -1066,7 +1129,7 @@ document.querySelectorAll('.dialog-close').forEach(btn => {
   });
 });
 
-// App Startup
+// Startup
 window.addEventListener('DOMContentLoaded', () => {
   adjustTableScale();
   renderBetCircleChips();
