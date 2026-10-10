@@ -46,7 +46,7 @@
     <div id="table-scale-root" class="table-scale-root">
       <div class="felt-surface">
 
-        <!-- Discard Tray (Top Left) -->
+        <!-- Discard Tray (Top Left - Fully on screen) -->
         <div id="discard-tray" class="discard-tray">
           <span class="tray-label">DISCARD</span>
           <div id="discard-stack" class="discard-stack"></div>
@@ -166,12 +166,30 @@
     </div>
   </main>
 
+  <!-- Interactive Double Down Amount Modal -->
+  <div id="double-modal" class="overlay-modal hidden">
+    <div class="cut-box">
+      <h3>DOUBLE DOWN</h3>
+      <p>Choose an additional wager up to $<span id="max-double-val">0</span> (max of original hand wager).</p>
+      <div style="margin: 16px 0;">
+        <input type="range" id="double-range" min="1" max="100" value="10" style="width: 80%; accent-color: #ffd866;">
+        <div style="margin-top: 8px; font-weight: 800; font-size: 15px; color: #ffd866;">
+          Additional Wager: $<span id="double-wager-display">0</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+        <button id="confirm-double-btn" class="primary-btn deal-gold-btn">CONFIRM DOUBLE</button>
+        <button id="cancel-double-btn" class="primary-btn alert-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Interactive Insurance Modal -->
   <div id="insurance-modal" class="overlay-modal hidden">
     <div class="cut-box">
-      <h3 id="insurance-modal-title">INSURANCE?</h3>
-      <p id="insurance-modal-desc">Dealer shows an Ace. Bet up to half your wager ($<span id="max-insurance-val">0</span>). Pays 2:1 if Dealer has Blackjack.</p>
-      <div id="insurance-slider-container" style="margin: 15px 0;">
+      <h3>INSURANCE?</h3>
+      <p>Dealer shows an Ace. Bet up to half your wager ($<span id="max-insurance-val">0</span>). Pays 2:1 if Dealer has Blackjack.</p>
+      <div style="margin: 15px 0;">
         <input type="range" id="insurance-range" min="1" max="10" value="1" style="width: 80%; accent-color: #ffd866;">
         <div style="margin-top: 8px; font-weight: 800; font-size: 14px; color: #ffd866;">
           Wager: $<span id="insurance-wager-display">0</span>
@@ -193,6 +211,15 @@
         <button id="accept-even-money-btn" class="primary-btn deal-gold-btn">ACCEPT (1:1)</button>
         <button id="decline-even-money-btn" class="primary-btn alert-btn">DECLINE</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal (Low / Zero Funds) -->
+  <div id="game-over-modal" class="overlay-modal hidden">
+    <div class="cut-box" style="border-color: #e74c3c;">
+      <h2 style="color: #e74c3c; font-size: 20px; margin-bottom: 8px;">Game Over</h2>
+      <p style="color: #f5b7b1; font-size: 14px; margin-bottom: 20px;">You ran out of adequate funds.</p>
+      <button id="restart-game-btn" class="primary-btn deal-gold-btn" style="padding: 10px 24px; font-size: 14px;">Start Over</button>
     </div>
   </div>
 
@@ -229,11 +256,11 @@
       <div class="dialog-body">
         <ul>
           <li>6-Deck shoe (312 cards total), auto-shuffled when the hidden cut card is drawn.</li>
-          <li>First card of the shoe is burned face-up over 4 seconds into Discard.</li>
+          <li>First card of the shoe is burned face-up over 4 seconds directly into Discard.</li>
           <li>Blackjack pays 3:2. Dealer hits Soft 17 and stands on Hard 17+.</li>
           <li>Splitting allowed once per round on cards of equal value (e.g. 10, J, Q, K). A separate bet circle tracks the split hand.</li>
           <li>Split Aces receive strictly 1 card per hand.</li>
-          <li>Double Down available on first 2 cards.</li>
+          <li>Double Down on any 2 cards (including after a split), wagering any amount up to that hand's original bet.</li>
           <li>Dealer Ace triggers Insurance (up to half wager, pays 2:1) or Even Money (1:1 on natural player blackjack).</li>
           <li>If Dealer shows a 10 and holds a hole Ace, Blackjack is flipped immediately with no insurance offered.</li>
         </ul>
