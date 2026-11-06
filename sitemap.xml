@@ -1,9 +1,120 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://clicksyncgames.com/</loc><priority>1.0</priority></url>
-  <url><loc>https://clicksyncgames.com/cardcountingblackjack.html</loc><priority>0.8</priority></url>
-  <url><loc>https://clicksyncgames.com/billiardsgame.html</loc><priority>0.8</priority></url>
-  <url><loc>https://clicksyncgames.com/airtrafficcontroller.html</loc><priority>0.8</priority></url>
-  <url><loc>https://clicksyncgames.com/badguyladder.html</loc><priority>0.8</priority></url>
-  <url><loc>https://clicksyncgames.com/synctime.html</loc><priority>0.8</priority></url>
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://clicksyncgames.com/</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Blackjack & Card Games -->
+  <url>
+    <loc>https://clicksyncgames.com/cardcountingblackjack.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/blackjackcraze.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/cardcountingbaccarat.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/slotmachinecraze.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Arcade, Strategy & Table Games -->
+  <url>
+    <loc>https://clicksyncgames.com/bubbleshooter2026.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/classicbowlingpro.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/billiardsgame.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/airtrafficcontroller.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/badguyladder.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/synctime.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/orbitdefender.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/pulsecapture.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/quantumgridlock.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/savethegolfballs.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/slideandjumpextreme.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/spacedustanddescent.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Site Pages -->
+  <url>
+    <loc>https://clicksyncgames.com/contact.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
 </urlset>
