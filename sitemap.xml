@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Homepage -->
+  <!-- Core Pages -->
   <url>
     <loc>https://clicksyncgames.com/</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://clicksyncgames.com/contact.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
 
-  <!-- Blackjack & Card Games -->
+  <!-- Priority Card & Casino Games -->
   <url>
     <loc>https://clicksyncgames.com/cardcountingblackjack.html</loc>
     <lastmod>2026-11-06</lastmod>
@@ -34,26 +40,14 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://clicksyncgames.com/golfcardgame.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 
-  <!-- Arcade, Strategy & Table Games -->
-  <url>
-    <loc>https://clicksyncgames.com/bubbleshooter2026.html</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://clicksyncgames.com/classicbowlingpro.html</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://clicksyncgames.com/billiardsgame.html</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
+  <!-- Arcade, Action & Defense Games -->
   <url>
     <loc>https://clicksyncgames.com/airtrafficcontroller.html</loc>
     <lastmod>2026-11-06</lastmod>
@@ -67,7 +61,55 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://clicksyncgames.com/synctime.html</loc>
+    <loc>https://clicksyncgames.com/balltrapcraze.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/batterybash.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/bubbleshooter2026.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/clicksyncroller.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/crashtestextreme.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/crashtestextreme2026.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/defendthevehicle.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/destroytheenemyterritory.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/fastclickmadness.html</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -85,6 +127,138 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://clicksyncgames.com/slideandjumpextreme.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/spacedustanddescent.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/synctime.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Sports & Simulation Games -->
+  <url>
+    <loc>https://clicksyncgames.com/classicbowlingpro.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/billiardsgame.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/clicksyncgames3dbilliardsgame.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/fieldgoal101madness.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/golfballstrategy2026.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/golfgamecraze.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/holeintwelve.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/tabletenniscraze.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Survival, Water & Vehicle Games -->
+  <url>
+    <loc>https://clicksyncgames.com/fishenergysurvival.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/icebreaksurvival2026.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/icebergboatbattle.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/speedboatstrategy2026.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/survivalinthedeepforest.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Puzzles, Strategy & Logic Games -->
+  <url>
+    <loc>https://clicksyncgames.com/cyberpath.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/flora.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/impossibletictactoe.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/mirrorbreakstrategy.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://clicksyncgames.com/neontiltcollector.html</loc>
+    <lastmod>2026-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://clicksyncgames.com/quantumgridlock.html</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>monthly</changefreq>
@@ -97,24 +271,10 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://clicksyncgames.com/slideandjumpextreme.html</loc>
+    <loc>https://clicksyncgames.com/traintrackmadnesspro.html</loc>
     <lastmod>2026-11-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://clicksyncgames.com/spacedustanddescent.html</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Site Pages -->
-  <url>
-    <loc>https://clicksyncgames.com/contact.html</loc>
-    <lastmod>2026-11-06</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
   </url>
 
 </urlset>
