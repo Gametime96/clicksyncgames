@@ -3,8 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Counting Blackjack Simulator | Free Practice Game</title>
-    <meta name="description" content="Practice card counting online for free. Master basic strategy, learn the Hi-Lo system, and beat the dealer with our interactive browser-based blackjack simulator.">
+    <title>Card Counting Blackjack Trainer - Practice Online Free | ClickSync Games</title>
+    <meta name="description" content="Master the art of card counting with this interactive browser-based blackjack simulator. Track running counts, calculate true count, and practice Hi-Lo strategy online for free.">
+    <link rel="canonical" href="https://clicksyncgames.com/cardcountingblackjack.html">
+
+    <!-- Open Graph / Social Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Card Counting Blackjack Trainer - Practice Online Free | ClickSync Games">
+    <meta property="og:description" content="Master card counting with an interactive browser-based simulator. Track running counts and practice Hi-Lo blackjack strategy with no download required.">
+    <meta property="og:url" content="https://clicksyncgames.com/cardcountingblackjack.html">
+    <meta property="og:site_name" content="ClickSync Games">
+
+    <!-- Structured Data (JSON-LD) for Search Engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Card Counting Blackjack Trainer",
+      "url": "https://clicksyncgames.com/cardcountingblackjack.html",
+      "description": "An interactive browser-based blackjack simulator designed to teach and practice the Hi-Lo card counting system, running count, and true count calculations without real money risk.",
+      "genre": ["Card Game", "Educational", "Simulation", "Strategy"],
+      "gamePlatform": "Web Browser",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "inLanguage": "en",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "ClickSync Games",
+        "url": "https://clicksyncgames.com/"
+      }
+    }
+    </script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,10 +47,41 @@
             color: white;
             text-align: center;
             margin: 0;
-            padding: 0; /* Removed top padding to allow full bleed if needed, but left main content padded */
+            padding: 0;
         }
         h1, h2, p { margin: 5px 0; }
         
+        /* Top Navigation & Breadcrumbs */
+        .top-nav {
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .breadcrumb a {
+            color: #f1c40f;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb span {
+            color: #cbd5e1;
+            margin: 0 6px;
+        }
+        .nav-cross-link a {
+            color: #81d4fa;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .nav-cross-link a:hover {
+            text-decoration: underline;
+        }
+
         /* Table Layout */
         .table-felt {
             border: 3px solid rgba(255,255,255,0.2);
@@ -97,8 +163,101 @@
         .prompt-box { background: #2c3e50; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #f1c40f; }
         
         input[type="number"] { padding: 8px; font-size: 16px; width: 80px; text-align: center; border-radius: 4px; border: none;}
+
+        /* Related Game Banner */
+        .related-game-banner {
+            max-width: 800px;
+            margin: 25px auto 0 auto;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .related-game-banner h4 {
+            margin: 0 0 4px 0;
+            color: #f1c40f;
+            font-size: 16px;
+        }
+        .related-game-banner p {
+            margin: 0;
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+        .related-game-btn {
+            background-color: #e67e22;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            white-space: nowrap;
+            margin-left: 15px;
+            transition: 0.2s;
+        }
+        .related-game-btn:hover {
+            background-color: #d35400;
+        }
         
-        /* Universal Footer Styles incorporated for this page */
+        /* SEO Content Section */
+        .seo-content-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            color: #0f172a;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .seo-content-container h1, 
+        .seo-content-container h2 {
+            color: #1e3a8a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-top: 25px;
+        }
+        .seo-content-container h1 {
+            font-size: 24px;
+            margin-top: 0;
+        }
+        .seo-content-container h2 {
+            font-size: 20px;
+        }
+        .seo-content-container h3 {
+            font-size: 16px;
+            color: #0f172a;
+            margin-top: 18px;
+        }
+        .seo-content-container p, 
+        .seo-content-container li {
+            line-height: 1.7;
+            color: #334155;
+            font-size: 14px;
+        }
+        .strategy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .strategy-table th, .strategy-table td {
+            border: 1px solid #cbd5e1;
+            padding: 10px;
+            text-align: left;
+        }
+        .strategy-table th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* Universal Footer Styles */
         .site-footer {
             background-color: #cbd5e1;
             padding: 40px 20px;
@@ -128,87 +287,159 @@
             transition: 0.2s;
         }
         .contact-btn:hover { background-color: #1d4ed8; }
+
+        @media (max-width: 600px) {
+            .related-game-banner {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+            .related-game-btn {
+                margin-left: 0;
+            }
+            .top-nav {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div id="initial-spread">
-        <h1>Initializing Shoe...</h1>
-        <p>Displaying 2 decks (104 cards) face up for 4 seconds...</p>
-        <div id="all-cards"></div>
-    </div>
+    <!-- Header Navigation with Breadcrumbs -->
+    <header class="top-nav">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="index.html">ClickSync Games</a>
+            <span>&rsaquo;</span>
+            <span style="color: #ffffff;">Card Counting Blackjack</span>
+        </nav>
+        <div class="nav-cross-link">
+            <span>Looking for casino-style action? </span>
+            <a href="blackjackcraze.html">Play Blackjack Craze &rarr;</a>
+        </div>
+    </header>
 
-    <div id="game-board">
-        <div style="text-align: left; padding: 10px 20px;">
-            <a href="index.html" style="color: #f1c40f; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
+    <main>
+        <div id="initial-spread">
+            <h1>Initializing Shoe...</h1>
+            <p>Displaying 2 decks (104 cards) face up for 4 seconds...</p>
+            <div id="all-cards"></div>
         </div>
 
-        <div class="hud-bar money-data">
-            Bankroll: $<span id="bankroll-display">1000</span> | 
-            Bet: $<input type="number" id="bet-input" value="10" min="1" step="1">
-        </div>
-        <div class="hud-bar count-data" id="count-display" style="display:none;">
-            Running: <span id="r-count">0</span> | Decks: <span id="d-left">2</span> | True: <span id="t-count">0</span>
-        </div>
-        <button id="btn-count" style="padding: 5px 10px; font-size: 12px;">Toggle Count</button>
-
-        <div class="table-felt">
-            <p>Dealer must hit soft 17</p>
-            <p class="main-text">Blackjack pays 3 to 2</p>
-            <p>Insurance Pays 2 to 1 &nbsp;•&nbsp; Can split up to 6 times</p>
-            <p style="font-size: 11px; color: #bdc3c7;">Split Aces receive exactly 1 card</p>
-        </div>
-
-        <div id="message-box">Place your bet and deal!</div>
-
-        <div class="controls">
-            <button id="btn-deal">Deal Hand</button>
-            <button id="btn-hit" class="action-btn" disabled>Hit</button>
-            <button id="btn-stand" class="action-btn" disabled>Stand</button>
-            <button id="btn-double" class="action-btn" disabled>Double Down</button>
-            <button id="btn-split" class="action-btn" disabled>Split</button>
-        </div>
-
-        <div class="hand-area">
-            <h2>Dealer's Hand - <span id="dealer-score-text">?</span></h2>
-            <div id="dealer-cards"></div>
-        </div>
-
-        <div class="hand-area" id="player-hands-wrapper">
+        <div id="game-board">
+            <div class="hud-bar money-data">
+                Bankroll: $<span id="bankroll-display">1000</span> | 
+                Bet: $<input type="number" id="bet-input" value="10" min="1" step="1">
             </div>
-    </div>
+            <div class="hud-bar count-data" id="count-display" style="display:none;">
+                Running: <span id="r-count">0</span> | Decks: <span id="d-left">2</span> | True: <span id="t-count">0</span>
+            </div>
+            <button id="btn-count" style="padding: 5px 10px; font-size: 12px;">Toggle Count</button>
 
-    <div id="prompt-overlay">
-        <div class="prompt-box">
-            <h2 id="prompt-title">Question</h2>
-            <p id="prompt-desc">Details</p>
-            <div id="prompt-inputs" style="margin: 10px 0;"></div>
-            <div id="prompt-buttons"></div>
+            <div class="table-felt">
+                <p>Dealer must hit soft 17</p>
+                <p class="main-text">Blackjack pays 3 to 2</p>
+                <p>Insurance Pays 2 to 1 &nbsp;•&nbsp; Can split up to 6 times</p>
+                <p style="font-size: 11px; color: #bdc3c7;">Split Aces receive exactly 1 card</p>
+            </div>
+
+            <div id="message-box">Place your bet and deal!</div>
+
+            <div class="controls">
+                <button id="btn-deal">Deal Hand</button>
+                <button id="btn-hit" class="action-btn" disabled>Hit</button>
+                <button id="btn-stand" class="action-btn" disabled>Stand</button>
+                <button id="btn-double" class="action-btn" disabled>Double Down</button>
+                <button id="btn-split" class="action-btn" disabled>Split</button>
+            </div>
+
+            <div class="hand-area">
+                <h2>Dealer's Hand - <span id="dealer-score-text">?</span></h2>
+                <div id="dealer-cards"></div>
+            </div>
+
+            <div class="hand-area" id="player-hands-wrapper"></div>
         </div>
-    </div>
 
-    <div style="max-width: 800px; margin: 40px auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); color: #0f172a; text-align: left;">
-        <h2 style="color: #2563eb; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">How to Practice Card Counting in Blackjack</h2>
-        
-        <p style="line-height: 1.6; margin-bottom: 15px;">
-            Welcome to the ultimate <strong>card counting blackjack simulator</strong>. Whether you are learning basic strategy or trying to master the popular Hi-Lo system, our free browser game is designed to help you practice without risking real money at the casino.
-        </p>
+        <div id="prompt-overlay">
+            <div class="prompt-box">
+                <h2 id="prompt-title">Question</h2>
+                <p id="prompt-desc">Details</p>
+                <div id="prompt-inputs" style="margin: 10px 0;"></div>
+                <div id="prompt-buttons"></div>
+            </div>
+        </div>
 
-        <h3 style="color: #0f172a; margin-top: 25px;">The Hi-Lo Card Counting System</h3>
-        <p style="line-height: 1.6; margin-bottom: 15px;">
-            Card counting is a mathematical strategy used to determine whether the next hand is likely to give a probable advantage to the player or the dealer. The most common method is the Hi-Lo system. In this system, every card dealt is assigned a specific value:
-        </p>
+        <!-- Cross-Promotion Hub Banner -->
+        <aside class="related-game-banner">
+            <div>
+                <h4>Looking for a Fast-Paced Casino Table?</h4>
+                <p>Put your blackjack strategy into practice with 6-deck action, animated chip betting, and table sound effects.</p>
+            </div>
+            <a href="blackjackcraze.html" class="related-game-btn">Play Blackjack Craze</a>
+        </aside>
 
-        <ul style="line-height: 1.6; margin-bottom: 15px;">
-            <li><strong>Low Cards (2-6):</strong> +1</li>
-            <li><strong>Neutral Cards (7-9):</strong> 0</li>
-            <li><strong>High Cards (10, J, Q, K, Ace):</strong> -1</li>
-        </ul>
+        <!-- SEO Article & Educational Content Section -->
+        <article class="seo-content-container">
+            <h1>Master Card Counting with Our Free Online Blackjack Trainer</h1>
+            <p>
+                Welcome to the <strong>Card Counting Blackjack Simulator</strong> on ClickSync Games. This interactive, browser-based trainer is built for players who want to practice the mathematical principles of card counting without risking real funds. By simulating authentic shoe penetration, true count math, and dealer shoe distributions, you can train your eyes to keep count in real time.
+            </p>
 
-        <p style="line-height: 1.6;">
-            By keeping a running tally of these values as cards are dealt, players can gauge the "running count." A high positive count means there are more high cards left in the shoe, which mathematically favors the player. Use this simulator to sharpen your math skills, improve your reaction time, and test your betting strategies in a realistic environment.
-        </p>
-    </div>
+            <h2>The Hi-Lo Card Counting System Explained</h2>
+            <p>
+                The Hi-Lo system is the most widely tested and accessible card counting method in blackjack. It operates as a <em>level-one balanced count</em>, meaning that across a full 52-card deck, the sum of all assigned values equals exactly zero.
+            </p>
+
+            <table class="strategy-table">
+                <thead>
+                    <tr>
+                        <th>Card Values</th>
+                        <th>Tag / Count Value</th>
+                        <th>Impact on Remaining Shoe</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>2, 3, 4, 5, 6</strong></td>
+                        <td><strong>+1</strong></td>
+                        <td>Low cards favor the dealer; their removal tilts advantage toward the player.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>7, 8, 9</strong></td>
+                        <td><strong>0</strong></td>
+                        <td>Neutral cards with minimal effect on overall odds.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>10, J, Q, K, Ace</strong></td>
+                        <td><strong>-1</strong></td>
+                        <td>High cards favor the player (3:2 blackjacks and double downs); their removal reduces player edge.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Running Count vs. True Count</h2>
+            <p>
+                Keeping the <strong>running count</strong> is step one: as each card is dealt face up, add or subtract its assigned tag value. However, in games using multiple decks, the running count alone does not reflect your true mathematical advantage. You must calculate the <strong>True Count</strong>:
+            </p>
+            <blockquote style="background-color: #f8fafc; border-left: 4px solid #2563eb; margin: 10px 0; padding: 12px 16px; font-weight: 600; color: #1e293b;">
+                True Count = Running Count &divide; Estimated Decks Remaining
+            </blockquote>
+            <p>
+                For instance, if your running count is +6 and there are 2 decks left in the shoe, your True Count is +3. A True Count of +2 or higher typically signals the moment to increase bet sizing, as the shoe has a rich concentration of 10s and Aces. Use the <em>"Toggle Count"</em> button above to test your mental math against our live HUD.
+            </p>
+
+            <h2>Table Rules in This Simulator</h2>
+            <ul style="line-height: 1.8;">
+                <li><strong>Shoe:</strong> 2-deck shoe (104 cards) initialized face up for visual calibration.</li>
+                <li><strong>Shoe Penetration:</strong> Cut card placed at ~75% penetration (26 cards remaining triggers a reshuffle).</li>
+                <li><strong>Dealer Play:</strong> Dealer must hit Soft 17 and stand on Hard 17 or higher.</li>
+                <li><strong>Payouts:</strong> Natural Blackjack pays 3:2; Insurance pays 2:1.</li>
+                <li><strong>Splitting:</strong> Split up to 6 times; split Aces receive exactly one card.</li>
+                <li><strong>Double Down:</strong> Available on any initial two-card total, including double-for-less options.</li>
+            </ul>
+        </article>
+    </main>
 
     <footer class="site-footer">
         <p class="legal-text">
@@ -337,7 +568,6 @@
                 score -= 10;
                 aces -= 1;
             }
-            // Strict check: Soft 21 does not exist. Only mark as soft if strictly less than 21.
             if (aces > 0 && score < 21) isSoft = true;
             
             return { score, isSoft };
@@ -599,12 +829,11 @@
         }
 
         // --- Player Actions ---
-        
         function handleHandEvaluation() {
             if (activeHandIndex >= playerHands.length) return;
             let score = calculateScore(playerHands[activeHandIndex]).score;
             if (score >= 21) {
-                advanceHand(); // Instantly jump if score naturally hits 21 or bust
+                advanceHand();
             }
         }
 
@@ -629,7 +858,7 @@
                     playerHands[activeHandIndex].push(card);
                     updateCountMath(card);
                     renderHands();
-                    advanceHand(); // Double always forces a stand/advance
+                    advanceHand();
                 }
             });
         });
@@ -662,13 +891,11 @@
                 DOM.btns.double.disabled = true;
                 DOM.btns.split.disabled = true;
 
-                activeHandIndex = playerHands.length; // Force skip all actions
-                
-                // Allow a tiny delay so the player can see the cards dealt to their split Aces
+                activeHandIndex = playerHands.length;
                 setTimeout(() => dealerTurn(), 1200);
             } else {
                 DOM.msg.innerText = "Hand split!";
-                handleHandEvaluation(); // Checks if the new card dealt auto-busted or hit 21
+                handleHandEvaluation();
             }
         });
 
@@ -679,7 +906,7 @@
             } else {
                 renderHands();
                 DOM.msg.innerText = `Playing Hand ${activeHandIndex + 1}`;
-                handleHandEvaluation(); // Recursively evaluate the newly active hand
+                handleHandEvaluation();
             }
         }
 
@@ -764,7 +991,6 @@
         // Start
         displayInitialSpread();
         renderBankroll();
-
     </script>
 </body>
 </html>
