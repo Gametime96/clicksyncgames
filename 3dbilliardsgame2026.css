@@ -46,7 +46,7 @@ body, html {
     background: linear-gradient(160deg, #131c31 0%, #0b1120 100%);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 16px;
-    padding: 16px 22px;
+    padding: 18px 16px;
     width: 100%;
     max-width: 650px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
@@ -56,7 +56,7 @@ body, html {
 
 .mode-card {
     max-width: 520px;
-    padding: 22px 26px;
+    padding: 22px 24px;
 }
 
 .mode-grid {
@@ -96,7 +96,7 @@ body, html {
 
 .pause-card {
     max-width: 400px;
-    padding: 22px 26px;
+    padding: 22px 24px;
 }
 
 .pause-actions {
@@ -107,54 +107,64 @@ body, html {
 }
 
 .modal-card h2 {
-    font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+    font-size: clamp(1.25rem, 4vw, 1.65rem);
     color: #facc15;
     letter-spacing: 1.2px;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     text-shadow: 0 2px 10px rgba(250, 204, 21, 0.3);
+}
+
+.modal-card .selection-heading {
+    margin-bottom: 14px;
 }
 
 .modal-card .subtitle {
     color: #94a3b8;
-    font-size: 0.82rem;
-    margin-bottom: 12px;
+    font-size: 0.84rem;
+    margin-bottom: 14px;
 }
 
 .option-group {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     text-align: left;
+    width: 100%;
 }
 
 .option-group label {
     display: block;
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 0.8px;
     color: #cbd5e1;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
+/* Responsive Theme Grid - Fits All 5 Buttons Cleanly Inside Any Screen Width */
 .theme-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: 8px;
+    width: 100%;
 }
 
 .theme-btn {
     background: #1e293b;
     border: 2px solid #334155;
-    border-radius: 9px;
+    border-radius: 10px;
     color: #e2e8f0;
-    padding: 6px 4px;
-    font-size: 0.72rem;
+    padding: 9px 6px;
+    font-size: 0.76rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 5px;
     transition: all 0.2s ease;
-    white-space: nowrap;
+    min-width: 0;
+    word-break: break-word;
+    line-height: 1.15;
     touch-action: manipulation;
 }
 
@@ -170,11 +180,12 @@ body, html {
 }
 
 .color-swatch {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.45);
     pointer-events: none;
+    flex-shrink: 0;
 }
 
 .color-swatch.green  { background: #0e6f3c; }
@@ -187,16 +198,18 @@ body, html {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+    width: 100%;
 }
 
 .cue-card {
     background: #1e293b;
     border: 2px solid #334155;
     border-radius: 10px;
-    padding: 8px 6px;
+    padding: 11px 6px;
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: center;
+    min-width: 0;
     touch-action: manipulation;
 }
 
@@ -211,22 +224,22 @@ body, html {
 }
 
 .cue-card h3 {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: #ffffff;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 
 .cue-card .cue-desc {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     color: #facc15;
-    margin-bottom: 4px;
+    margin-bottom: 5px;
     font-weight: 700;
 }
 
 .cue-card .stats {
-    font-size: 0.66rem;
+    font-size: 0.70rem;
     color: #94a3b8;
-    line-height: 1.25;
+    line-height: 1.3;
 }
 
 .stat-val {
@@ -240,8 +253,8 @@ body, html {
 
 .primary-btn {
     width: 100%;
-    padding: 10px 14px;
-    font-size: 0.95rem;
+    padding: 13px 16px;
+    font-size: 1rem;
     font-weight: 800;
     color: #0f172a;
     background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
@@ -261,8 +274,8 @@ body, html {
 
 .secondary-btn {
     width: 100%;
-    padding: 10px 14px;
-    font-size: 0.88rem;
+    padding: 11px 14px;
+    font-size: 0.9rem;
     font-weight: 700;
     color: #ffffff;
     background: #334155;
@@ -281,45 +294,49 @@ body, html {
 /* Short-Height Viewport Condensation (Mobile Landscape) */
 @media (max-height: 440px) {
     .modal-card {
-        padding: 10px 16px;
+        padding: 10px 14px;
         border-radius: 12px;
     }
     .modal-card h2 {
         font-size: 1.1rem;
-        margin-bottom: 1px;
+        margin-bottom: 6px;
     }
     .modal-card .subtitle {
         font-size: 0.72rem;
         margin-bottom: 6px;
     }
     .option-group {
-        margin-bottom: 7px;
+        margin-bottom: 8px;
     }
     .option-group label {
         font-size: 0.68rem;
         margin-bottom: 4px;
     }
+    .theme-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+    }
     .theme-btn {
-        padding: 4px 3px;
-        font-size: 0.65rem;
-        gap: 2px;
+        padding: 5px 3px;
+        font-size: 0.66rem;
+        gap: 3px;
     }
     .color-swatch {
         width: 14px;
         height: 14px;
     }
     .cue-card {
-        padding: 5px 4px;
+        padding: 6px 4px;
     }
     .cue-card h3 {
-        font-size: 0.74rem;
+        font-size: 0.76rem;
     }
     .cue-card .cue-desc, .cue-card .stats {
-        font-size: 0.6rem;
+        font-size: 0.62rem;
     }
     .primary-btn {
-        padding: 8px 12px;
-        font-size: 0.84rem;
+        padding: 9px 12px;
+        font-size: 0.86rem;
     }
 }
 
