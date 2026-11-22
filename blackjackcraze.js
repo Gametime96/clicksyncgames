@@ -111,7 +111,7 @@ function playShuffleSound() {
   }
 }
 
-// 2. Responsive Table Resizing (Preserves Mobile Portrait & Desktop; Optimizes Mobile Landscape)
+// 2. Responsive Table Resizing (Preserves Mobile Portrait & Desktop; Zero-Overlap Mobile Landscape)
 function adjustTableScale() {
   const header = document.querySelector('.game-header');
   const container = document.querySelector('.table-container');
@@ -136,8 +136,8 @@ function adjustTableScale() {
   } else if (isMobileLandscape) {
     scaler.classList.remove('portrait-mode');
     scaler.classList.add('mobile-landscape-mode');
-    baseW = 860;
-    baseH = 500;
+    baseW = 960;
+    baseH = 585;
   } else {
     scaler.classList.remove('portrait-mode');
     scaler.classList.remove('mobile-landscape-mode');
