@@ -1,9 +1,9 @@
 /**
- * Blackjack Craze Engine
- * Click Sync Games - 6-Deck Hi-Lo Shoe Engine with Dynamic Viewport,
- * Bottom Chip Win Animations, Insurance/Even Money, Peek Logic, Single-Split,
- * Variable Double Down (up to hand bet, post-split DDAS on 2 cards),
- * Clean On-Screen Discard Tray, and Game Over Out-of-Funds System.
+- Blackjack Craze Engine
+- Click Sync Games - 6-Deck Hi-Lo Shoe Engine with Dynamic Portrait/Landscape Viewport,
+- Bottom Chip Win Animations, Insurance/Even Money, Peek Logic, Single-Split,
+- Variable Double Down (up to hand bet, post-split DDAS on 2 cards),
+- Clean On-Screen Discard Tray, and Game Over Out-of-Funds System.
  */
 
 const SUITS = [
@@ -111,16 +111,30 @@ function playShuffleSound() {
   }
 }
 
-// 2. Responsive Table Resizing
+// 2. Responsive Table Resizing (Adapts to both Mobile Portrait and Landscape/Desktop)
 function adjustTableScale() {
+  const header = document.querySelector('.game-header');
   const container = document.querySelector('.table-container');
   const scaler = document.getElementById('table-scale-root');
   if (!container || !scaler) return;
 
-  const baseW = 1000;
-  const baseH = 650;
+  const headerH = header ? header.offsetHeight : 48;
+  container.style.height = `calc(100dvh - ${headerH}px)`;
+
   const availableW = container.clientWidth;
   const availableH = container.clientHeight;
+  const isPortrait = availableH > availableW && availableW < 768;
+
+  let baseW, baseH;
+  if (isPortrait) {
+    scaler.classList.add('portrait-mode');
+    baseW = 420;
+    baseH = 740;
+  } else {
+    scaler.classList.remove('portrait-mode');
+    baseW = 1000;
+    baseH = 650;
+  }
 
   const scale = Math.min(availableW / baseW, availableH / baseH);
   scaler.style.transform = `scale(${scale})`;
@@ -168,7 +182,6 @@ const burnCardContainer = document.getElementById('burn-card-container');
 // Bet Circles
 const betCircle0 = document.getElementById('bet-circle');
 const betBox1 = document.getElementById('bet-box-1');
-const betCircleSplit = document.getElementById('bet-circle-split');
 const placedChipsStack0 = document.getElementById('placed-chips-stack');
 const payoutChipsStack0 = document.getElementById('payout-chips-stack');
 const placedChipsStackSplit = document.getElementById('placed-chips-stack-split');
@@ -321,9 +334,17 @@ function executeBurnCard() {
 
   gameStatusEl.textContent = 'Burn card';
 
+  const scaler = document.getElementById('table-scale-root');
+  const scale = scaler ? (scaler.getBoundingClientRect().width / scaler.offsetWidth) : 1;
+  const rootRect = scaler.getBoundingClientRect();
   const shoeRect = dealingShoeEl.getBoundingClientRect();
   const discardTrayEl = document.getElementById('discard-tray');
   const discardRect = discardTrayEl.getBoundingClientRect();
+
+  const startX = (shoeRect.left - rootRect.left) / scale;
+  const startY = (shoeRect.top - rootRect.top) / scale;
+  const endX = (discardRect.left - rootRect.left) / scale + 6;
+  const endY = (discardRect.top - rootRect.top) / scale + 6;
 
   burnCardContainer.innerHTML = '';
   burnCardContainer.classList.remove('hidden');
@@ -332,14 +353,14 @@ function executeBurnCard() {
   burnCardContainer.appendChild(cardEl);
 
   burnCardContainer.style.transition = 'none';
-  burnCardContainer.style.transform = `translate(${shoeRect.left}px, ${shoeRect.top}px) scale(0.9)`;
+  burnCardContainer.style.transform = `translate(${startX}px, ${startY}px) scale(0.9)`;
   burnCardContainer.style.opacity = '1';
   burnCardContainer.offsetHeight;
 
   playCardDealSound();
 
   burnCardContainer.style.transition = 'transform 4s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 4s ease';
-  burnCardContainer.style.transform = `translate(${discardRect.left + 10}px, ${discardRect.top + 10}px) scale(0.7) rotate(0deg)`;
+  burnCardContainer.style.transform = `translate(${endX}px, ${endY}px) scale(0.7) rotate(0deg)`;
 
   setTimeout(() => {
     burnCardContainer.classList.add('hidden');
@@ -349,7 +370,7 @@ function executeBurnCard() {
   }, 4050);
 }
 
-// Discard Tray Card Stacking - Strictly centered on screen with bounded offset
+// Discard Tray Card Stacking
 function addFaceDownToDiscardTray() {
   discardCount++;
   const card = document.createElement('div');
@@ -401,7 +422,7 @@ function renderStackInContainer(stack, container) {
     chip.className = 'chip-in-ring';
     chip.dataset.val = val;
     chip.style.backgroundColor = chipColors[val];
-    chip.style.color = (val === 1) ? '#222' : '#fff';
+    chip.style.color = (val === 1) ? '#111' : '#fff';
     chip.style.border = '2px dashed #fff';
     chip.textContent = `$${val}`;
     chip.style.transform = `translateY(-${idx * 3}px) rotate(${idx * 6}deg)`;
@@ -448,12 +469,12 @@ function createCardElement(card, isFacedDown = false) {
       <div class="card-face card-back"></div>
       <div class="card-face card-front ${card.color}">
         <div class="card-corner top">
-          <span>${card.value}</span>
+          <span class="card-rank">${card.value}</span>
           <span>${card.suit}</span>
         </div>
         <div class="card-center">${card.suit}</div>
         <div class="card-corner bottom">
-          <span>${card.value}</span>
+          <span class="card-rank">${card.value}</span>
           <span>${card.suit}</span>
         </div>
       </div>
