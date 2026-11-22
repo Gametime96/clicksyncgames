@@ -4,7 +4,10 @@ const TABLE_WIDTH = 14;
 const TABLE_LENGTH = 28;
 const CUSHION_THICKNESS = 0.28;
 const BALL_RADIUS = 0.45;
-const FRICTION = 0.990;
+const FRICTION = 0.978;
+const LINEAR_DRAG = 0.0022;
+const STOP_SPEED_SQ = 0.00018;
+const MAX_CUE_ROLL_MS = 5000;
 const POCKET_RADIUS = 1.25;
 const SUB_STEPS = 12;
 
@@ -14,6 +17,8 @@ let cueBall;
 let cueStickGroup, cueStickMesh;
 let aimDots = [];
 let feltMesh, cushionMeshGroup = [];
+let modalUIInitialized = false;
+let sceneInitialized = false;
 
 let aimAngle = 0; // 0 rad = straight ahead (-Z) toward rack
 let power = 0;
@@ -27,13 +32,13 @@ let cameraMode = 'locked'; // 'locked' or 'overhead'
 let gameMode = '2p'; // '2p' or 'cpu'
 let currentTurn = 1; // 1 = Player 1, 2 = Player 2 or Computer
 let playerSuits = { 1: null, 2: null }; // 'SOLIDS' or 'STRIPES'
-let isBreakShot = true;
 let shotInProgress = false;
 let pocketedThisTurn = [];
 let cueBallPocketed = false;
 let cueRespawnTimer = null;
 let cpuThinkingTimer = null;
 let matchOver = false;
+let cueBallLastContactTime = 0;
 
 let selectedTheme = 'green';
 let selectedCue = 'default';
@@ -246,68 +251,91 @@ const BALL_DEFS = [
     { num: 15, color: "#7f1d1d", stripe: true  }
 ];
 
-function init() {
-    const container = document.getElementById('game-container');
+// Global mode selection handler so Step 1 -> Step 2 always works immediately
+window.selectGameMode = function(chosenMode) {
+    ensureAudioContext();
+    gameMode = chosenMode;
+    const subEl = document.getElementById('customize-subtitle');
+    if (subEl) {
+        subEl.textContent = chosenMode === 'cpu'
+            ? 'Mode: Player 1 vs. Computer • Customize Table & Cue'
+            : 'Mode: 2 Player Match • Customize Table & Cue';
+    }
+    const modeModal = document.getElementById('mode-modal');
+    const selectionModal = document.getElementById('selection-modal');
+    if (modeModal) modeModal.classList.add('hidden');
+    if (selectionModal) selectionModal.classList.remove('hidden');
+};
 
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x060911);
-    scene.fog = new THREE.FogExp2(0x060911, 0.010);
+function initScene() {
+    if (sceneInitialized) return;
+    sceneInitialized = true;
 
-    camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 1000);
+    try {
+        const container = document.getElementById('game-container');
+        if (!container || typeof THREE === 'undefined') return;
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
-    container.appendChild(renderer.domElement);
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x060911);
+        scene.fog = new THREE.FogExp2(0x060911, 0.010);
 
-    const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x0f172a, 0.65);
-    scene.add(hemiLight);
+        camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    const overheadSpot1 = new THREE.SpotLight(0xfffbeb, 1.15);
-    overheadSpot1.position.set(0, 26, -6);
-    overheadSpot1.angle = Math.PI / 3.2;
-    overheadSpot1.penumbra = 0.65;
-    overheadSpot1.decay = 1.2;
-    overheadSpot1.castShadow = true;
-    overheadSpot1.shadow.mapSize.width = 2048;
-    overheadSpot1.shadow.mapSize.height = 2048;
-    overheadSpot1.shadow.bias = -0.0004;
-    overheadSpot1.target.position.set(0, 0, -5);
-    scene.add(overheadSpot1);
-    scene.add(overheadSpot1.target);
+        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.15;
+        container.appendChild(renderer.domElement);
 
-    const overheadSpot2 = new THREE.SpotLight(0xfffbeb, 1.15);
-    overheadSpot2.position.set(0, 26, 6);
-    overheadSpot2.angle = Math.PI / 3.2;
-    overheadSpot2.penumbra = 0.65;
-    overheadSpot2.decay = 1.2;
-    overheadSpot2.castShadow = true;
-    overheadSpot2.shadow.mapSize.width = 2048;
-    overheadSpot2.shadow.mapSize.height = 2048;
-    overheadSpot2.shadow.bias = -0.0004;
-    overheadSpot2.target.position.set(0, 0, 5);
-    scene.add(overheadSpot2);
-    scene.add(overheadSpot2.target);
+        const hemiLight = new THREE.HemisphereLight(0xf8fafc, 0x0f172a, 0.65);
+        scene.add(hemiLight);
 
-    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.35);
-    rimLight.position.set(18, 16, 14);
-    scene.add(rimLight);
+        const overheadSpot1 = new THREE.SpotLight(0xfffbeb, 1.15);
+        overheadSpot1.position.set(0, 26, -6);
+        overheadSpot1.angle = Math.PI / 3.2;
+        overheadSpot1.penumbra = 0.65;
+        overheadSpot1.decay = 1.2;
+        overheadSpot1.castShadow = true;
+        overheadSpot1.shadow.mapSize.width = 2048;
+        overheadSpot1.shadow.mapSize.height = 2048;
+        overheadSpot1.shadow.bias = -0.0004;
+        overheadSpot1.target.position.set(0, 0, -5);
+        scene.add(overheadSpot1);
+        scene.add(overheadSpot1.target);
 
-    createTable();
-    createBalls();
-    createCueStick();
-    createAimStream();
+        const overheadSpot2 = new THREE.SpotLight(0xfffbeb, 1.15);
+        overheadSpot2.position.set(0, 26, 6);
+        overheadSpot2.angle = Math.PI / 3.2;
+        overheadSpot2.penumbra = 0.65;
+        overheadSpot2.decay = 1.2;
+        overheadSpot2.castShadow = true;
+        overheadSpot2.shadow.mapSize.width = 2048;
+        overheadSpot2.shadow.mapSize.height = 2048;
+        overheadSpot2.shadow.bias = -0.0004;
+        overheadSpot2.target.position.set(0, 0, 5);
+        scene.add(overheadSpot2);
+        scene.add(overheadSpot2.target);
 
-    setupModalUI();
-    setupDialControls();
-    setupEvents();
-    updateTurnSuitDisplay();
+        const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.35);
+        rimLight.position.set(18, 16, 14);
+        scene.add(rimLight);
 
-    animate();
+        createTable();
+        createBalls();
+        createCueStick();
+        createAimStream();
+
+        setupDialControls();
+        setupEvents();
+        updateTurnSuitDisplay();
+
+        animate();
+    } catch (err) {
+        console.error('3D Billiards initialization error:', err);
+    }
 }
 
 function getActivePlayerName(turnNum = currentTurn) {
@@ -327,6 +355,19 @@ function updateTurnSuitDisplay() {
     } else {
         badge.textContent = `${name}: OPEN TABLE`;
     }
+}
+
+function assignSuitIfOpen(ballNum) {
+    if (ballNum <= 0 || ballNum === 8) return;
+    if (playerSuits[1] !== null || playerSuits[2] !== null) return;
+
+    const otherTurn = currentTurn === 1 ? 2 : 1;
+    const assignedSuit = (ballNum >= 1 && ballNum <= 7) ? 'SOLIDS' : 'STRIPES';
+    const oppositeSuit = assignedSuit === 'SOLIDS' ? 'STRIPES' : 'SOLIDS';
+
+    playerSuits[currentTurn] = assignedSuit;
+    playerSuits[otherTurn] = oppositeSuit;
+    updateTurnSuitDisplay();
 }
 
 function setHumanControlsEnabled(enabled) {
@@ -525,7 +566,6 @@ function createTable() {
     feltMesh.receiveShadow = true;
     scene.add(feltMesh);
 
-    // Subtle Head String & Foot Spot Markings on Felt
     const lineMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
@@ -637,7 +677,6 @@ function createTable() {
         scene.add(seg);
     });
 
-    // Mother-of-Pearl Diamond Aiming Sights Along the Rails
     const pearlMat = new THREE.MeshStandardMaterial({
         color: 0xfefce8,
         emissive: 0xfef08a,
@@ -879,31 +918,19 @@ function togglePauseState() {
         isCharging = false;
         document.getElementById('pause-modal').classList.remove('hidden');
     } else {
+        cueBallLastContactTime = performance.now();
         document.getElementById('pause-modal').classList.add('hidden');
     }
 }
 
 function setupModalUI() {
-    const proceedToCustomization = (chosenMode) => {
-        ensureAudioContext();
-        gameMode = chosenMode;
-        const subEl = document.getElementById('customize-subtitle');
-        if (subEl) {
-            subEl.textContent = chosenMode === 'cpu'
-                ? 'Mode: Player 1 vs. Computer • Customize Table & Cue'
-                : 'Mode: 2 Player Match • Customize Table & Cue';
-        }
-        document.getElementById('mode-modal').classList.add('hidden');
-        document.getElementById('selection-modal').classList.remove('hidden');
-    };
+    if (modalUIInitialized) return;
+    modalUIInitialized = true;
 
-    document.getElementById('mode-2p-btn').addEventListener('click', () => {
-        proceedToCustomization('2p');
-    });
-
-    document.getElementById('mode-cpu-btn').addEventListener('click', () => {
-        proceedToCustomization('cpu');
-    });
+    const btn2p = document.getElementById('mode-2p-btn');
+    const btnCpu = document.getElementById('mode-cpu-btn');
+    if (btn2p) btn2p.addEventListener('click', () => window.selectGameMode('2p'));
+    if (btnCpu) btnCpu.addEventListener('click', () => window.selectGameMode('cpu'));
 
     const themeBtns = document.querySelectorAll('.theme-btn');
     themeBtns.forEach(btn => {
@@ -923,47 +950,55 @@ function setupModalUI() {
         });
     });
 
-    document.getElementById('start-game-btn').addEventListener('click', () => {
-        ensureAudioContext();
-        feltMesh.material.color.setHex(THEME_COLORS[selectedTheme]);
-        cushionMeshGroup.forEach(c => c.material.color.setHex(CUSHION_COLORS[selectedTheme]));
-        rebuildCueStick();
+    const startBtn = document.getElementById('start-game-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            ensureAudioContext();
+            if (!sceneInitialized) initScene();
 
-        currentTurn = 1;
-        playerSuits = { 1: null, 2: null };
-        isBreakShot = true;
-        updateTurnSuitDisplay();
-        setHumanControlsEnabled(true);
+            if (feltMesh && feltMesh.material) {
+                feltMesh.material.color.setHex(THEME_COLORS[selectedTheme]);
+            }
+            if (cushionMeshGroup && cushionMeshGroup.length) {
+                cushionMeshGroup.forEach(c => c.material.color.setHex(CUSHION_COLORS[selectedTheme]));
+            }
+            if (scene) {
+                rebuildCueStick();
+            }
 
-        document.getElementById('selection-modal').classList.add('hidden');
-        document.getElementById('ui-container').classList.remove('hidden');
-    });
+            currentTurn = 1;
+            playerSuits = { 1: null, 2: null };
+            updateTurnSuitDisplay();
+            setHumanControlsEnabled(true);
 
-    document.getElementById('pause-btn').addEventListener('click', () => {
-        togglePauseState();
-    });
+            document.getElementById('selection-modal').classList.add('hidden');
+            document.getElementById('ui-container').classList.remove('hidden');
+        });
+    }
 
-    document.getElementById('resume-btn').addEventListener('click', () => {
-        if (isPaused) togglePauseState();
-    });
+    const pauseBtn = document.getElementById('pause-btn');
+    if (pauseBtn) pauseBtn.addEventListener('click', togglePauseState);
 
-    document.getElementById('restart-btn').addEventListener('click', () => {
-        location.reload();
-    });
+    const resumeBtn = document.getElementById('resume-btn');
+    if (resumeBtn) resumeBtn.addEventListener('click', () => { if (isPaused) togglePauseState(); });
 
-    document.getElementById('play-again-btn').addEventListener('click', () => {
-        location.reload();
-    });
+    const restartBtn = document.getElementById('restart-btn');
+    if (restartBtn) restartBtn.addEventListener('click', () => location.reload());
+
+    const playAgainBtn = document.getElementById('play-again-btn');
+    if (playAgainBtn) playAgainBtn.addEventListener('click', () => location.reload());
 
     const muteBtn = document.getElementById('mute-btn');
     const volOnIcon = document.getElementById('vol-on-icon');
     const volOffIcon = document.getElementById('vol-off-icon');
-    muteBtn.addEventListener('click', () => {
-        ensureAudioContext();
-        isMuted = !isMuted;
-        volOnIcon.classList.toggle('hidden', isMuted);
-        volOffIcon.classList.toggle('hidden', !isMuted);
-    });
+    if (muteBtn) {
+        muteBtn.addEventListener('click', () => {
+            ensureAudioContext();
+            isMuted = !isMuted;
+            volOnIcon.classList.toggle('hidden', isMuted);
+            volOffIcon.classList.toggle('hidden', !isMuted);
+        });
+    }
 }
 
 function setAimAngleRad(rad) {
@@ -1097,6 +1132,7 @@ function shoot(overridePower = null) {
 
     cueBall.velocity.x = Math.sin(aimAngle) * hitForce;
     cueBall.velocity.z = -Math.cos(aimAngle) * hitForce;
+    cueBallLastContactTime = performance.now();
 
     canShoot = false;
     shotInProgress = true;
@@ -1145,12 +1181,8 @@ function evaluateShotOutcome() {
         return;
     }
 
-    if (!playerSuits[1] && !playerSuits[2] && !isBreakShot && !cueBallPocketed && objectBallsPocketed.length > 0) {
-        const firstBallNum = objectBallsPocketed[0];
-        const assignedSuit = (firstBallNum >= 1 && firstBallNum <= 7) ? 'SOLIDS' : 'STRIPES';
-        const oppositeSuit = assignedSuit === 'SOLIDS' ? 'STRIPES' : 'SOLIDS';
-        playerSuits[currentTurn] = assignedSuit;
-        playerSuits[otherTurn] = oppositeSuit;
+    if (!playerSuits[1] && !playerSuits[2] && objectBallsPocketed.length > 0) {
+        assignSuitIfOpen(objectBallsPocketed[0]);
     }
 
     let keepTurn = false;
@@ -1165,8 +1197,6 @@ function evaluateShotOutcome() {
             );
         }
     }
-
-    isBreakShot = false;
 
     if (!keepTurn) {
         currentTurn = otherTurn;
@@ -1269,7 +1299,7 @@ function scheduleComputerShot() {
         const jitterRad = ((Math.random() - 0.5) * 3.6 * Math.PI) / 180;
         setAimAngleRad(bestAimAngle + jitterRad);
 
-        const cpuPower = isBreakShot ? 88 : Math.min(72, Math.max(36, 32 + bestScore * 1.1));
+        const cpuPower = Math.min(72, Math.max(36, 32 + bestScore * 1.1));
         shoot(cpuPower);
     }, 1100);
 }
@@ -1313,6 +1343,7 @@ function updatePhysics() {
 
     let allStopped = true;
     const dt = 1 / SUB_STEPS;
+    const now = performance.now();
 
     const minX = -TABLE_WIDTH / 2 + CUSHION_THICKNESS + BALL_RADIUS;
     const maxX =  TABLE_WIDTH / 2 - CUSHION_THICKNESS - BALL_RADIUS;
@@ -1323,7 +1354,21 @@ function updatePhysics() {
         balls.forEach(ball => {
             if (!ball.parent) return;
 
-            if (ball.velocity.lengthSq() > 0.00001) {
+            let speedSq = ball.velocity.lengthSq();
+
+            if (ball.isCue && speedSq > 0 && cueBallLastContactTime > 0) {
+                const elapsedSinceContact = now - cueBallLastContactTime;
+                if (elapsedSinceContact >= MAX_CUE_ROLL_MS) {
+                    ball.velocity.set(0, 0, 0);
+                    speedSq = 0;
+                } else if (elapsedSinceContact > 3200) {
+                    const brakeFactor = Math.pow(0.92, dt);
+                    ball.velocity.multiplyScalar(brakeFactor);
+                    speedSq = ball.velocity.lengthSq();
+                }
+            }
+
+            if (speedSq > STOP_SPEED_SQ) {
                 allStopped = false;
                 
                 const stepVel = ball.velocity.clone().multiplyScalar(dt);
@@ -1334,28 +1379,42 @@ function updatePhysics() {
                 ball.rotation.z -= stepVel.x * 0.25;
 
                 ball.velocity.multiplyScalar(Math.pow(FRICTION, dt));
+                const currentSpeed = ball.velocity.length();
+                if (currentSpeed > 0) {
+                    const nextSpeed = Math.max(0, currentSpeed - LINEAR_DRAG * dt);
+                    ball.velocity.multiplyScalar(nextSpeed / currentSpeed);
+                }
 
                 checkPockets(ball);
                 if (!ball.parent) return;
 
+                let hitWall = false;
                 if (ball.position.x < minX) {
                     playCushionBounceSound(Math.abs(ball.velocity.x));
-                    ball.velocity.x = Math.abs(ball.velocity.x) * 0.92;
+                    ball.velocity.x = Math.abs(ball.velocity.x) * 0.88;
                     ball.position.x = minX;
+                    hitWall = true;
                 } else if (ball.position.x > maxX) {
                     playCushionBounceSound(Math.abs(ball.velocity.x));
-                    ball.velocity.x = -Math.abs(ball.velocity.x) * 0.92;
+                    ball.velocity.x = -Math.abs(ball.velocity.x) * 0.88;
                     ball.position.x = maxX;
+                    hitWall = true;
                 }
 
                 if (ball.position.z < minZ) {
                     playCushionBounceSound(Math.abs(ball.velocity.z));
-                    ball.velocity.z = Math.abs(ball.velocity.z) * 0.92;
+                    ball.velocity.z = Math.abs(ball.velocity.z) * 0.88;
                     ball.position.z = minZ;
+                    hitWall = true;
                 } else if (ball.position.z > maxZ) {
                     playCushionBounceSound(Math.abs(ball.velocity.z));
-                    ball.velocity.z = -Math.abs(ball.velocity.z) * 0.92;
+                    ball.velocity.z = -Math.abs(ball.velocity.z) * 0.88;
                     ball.position.z = maxZ;
+                    hitWall = true;
+                }
+
+                if (hitWall && ball.isCue) {
+                    cueBallLastContactTime = now;
                 }
             } else {
                 ball.velocity.set(0, 0, 0);
@@ -1396,7 +1455,10 @@ function updatePhysics() {
 
                     if (speed > 0) {
                         playBallCollisionSound(speed);
-                        const impulse = normal.multiplyScalar(speed * 0.98);
+                        if (b1.isCue || b2.isCue) {
+                            cueBallLastContactTime = now;
+                        }
+                        const impulse = normal.multiplyScalar(speed * 0.96);
                         b1.velocity.sub(impulse);
                         b2.velocity.add(impulse);
                     }
@@ -1436,6 +1498,8 @@ function checkPockets(ball) {
                 if (!pocketedThisTurn.includes(ball.idNumber)) {
                     pocketedThisTurn.push(ball.idNumber);
                 }
+                assignSuitIfOpen(ball.idNumber);
+
                 ball.velocity.set(0, 0, 0);
                 scene.remove(ball);
                 if (ball.contactShadow) scene.remove(ball.contactShadow);
@@ -1511,8 +1575,8 @@ function updateCameraAndAim() {
             cueBall.position.z + dirZ * 4.5
         );
     } else if (cameraMode === 'overhead') {
-        const totalTableLen = TABLE_LENGTH + 3.4; // 31.4
-        const totalTableWid = TABLE_WIDTH + 3.4;  // 17.4
+        const totalTableLen = TABLE_LENGTH + 3.4;
+        const totalTableWid = TABLE_WIDTH + 3.4;
         const vFovRad = (camera.fov * Math.PI) / 180;
         const aspect = window.innerWidth / window.innerHeight;
 
@@ -1521,7 +1585,6 @@ function updateCameraAndAim() {
         const isMobilePortrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
 
         if (isMobileLandscape) {
-            // Rotate table 90 degrees so the 28-unit length spans horizontally across the landscape screen
             camera.up.set(1, 0, 0);
 
             const topBarEl = document.getElementById('top-bar');
@@ -1540,7 +1603,6 @@ function updateCameraAndAim() {
             camera.position.set(xShift, camHeight, 0);
             camera.lookAt(xShift, 0, 0);
         } else if (isMobilePortrait) {
-            // Portrait orientation: align 28-unit length vertically between top HUD and bottom controls
             camera.up.set(0, 1, 0);
 
             const topBarEl = document.getElementById('top-bar');
@@ -1559,7 +1621,6 @@ function updateCameraAndAim() {
             camera.position.set(0, camHeight, zShift);
             camera.lookAt(0, 0, zShift);
         } else {
-            // Desktop / Laptop Overhead View
             camera.up.set(0, 1, 0);
             const heightForLength = (totalTableLen / 2) / Math.tan(vFovRad / 2);
             const heightForWidth = (totalTableWid / 2) / (Math.tan(vFovRad / 2) * aspect);
@@ -1618,9 +1679,19 @@ function animate() {
 }
 
 function onWindowResize() {
+    if (!camera || !renderer) return;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-window.onload = init;
+function bootstrapGame() {
+    setupModalUI();
+    initScene();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapGame);
+} else {
+    bootstrapGame();
+}
