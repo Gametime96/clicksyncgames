@@ -294,54 +294,53 @@
             margin-bottom: 40px;
         }
 
-        /* --- VIBRANT 3D BUTTONS: CATEGORIES --- */
+        /* --- MODERN REFINED BUTTONS: CATEGORIES --- */
         .category-btn {
-            color: #ffffff !important;
-            padding: 18px 10px;
-            border-radius: 12px;
+            color: #f8fafc !important;
+            padding: 16px 10px;
+            border-radius: 10px;
             text-align: center;
-            font-weight: 900;
-            font-size: 17px;
-            letter-spacing: 0.5px;
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.6px;
             text-decoration: none;
-            -webkit-text-stroke: 1px #000000;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
             cursor: pointer;
             user-select: none;
             position: relative;
             transform: translateY(0);
-            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.2s ease;
         }
 
-        /* Light Mode: Alive, Vibrant 3D Color Set */
-        .category-btn[data-cat="action"]       { background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 2px solid #1e40af; box-shadow: 0 5px 0 #1e3a8a, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="adventure"]    { background: linear-gradient(180deg, #64748b, #475569); border: 2px solid #334155; box-shadow: 0 5px 0 #1e293b, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="arcade"]       { background: linear-gradient(180deg, #f97316, #ea580c); border: 2px solid #c2410c; box-shadow: 0 5px 0 #9a3412, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="billiards"]    { background: linear-gradient(180deg, #a855f7, #9333ea); border: 2px solid #7e22ce; box-shadow: 0 5px 0 #581c87, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="casino"]       { background: linear-gradient(180deg, #ef4444, #dc2626); border: 2px solid #b91c1c; box-shadow: 0 5px 0 #7f1d1d, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="idle"]         { background: linear-gradient(180deg, #14b8a6, #0d9488); border: 2px solid #0f766e; box-shadow: 0 5px 0 #115e59, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="multiplayer"]  { background: linear-gradient(180deg, #6366f1, #4f46e5); border: 2px solid #4338ca; box-shadow: 0 5px 0 #312e81, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="puzzle"]       { background: linear-gradient(180deg, #10b981, #059669); border: 2px solid #047857; box-shadow: 0 5px 0 #064e3b, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="racing"]       { background: linear-gradient(180deg, #e11d48, #be123c); border: 2px solid #9f1239; box-shadow: 0 5px 0 #881337, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="simulation"]   { background: linear-gradient(180deg, #8b5cf6, #7c3aed); border: 2px solid #6d28d9; box-shadow: 0 5px 0 #4c1d95, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="sports"]       { background: linear-gradient(180deg, #06b6d4, #0891b2); border: 2px solid #0e7490; box-shadow: 0 5px 0 #155e75, 0 8px 12px rgba(0,0,0,0.25); }
-        .category-btn[data-cat="strategy"]     { background: linear-gradient(180deg, #f59e0b, #d97706); border: 2px solid #b45309; box-shadow: 0 5px 0 #78350f, 0 8px 12px rgba(0,0,0,0.25); }
+        /* Light Mode: Modern Muted Slate & Jewel Tone Palette (Low Glare, High Contrast) */
+        .category-btn[data-cat="action"]       { background: linear-gradient(180deg, #335c81, #23415c); border: 1.5px solid #1b3247; box-shadow: 0 4px 0 #142636, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="adventure"]    { background: linear-gradient(180deg, #475569, #334155); border: 1.5px solid #1e293b; box-shadow: 0 4px 0 #0f172a, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="arcade"]       { background: linear-gradient(180deg, #9a5b32, #7c4623); border: 1.5px solid #5e3419; box-shadow: 0 4px 0 #432410; }
+        .category-btn[data-cat="billiards"]    { background: linear-gradient(180deg, #634a7e, #4c3763); border: 1.5px solid #39284b; box-shadow: 0 4px 0 #271b34, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="casino"]       { background: linear-gradient(180deg, #8b3a3a, #6e2b2b); border: 1.5px solid #521f1f; box-shadow: 0 4px 0 #3a1414, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="idle"]         { background: linear-gradient(180deg, #2d6a6a, #215151); border: 1.5px solid #183c3c; box-shadow: 0 4px 0 #102929, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="multiplayer"]  { background: linear-gradient(180deg, #434c7a, #32395e); border: 1.5px solid #242945; box-shadow: 0 4px 0 #181b2f, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="puzzle"]       { background: linear-gradient(180deg, #2e6b52, #22523e); border: 1.5px solid #183d2e; box-shadow: 0 4px 0 #10291f, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="racing"]       { background: linear-gradient(180deg, #7f394c, #632a3a); border: 1.5px solid #4a1e2b; box-shadow: 0 4px 0 #33131d, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="simulation"]   { background: linear-gradient(180deg, #534b78, #3f385c); border: 1.5px solid #2f2945; box-shadow: 0 4px 0 #201b30, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="sports"]       { background: linear-gradient(180deg, #2b6478, #1f4c5c); border: 1.5px solid #163844; box-shadow: 0 4px 0 #0e252e, 0 6px 12px rgba(15, 23, 42, 0.18); }
+        .category-btn[data-cat="strategy"]     { background: linear-gradient(180deg, #8c6b2b, #6e531f); border: 1.5px solid #523d16; box-shadow: 0 4px 0 #38290e, 0 6px 12px rgba(15, 23, 42, 0.18); }
 
-        /* Tactile 3D Button Actions */
+        /* Tactile Button Actions */
         .category-btn:hover {
-            filter: brightness(1.12);
+            filter: brightness(1.1);
             transform: translateY(-2px);
         }
 
         .category-btn:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4) !important;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(15, 23, 42, 0.45) !important;
         }
 
         .category-btn.active-filter {
             transform: translateY(2px);
-            outline: 3px solid #22c55e;
-            outline-offset: 3px;
+            outline: 3px solid #0f172a;
+            outline-offset: 2px;
         }
 
         /* Dark Mode: All Category Buttons Switch to Dark Green 3D */
@@ -353,17 +352,22 @@
             -webkit-text-stroke: 1px #000000 !important;
         }
 
+        body.dark-mode .category-btn.active-filter {
+            outline: 3px solid #22c55e;
+            outline-offset: 3px;
+        }
+
         body.dark-mode .category-btn:active {
             transform: translateY(3px);
             box-shadow: 0 2px 0 #052e16 !important;
         }
 
-        /* --- VIBRANT 3D BUTTONS: GAME LIBRARY NUMBERS --- */
+        /* --- MODERN REFINED BUTTONS: GAME LIBRARY NUMBERS --- */
         .pagination-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 18px; 
+            gap: 16px; 
             width: 100%;
             box-sizing: border-box;
         }
@@ -378,45 +382,44 @@
         }
 
         .page-box {
-            color: #ffffff !important;
-            font-weight: 900;
-            -webkit-text-stroke: 1px #000000;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
-            width: 46px;
-            height: 46px;
+            color: #f8fafc !important;
+            font-weight: 800;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+            width: 44px;
+            height: 44px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 17px;
+            font-size: 16px;
             cursor: pointer;
             border-radius: 8px;
             user-select: none;
             box-sizing: border-box;
             position: relative;
             transform: translateY(0);
-            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease, background 0.2s ease;
         }
 
-        /* Alive, 3D Color Suit for Page Numbers */
-        .page-box[data-page="1"] { background: linear-gradient(180deg, #3b82f6, #1d4ed8); border: 2px solid #1e40af; box-shadow: 0 5px 0 #1e3a8a, 0 6px 10px rgba(0,0,0,0.25); }
-        .page-box[data-page="2"] { background: linear-gradient(180deg, #64748b, #475569); border: 2px solid #334155; box-shadow: 0 5px 0 #1e293b, 0 6px 10px rgba(0,0,0,0.25); }
-        .page-box[data-page="3"] { background: linear-gradient(180deg, #f97316, #ea580c); border: 2px solid #c2410c; box-shadow: 0 5px 0 #9a3412, 0 6px 10px rgba(0,0,0,0.25); }
-        .page-box[data-page="4"] { background: linear-gradient(180deg, #a855f7, #9333ea); border: 2px solid #7e22ce; box-shadow: 0 5px 0 #581c87, 0 6px 10px rgba(0,0,0,0.25); }
+        /* Modern Muted Slate & Jewel Tone Suit for Page Numbers (Light Mode) */
+        .page-box[data-page="1"] { background: linear-gradient(180deg, #335c81, #23415c); border: 1.5px solid #1b3247; box-shadow: 0 4px 0 #142636, 0 5px 10px rgba(15, 23, 42, 0.18); }
+        .page-box[data-page="2"] { background: linear-gradient(180deg, #475569, #334155); border: 1.5px solid #1e293b; box-shadow: 0 4px 0 #0f172a, 0 5px 10px rgba(15, 23, 42, 0.18); }
+        .page-box[data-page="3"] { background: linear-gradient(180deg, #2d6a6a, #215151); border: 1.5px solid #183c3c; box-shadow: 0 4px 0 #102929, 0 5px 10px rgba(15, 23, 42, 0.18); }
+        .page-box[data-page="4"] { background: linear-gradient(180deg, #634a7e, #4c3763); border: 1.5px solid #39284b; box-shadow: 0 4px 0 #271b34, 0 5px 10px rgba(15, 23, 42, 0.18); }
 
         .page-box:hover {
-            filter: brightness(1.15);
+            filter: brightness(1.1);
             transform: translateY(-2px);
         }
 
         .page-box:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4) !important;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 rgba(15, 23, 42, 0.45) !important;
         }
 
         .page-box.active-page {
             transform: translateY(2px) !important;
-            outline: 3px solid #22c55e;
-            outline-offset: 3px;
+            outline: 3px solid #0f172a;
+            outline-offset: 2px;
         }
 
         /* Dark Mode: All Page Number Buttons Switch to Dark Green 3D */
@@ -426,6 +429,11 @@
             box-shadow: 0 5px 0 #052e16, 0 6px 10px rgba(0, 0, 0, 0.8) !important;
             color: #ffffff !important;
             -webkit-text-stroke: 1px #000000 !important;
+        }
+
+        body.dark-mode .page-box.active-page {
+            outline: 3px solid #22c55e;
+            outline-offset: 3px;
         }
 
         body.dark-mode .page-box:active {
@@ -778,7 +786,7 @@
             {
                 href: "destroytheenemyterritory.html",
                 category: "action simulation strategy",
-                imgSrc: "destroytheenemyterritory.jpg",
+                imgSrc: "destroytheenemyterritorythumbnail.jpeg",
                 thumbClass: "",
                 title: "Destroy the Enemy Territory",
                 desc: "Pilot a Boeing B-29 Superfortress, descend through cloud cover, and drop payloads to neutralize enemy military bases."
@@ -914,7 +922,7 @@
             {
                 href: "spacedustanddescent.html",
                 category: "action adventure arcade simulation strategy",
-                imgSrc: "spacedustanddescent.jpeg",
+                imgSrc: "spacedustanddescentthumbnail.jpeg",
                 thumbClass: "",
                 title: "Space Dust and Descent",
                 desc: "Pilot an astronaut through space dust and guide approach corridors to land softly across 8 planetary sectors!"
