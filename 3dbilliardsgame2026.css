@@ -38,44 +38,45 @@ body, html {
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    padding: 12px;
-    overflow-y: auto;
+    padding: 10px;
+    overflow: hidden;
 }
 
 .modal-card {
     background: linear-gradient(160deg, #131c31 0%, #0b1120 100%);
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 18px;
-    padding: 24px 28px;
+    border-radius: 16px;
+    padding: 16px 22px;
     width: 100%;
-    max-width: 680px;
-    max-height: 92dvh;
-    overflow-y: auto;
+    max-width: 650px;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
     text-align: center;
+    overflow: hidden;
 }
 
 .mode-card {
-    max-width: 540px;
+    max-width: 520px;
+    padding: 22px 26px;
 }
 
 .mode-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-    margin-top: 8px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 6px;
 }
 
 .mode-choice-btn {
     background: #1e293b;
     border: 2px solid #334155;
-    border-radius: 14px;
-    padding: 22px 16px;
+    border-radius: 12px;
+    padding: 18px 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    touch-action: manipulation;
 }
 
 .mode-choice-btn:hover {
@@ -86,71 +87,75 @@ body, html {
 }
 
 .mode-title {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 900;
     color: #facc15;
     letter-spacing: 1.2px;
+    pointer-events: none;
 }
 
 .pause-card {
-    max-width: 420px;
+    max-width: 400px;
+    padding: 22px 26px;
 }
 
 .pause-actions {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-top: 20px;
+    gap: 10px;
+    margin-top: 16px;
 }
 
 .modal-card h2 {
-    font-size: clamp(1.35rem, 4vw, 2rem);
+    font-size: clamp(1.25rem, 3.5vw, 1.65rem);
     color: #facc15;
-    letter-spacing: 1.5px;
-    margin-bottom: 4px;
+    letter-spacing: 1.2px;
+    margin-bottom: 2px;
     text-shadow: 0 2px 10px rgba(250, 204, 21, 0.3);
 }
 
 .modal-card .subtitle {
     color: #94a3b8;
-    font-size: 0.9rem;
-    margin-bottom: 18px;
+    font-size: 0.82rem;
+    margin-bottom: 12px;
 }
 
 .option-group {
-    margin-bottom: 18px;
+    margin-bottom: 12px;
     text-align: left;
 }
 
 .option-group label {
     display: block;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.8px;
     color: #cbd5e1;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
 }
 
 .theme-btn {
     background: #1e293b;
     border: 2px solid #334155;
-    border-radius: 10px;
+    border-radius: 9px;
     color: #e2e8f0;
-    padding: 8px 6px;
-    font-size: 0.78rem;
-    font-weight: 600;
+    padding: 6px 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    touch-action: manipulation;
 }
 
 .theme-btn:hover {
@@ -165,10 +170,11 @@ body, html {
 }
 
 .color-swatch {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.45);
+    pointer-events: none;
 }
 
 .color-swatch.green  { background: #0e6f3c; }
@@ -179,17 +185,19 @@ body, html {
 
 .cue-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
 }
 
 .cue-card {
     background: #1e293b;
     border: 2px solid #334155;
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 10px;
+    padding: 8px 6px;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-align: center;
+    touch-action: manipulation;
 }
 
 .cue-card:hover {
@@ -203,27 +211,27 @@ body, html {
 }
 
 .cue-card h3 {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     color: #ffffff;
     margin-bottom: 2px;
 }
 
 .cue-card .cue-desc {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: #facc15;
-    margin-bottom: 6px;
-    font-weight: 600;
+    margin-bottom: 4px;
+    font-weight: 700;
 }
 
 .cue-card .stats {
-    font-size: 0.7rem;
+    font-size: 0.66rem;
     color: #94a3b8;
-    line-height: 1.35;
+    line-height: 1.25;
 }
 
 .stat-val {
     color: #e2e8f0;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .stat-val.highlight {
@@ -232,9 +240,9 @@ body, html {
 
 .primary-btn {
     width: 100%;
-    padding: 12px;
-    font-size: 1rem;
-    font-weight: 700;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    font-weight: 800;
     color: #0f172a;
     background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
     border: none;
@@ -243,17 +251,18 @@ body, html {
     letter-spacing: 1.5px;
     box-shadow: 0 4px 16px rgba(234, 179, 8, 0.4);
     transition: all 0.2s ease;
+    touch-action: manipulation;
 }
 
 .primary-btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(234, 179, 8, 0.55);
 }
 
 .secondary-btn {
     width: 100%;
-    padding: 12px;
-    font-size: 0.92rem;
+    padding: 10px 14px;
+    font-size: 0.88rem;
     font-weight: 700;
     color: #ffffff;
     background: #334155;
@@ -262,10 +271,56 @@ body, html {
     cursor: pointer;
     letter-spacing: 1px;
     transition: all 0.2s ease;
+    touch-action: manipulation;
 }
 
 .secondary-btn:hover {
     background: #475569;
+}
+
+/* Short-Height Viewport Condensation (Mobile Landscape) */
+@media (max-height: 440px) {
+    .modal-card {
+        padding: 10px 16px;
+        border-radius: 12px;
+    }
+    .modal-card h2 {
+        font-size: 1.1rem;
+        margin-bottom: 1px;
+    }
+    .modal-card .subtitle {
+        font-size: 0.72rem;
+        margin-bottom: 6px;
+    }
+    .option-group {
+        margin-bottom: 7px;
+    }
+    .option-group label {
+        font-size: 0.68rem;
+        margin-bottom: 4px;
+    }
+    .theme-btn {
+        padding: 4px 3px;
+        font-size: 0.65rem;
+        gap: 2px;
+    }
+    .color-swatch {
+        width: 14px;
+        height: 14px;
+    }
+    .cue-card {
+        padding: 5px 4px;
+    }
+    .cue-card h3 {
+        font-size: 0.74rem;
+    }
+    .cue-card .cue-desc, .cue-card .stats {
+        font-size: 0.6rem;
+    }
+    .primary-btn {
+        padding: 8px 12px;
+        font-size: 0.84rem;
+    }
 }
 
 /* UI Overlay Container */
@@ -410,7 +465,7 @@ body, html {
     white-space: nowrap;
 }
 
-/* Bottom Controls Flexbox Bar (Zero Overlap & Never Off-Screen) */
+/* Bottom Controls Flexbox Bar */
 #bottom-controls-bar {
     width: 100%;
     display: flex;
@@ -589,7 +644,7 @@ body, html {
     transform: translateY(1px);
 }
 
-/* Mobile Portrait Optimization (Narrow Tall Viewport - Zero Off-Screen Clipping & Zero Overlap) */
+/* Mobile Portrait Optimization */
 @media (max-width: 768px) and (orientation: portrait) {
     #ui-container {
         padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
@@ -717,7 +772,7 @@ body, html {
     }
 }
 
-/* Mobile Landscape Optimization (Short Wide Viewport - Condensed HUD & Safe-Area Inset) */
+/* Mobile Landscape Optimization */
 @media (orientation: landscape) and (max-height: 540px) {
     #ui-container {
         padding: max(6px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
