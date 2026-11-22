@@ -111,27 +111,36 @@ function playShuffleSound() {
   }
 }
 
-// 2. Responsive Table Resizing (Adapts to both Mobile Portrait and Landscape/Desktop)
+// 2. Responsive Table Resizing (Preserves Mobile Portrait & Desktop; Optimizes Mobile Landscape)
 function adjustTableScale() {
   const header = document.querySelector('.game-header');
   const container = document.querySelector('.table-container');
   const scaler = document.getElementById('table-scale-root');
   if (!container || !scaler) return;
 
-  const headerH = header ? header.offsetHeight : 48;
+  const headerH = header ? header.offsetHeight : 72;
   container.style.height = `calc(100dvh - ${headerH}px)`;
 
   const availableW = container.clientWidth;
   const availableH = container.clientHeight;
   const isPortrait = availableH > availableW && availableW < 768;
+  const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+  const isMobileLandscape = !isPortrait && isTouchDevice && window.innerHeight <= 540;
 
   let baseW, baseH;
   if (isPortrait) {
     scaler.classList.add('portrait-mode');
+    scaler.classList.remove('mobile-landscape-mode');
     baseW = 420;
     baseH = 740;
+  } else if (isMobileLandscape) {
+    scaler.classList.remove('portrait-mode');
+    scaler.classList.add('mobile-landscape-mode');
+    baseW = 860;
+    baseH = 500;
   } else {
     scaler.classList.remove('portrait-mode');
+    scaler.classList.remove('mobile-landscape-mode');
     baseW = 1000;
     baseH = 650;
   }
