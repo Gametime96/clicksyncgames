@@ -21,49 +21,49 @@
 <body>
     <div id="game-container"></div>
 
-    <!-- Step 1: Initial Mode Selection Screen (Before Table/Cue Customization) -->
+    <!-- Step 1: Initial Mode Selection Screen -->
     <div id="mode-modal" class="modal-overlay">
         <div class="modal-card mode-card">
             <h2>3D Billiards Game 2026</h2>
             <p class="subtitle">Choose Your Match Mode</p>
 
             <div class="mode-grid">
-                <button id="mode-2p-btn" class="mode-choice-btn">
+                <button type="button" id="mode-2p-btn" class="mode-choice-btn" onclick="selectGameMode('2p')">
                     <span class="mode-title">2 Player</span>
                 </button>
-                <button id="mode-cpu-btn" class="mode-choice-btn">
+                <button type="button" id="mode-cpu-btn" class="mode-choice-btn" onclick="selectGameMode('cpu')">
                     <span class="mode-title">VS COMPUTER</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Step 2: Table & Cue Selection Overlay Modal -->
+    <!-- Step 2: Compact Table & Cue Selection Overlay Modal -->
     <div id="selection-modal" class="modal-overlay hidden">
-        <div class="modal-card">
+        <div class="modal-card compact-modal">
             <h2>3D Billiards Game 2026</h2>
             <p class="subtitle" id="customize-subtitle">Customize Your Match Settings</p>
             
             <div class="option-group">
                 <label>Table Felt Color Theme:</label>
                 <div class="theme-grid">
-                    <button class="theme-btn active" data-theme="green">
+                    <button type="button" class="theme-btn active" data-theme="green">
                         <span class="color-swatch green"></span>
-                        Green (Default)
+                        Green
                     </button>
-                    <button class="theme-btn" data-theme="grey">
+                    <button type="button" class="theme-btn" data-theme="grey">
                         <span class="color-swatch grey"></span>
                         Light Grey
                     </button>
-                    <button class="theme-btn" data-theme="purple">
+                    <button type="button" class="theme-btn" data-theme="purple">
                         <span class="color-swatch purple"></span>
                         Dark Purple
                     </button>
-                    <button class="theme-btn" data-theme="red">
+                    <button type="button" class="theme-btn" data-theme="red">
                         <span class="color-swatch red"></span>
                         Blood Red
                     </button>
-                    <button class="theme-btn" data-theme="blue">
+                    <button type="button" class="theme-btn" data-theme="blue">
                         <span class="color-swatch blue"></span>
                         Dark Blue
                     </button>
@@ -74,33 +74,30 @@
                 <label>Select Cue Stick:</label>
                 <div class="cue-grid">
                     <div class="cue-card active" data-cue="default">
-                        <h3>Classic Wooden Cue</h3>
+                        <h3>Classic Wooden</h3>
                         <p class="cue-desc">Default Balance</p>
                         <div class="stats">
-                            <div>Aim Precision: <span class="stat-val">Good</span></div>
-                            <div>Power / Speed: <span class="stat-val">Good</span></div>
+                            <div>Aim: <span class="stat-val">Good</span> • Power: <span class="stat-val">Good</span></div>
                         </div>
                     </div>
                     <div class="cue-card" data-cue="white">
-                        <h3>White / Black Stripes</h3>
+                        <h3>White / Black</h3>
                         <p class="cue-desc">High Velocity</p>
                         <div class="stats">
-                            <div>Aim Precision: <span class="stat-val">Good</span></div>
-                            <div>Power / Speed: <span class="stat-val highlight">Great (+25%)</span></div>
+                            <div>Aim: <span class="stat-val">Good</span> • Power: <span class="stat-val highlight">+25%</span></div>
                         </div>
                     </div>
                     <div class="cue-card" data-cue="black">
-                        <h3>Black / White Stripes</h3>
+                        <h3>Black / White</h3>
                         <p class="cue-desc">Precision Control</p>
                         <div class="stats">
-                            <div>Aim Precision: <span class="stat-val highlight">Great (Fine Sensitivity)</span></div>
-                            <div>Power / Speed: <span class="stat-val">Good</span></div>
+                            <div>Aim: <span class="stat-val highlight">Fine</span> • Power: <span class="stat-val">Good</span></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <button id="start-game-btn" class="primary-btn">START GAME</button>
+            <button type="button" id="start-game-btn" class="primary-btn">START GAME</button>
         </div>
     </div>
 
@@ -110,8 +107,8 @@
             <h2>GAME PAUSED</h2>
             <p class="subtitle">Press P or click Resume to continue</p>
             <div class="pause-actions">
-                <button id="resume-btn" class="primary-btn">RESUME GAME</button>
-                <button id="restart-btn" class="secondary-btn">RESTART MATCH</button>
+                <button type="button" id="resume-btn" class="primary-btn">RESUME GAME</button>
+                <button type="button" id="restart-btn" class="secondary-btn">RESTART MATCH</button>
             </div>
         </div>
     </div>
@@ -122,7 +119,7 @@
             <h2 id="winner-heading">PLAYER 1 WINS!</h2>
             <p class="subtitle" id="winner-reason">All group balls and the 8-ball pocketed!</p>
             <div class="pause-actions">
-                <button id="play-again-btn" class="primary-btn">PLAY AGAIN</button>
+                <button type="button" id="play-again-btn" class="primary-btn">PLAY AGAIN</button>
             </div>
         </div>
     </div>
@@ -137,7 +134,7 @@
                     <span class="return-prefix">Return to</span>
                     <div class="logo-text">ClickSync<span>Games</span><sup class="tm-symbol">™</sup></div>
                 </a>
-                <button id="mute-btn" aria-label="Toggle Sound" title="Mute / Unmute Sound">
+                <button type="button" id="mute-btn" aria-label="Toggle Sound" title="Mute / Unmute Sound">
                     <svg id="vol-on-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                     </svg>
@@ -149,12 +146,12 @@
 
             <!-- Top-Right Pause & Turn/Suit Badge Stack -->
             <div id="top-right-stack">
-                <button id="pause-btn">PAUSE ❚❚</button>
+                <button type="button" id="pause-btn">PAUSE ❚❚</button>
                 <div id="turn-suit-badge">Player 1: OPEN TABLE</div>
             </div>
         </div>
 
-        <!-- Bottom Controls Wrapper (Prevents Overlap on Small Viewports) -->
+        <!-- Bottom Controls Wrapper -->
         <div id="bottom-controls-bar">
             <!-- Dial Control Unit (Bottom-Left) -->
             <div id="dial-panel">
@@ -169,7 +166,7 @@
 
             <!-- Right-Side Camera Toggle + Action & Power Bar (Bottom-Right) -->
             <div id="right-controls-stack">
-                <button id="cam-toggle-btn">CAM VIEW: LOCKED BEHIND CUE</button>
+                <button type="button" id="cam-toggle-btn">CAM VIEW: LOCKED BEHIND CUE</button>
 
                 <div id="action-panel">
                     <div id="power-bar-wrapper">
@@ -178,7 +175,7 @@
                             <div id="power-bar-fill"></div>
                         </div>
                     </div>
-                    <button id="shoot-btn">HOLD TO CHARGE &amp; RELEASE</button>
+                    <button type="button" id="shoot-btn">HOLD TO CHARGE &amp; RELEASE</button>
                 </div>
             </div>
         </div>
