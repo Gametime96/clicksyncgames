@@ -139,7 +139,7 @@ body, html {
     margin-bottom: 8px;
 }
 
-/* Responsive Theme Grid - Fits All 5 Buttons Cleanly Inside Any Screen Width */
+/* Responsive Theme Grid */
 .theme-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
@@ -291,7 +291,7 @@ body, html {
     background: #475569;
 }
 
-/* Short-Height Viewport Condensation (Mobile Landscape) */
+/* Short-Height Viewport Condensation (Mobile Landscape Modal) */
 @media (max-height: 440px) {
     .modal-card {
         padding: 10px 14px;
@@ -507,6 +507,7 @@ body, html {
     gap: 10px;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
     flex-shrink: 0;
+    transition: transform 0.2s ease;
 }
 
 #dial-title {
@@ -557,15 +558,16 @@ body, html {
     cursor: pointer;
 }
 
-/* Right-Side Stack: CAM VIEW Toggle Button Directly Above HIT POWER Panel */
+/* Far-Right Stack: CAM VIEW Button Directly Above HIT POWER Panel (Always Far-Right, Never Covers Table) */
 #right-controls-stack {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-end;
     gap: 8px;
     pointer-events: auto;
-    flex-shrink: 1;
-    min-width: 0;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: transform 0.2s ease;
 }
 
 #cam-toggle-btn {
@@ -751,6 +753,7 @@ body, html {
 
     #right-controls-stack {
         flex: 1;
+        align-items: stretch;
         gap: 6px;
         max-width: calc(100vw - 108px);
     }
@@ -789,93 +792,126 @@ body, html {
     }
 }
 
-/* Mobile Landscape Optimization */
+/* Mobile Landscape Optimization:
+   - CAM VIEW stays docked on the FAR RIGHT directly above HIT POWER so it NEVER overlaps the pool table! */
 @media (orientation: landscape) and (max-height: 540px) {
     #ui-container {
-        padding: max(6px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+        padding: max(4px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    #top-bar {
+        align-items: center;
     }
 
     #return-btn {
-        padding: 5px 10px;
-        font-size: 0.72rem;
-    }
-
-    .logo-text {
-        font-size: 0.85rem;
-    }
-
-    #mute-btn {
-        width: 30px;
-        height: 30px;
-    }
-
-    #mute-btn svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    #pause-btn {
-        padding: 5px 10px;
-        font-size: 0.72rem;
-    }
-
-    #turn-suit-badge {
         padding: 4px 9px;
         font-size: 0.70rem;
     }
 
+    .logo-text {
+        font-size: 0.82rem;
+    }
+
+    #mute-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    #mute-btn svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    #top-right-stack {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #pause-btn {
+        padding: 4px 9px;
+        font-size: 0.70rem;
+        order: 2;
+    }
+
+    #turn-suit-badge {
+        padding: 4px 8px;
+        font-size: 0.68rem;
+        order: 1;
+    }
+
+    #bottom-controls-bar {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
     #dial-panel {
-        padding: 8px 10px;
-        gap: 5px;
-        border-radius: 12px;
+        padding: 6px 8px;
+        gap: 4px;
+        border-radius: 11px;
     }
 
     #dial-title {
-        font-size: 0.62rem;
+        font-size: 0.58rem;
+        letter-spacing: 0.6px;
     }
 
     #dial-container {
-        width: 68px;
-        height: 68px;
+        width: 56px;
+        height: 56px;
+        border-width: 2px;
     }
 
     #dial-handle {
-        width: 12px;
-        height: 12px;
-        top: 4px;
+        width: 11px;
+        height: 11px;
+        top: 3px;
     }
 
     #aim-slider {
-        width: 68px;
+        width: 56px;
     }
 
+    /* Far-right stack keeps CAM VIEW & HIT POWER safely on the far right outside the table bounds */
     #right-controls-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
         gap: 5px;
+        margin-left: auto;
+        flex-shrink: 0;
     }
 
     #cam-toggle-btn {
-        padding: 5px 10px;
-        font-size: 0.64rem;
+        padding: 5px 8px;
+        font-size: 0.60rem;
+        letter-spacing: 0.3px;
         border-radius: 8px;
+        white-space: nowrap;
     }
 
     #action-panel {
-        padding: 8px 12px;
-        gap: 6px;
-        border-radius: 12px;
+        padding: 6px 10px;
+        gap: 5px;
+        border-radius: 11px;
     }
 
     #power-bar-label {
-        font-size: 0.64rem;
+        font-size: 0.60rem;
+        letter-spacing: 1px;
     }
 
     #power-bar-container {
-        width: 165px;
-        height: 13px;
+        width: 150px;
+        height: 11px;
     }
 
     #shoot-btn {
-        padding: 7px 10px;
-        font-size: 0.68rem;
+        padding: 6px 8px;
+        font-size: 0.64rem;
+        letter-spacing: 0.4px;
     }
 }
