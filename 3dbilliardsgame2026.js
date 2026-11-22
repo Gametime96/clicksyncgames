@@ -331,16 +331,19 @@ function updateTurnSuitDisplay() {
 
 function setHumanControlsEnabled(enabled) {
     const dialPanel = document.getElementById('dial-panel');
-    const actionPanel = document.getElementById('action-panel');
-    const opacity = enabled ? '1' : '0.45';
+    const rightControls = document.getElementById('right-controls-stack');
+    const opacity = enabled ? '1' : '0.50';
     const pointer = enabled ? 'auto' : 'none';
     if (dialPanel) {
         dialPanel.style.opacity = opacity;
         dialPanel.style.pointerEvents = pointer;
     }
-    if (actionPanel) {
-        actionPanel.style.opacity = opacity;
-        actionPanel.style.pointerEvents = pointer;
+    if (rightControls) {
+        const actionPanel = document.getElementById('action-panel');
+        if (actionPanel) {
+            actionPanel.style.opacity = opacity;
+            actionPanel.style.pointerEvents = pointer;
+        }
     }
 }
 
@@ -477,7 +480,6 @@ function createTable() {
     const outerHalfL = halfL + borderThick;
 
     // 1. Pitch-Black Recessed Pocket Void Floor Under the Entire Table
-    // Every pocket opening reveals pure #000000 depth below with zero wood or felt hovering in it!
     const voidFloorGeo = new THREE.BoxGeometry(outerHalfW * 2 - 0.1, 0.35, outerHalfL * 2 - 0.1);
     const voidFloorMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     const voidFloor = new THREE.Mesh(voidFloorGeo, voidFloorMat);
@@ -489,7 +491,6 @@ function createTable() {
     const rSide = POCKET_RADIUS * 0.88;
     const feltShape = new THREE.Shape();
 
-    // Trace clockwise in (x, y) where shape Y maps to -Z in world space
     feltShape.moveTo(-halfW + rCorner, halfL);
     feltShape.lineTo(halfW - rCorner, halfL);
     feltShape.absarc(halfW, halfL, rCorner, Math.PI, Math.PI * 1.5, false);
@@ -540,7 +541,7 @@ function createTable() {
     footSpot.position.set(0, 0.003, -6);
     scene.add(footSpot);
 
-    // 3. Inner Rubber Cushion Bumpers (Stop cleanly at pocket openings)
+    // 3. Inner Rubber Cushion Bumpers
     const cushionMat = new THREE.MeshStandardMaterial({
         color: CUSHION_COLORS[selectedTheme],
         roughness: 0.72
@@ -575,7 +576,7 @@ function createTable() {
         cushionMeshGroup.push(cushion);
     });
 
-    // 4. Segmented Mahogany Wood Rails + Outer Perimeter Skirt (Physically Divided Around Each Pocket!)
+    // 4. Segmented Mahogany Wood Rails + Outer Perimeter Skirt
     const woodTex = createWoodTexture();
     const woodMat = new THREE.MeshStandardMaterial({
         map: woodTex,
@@ -583,7 +584,6 @@ function createTable() {
         metalness: 0.08
     });
 
-    // Outer thin wood frame encapsulating the outside edges of the pocket wells
     const outerSkirtThick = 0.36;
     const outerSkirtLong = new THREE.Mesh(
         new THREE.BoxGeometry(outerSkirtThick, borderHeight + 0.20, outerHalfL * 2),
@@ -611,7 +611,6 @@ function createTable() {
     outerSkirtBottom.position.z = outerHalfL - outerSkirtThick / 2;
     scene.add(outerSkirtBottom);
 
-    // 4 Side Rail Segments (Stopping cleanly before corner and side pockets so zero wood hovers in pockets)
     const sideRailSegLen = halfL - POCKET_RADIUS * 2.05;
     [-1, 1].forEach(side => {
         [-1, 1].forEach(half => {
@@ -628,7 +627,6 @@ function createTable() {
         });
     });
 
-    // 2 End Rail Segments (Stopping cleanly before corner pockets)
     const endRailSegLen = TABLE_WIDTH - POCKET_RADIUS * 2.30;
     [-1, 1].forEach(end => {
         const endGeo = new THREE.BoxGeometry(endRailSegLen, borderHeight, borderThick);
@@ -1085,6 +1083,7 @@ function setupEvents() {
     });
 
     window.addEventListener('resize', onWindowResize);
+    window.addEventListener('orientationchange', () => setTimeout(onWindowResize, 120));
 }
 
 function shoot(overridePower = null) {
@@ -1497,8 +1496,10 @@ function updateCameraAndAim() {
     const dirZ = -Math.cos(aimAngle);
 
     if (cameraMode === 'locked') {
-        const cameraDistance = 6.2;
-        const cameraHeight = 3.0;
+        camera.up.set(0, 1, 0);
+        const isMobilePortrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
+        const cameraDistance = isMobilePortrait ? 7.4 : 6.2;
+        const cameraHeight = isMobilePortrait ? 3.8 : 3.0;
 
         const camX = cueBall.position.x - dirX * cameraDistance;
         const camZ = cueBall.position.z - dirZ * cameraDistance;
@@ -1510,18 +1511,63 @@ function updateCameraAndAim() {
             cueBall.position.z + dirZ * 4.5
         );
     } else if (cameraMode === 'overhead') {
-        // Center of screen is now completely unobstructed since CAM VIEW moved to bottom-right
-        const totalTableLen = TABLE_LENGTH + 3.4;
-        const totalTableWid = TABLE_WIDTH + 3.4;
+        const totalTableLen = TABLE_LENGTH + 3.4; // 31.4
+        const totalTableWid = TABLE_WIDTH + 3.4;  // 17.4
         const vFovRad = (camera.fov * Math.PI) / 180;
         const aspect = window.innerWidth / window.innerHeight;
 
-        const heightForLength = (totalTableLen / 2) / Math.tan(vFovRad / 2);
-        const heightForWidth = (totalTableWid / 2) / (Math.tan(vFovRad / 2) * aspect);
-        const camHeight = Math.max(heightForLength, heightForWidth) * 1.03;
+        const isTouchMobile = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+        const isMobileLandscape = isTouchMobile && window.innerWidth > window.innerHeight && window.innerHeight <= 540;
+        const isMobilePortrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
 
-        camera.position.set(0, camHeight, 0);
-        camera.lookAt(0, 0, 0);
+        if (isMobileLandscape) {
+            // Rotate table 90 degrees so the 28-unit length spans horizontally across the landscape screen
+            camera.up.set(1, 0, 0);
+
+            const topBarEl = document.getElementById('top-bar');
+            const bottomBarEl = document.getElementById('bottom-controls-bar');
+            const topPx = topBarEl ? topBarEl.getBoundingClientRect().bottom + 4 : 44;
+            const bottomPx = bottomBarEl ? (window.innerHeight - bottomBarEl.getBoundingClientRect().top + 4) : 110;
+            const usableHeightFrac = Math.max(0.50, 1 - (topPx + bottomPx) / window.innerHeight);
+
+            const heightForWidthSpan = (totalTableLen / 2) / (Math.tan(vFovRad / 2) * aspect);
+            const heightForHeightSpan = ((totalTableWid / usableHeightFrac) / 2) / Math.tan(vFovRad / 2);
+            const camHeight = Math.max(heightForWidthSpan, heightForHeightSpan) * 1.03;
+
+            const visibleSpanX = 2 * camHeight * Math.tan(vFovRad / 2);
+            const xShift = -((topPx - bottomPx) / window.innerHeight) * 0.5 * visibleSpanX;
+
+            camera.position.set(xShift, camHeight, 0);
+            camera.lookAt(xShift, 0, 0);
+        } else if (isMobilePortrait) {
+            // Portrait orientation: align 28-unit length vertically between top HUD and bottom controls
+            camera.up.set(0, 1, 0);
+
+            const topBarEl = document.getElementById('top-bar');
+            const bottomBarEl = document.getElementById('bottom-controls-bar');
+            const topPx = topBarEl ? topBarEl.getBoundingClientRect().bottom + 6 : 64;
+            const bottomPx = bottomBarEl ? (window.innerHeight - bottomBarEl.getBoundingClientRect().top + 6) : 140;
+            const usableHeightFrac = Math.max(0.55, 1 - (topPx + bottomPx) / window.innerHeight);
+
+            const heightForLength = ((totalTableLen / usableHeightFrac) / 2) / Math.tan(vFovRad / 2);
+            const heightForWidth = (totalTableWid / 2) / (Math.tan(vFovRad / 2) * aspect);
+            const camHeight = Math.max(heightForLength, heightForWidth) * 1.03;
+
+            const visibleSpanZ = 2 * camHeight * Math.tan(vFovRad / 2);
+            const zShift = -((topPx - bottomPx) / window.innerHeight) * 0.5 * visibleSpanZ;
+
+            camera.position.set(0, camHeight, zShift);
+            camera.lookAt(0, 0, zShift);
+        } else {
+            // Desktop / Laptop Overhead View
+            camera.up.set(0, 1, 0);
+            const heightForLength = (totalTableLen / 2) / Math.tan(vFovRad / 2);
+            const heightForWidth = (totalTableWid / 2) / (Math.tan(vFovRad / 2) * aspect);
+            const camHeight = Math.max(heightForLength, heightForWidth) * 1.03;
+
+            camera.position.set(0, camHeight, 0);
+            camera.lookAt(0, 0, 0);
+        }
     }
 
     if (canShoot && !cueBallPocketed && !isPaused && !matchOver) {
