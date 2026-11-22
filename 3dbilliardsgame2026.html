@@ -12,7 +12,7 @@
     </script>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>3D Billiards Game 2026</title>
     <link rel="stylesheet" href="3dbilliardsgame2026.css">
     <!-- Three.js CDN -->
@@ -134,7 +134,7 @@
             <!-- Top-Left Navigation & Volume Controls -->
             <div id="top-left-group">
                 <a href="index.html" id="return-btn">
-                    <span>Return to</span>
+                    <span class="return-prefix">Return to</span>
                     <div class="logo-text">ClickSync<span>Games</span><sup class="tm-symbol">™</sup></div>
                 </a>
                 <button id="mute-btn" aria-label="Toggle Sound" title="Mute / Unmute Sound">
@@ -154,29 +154,32 @@
             </div>
         </div>
 
-        <!-- Dial Control Unit (Bottom-Left) -->
-        <div id="dial-panel">
-            <div id="dial-title">PIVOT AIM DIAL</div>
-            <div id="dial-container">
-                <div id="dial-ring">
-                    <div id="dial-handle"></div>
-                </div>
-            </div>
-            <input type="range" id="aim-slider" min="0" max="360" value="0">
-        </div>
-
-        <!-- Right-Side Camera Toggle + Action & Power Bar (Bottom-Right) -->
-        <div id="right-controls-stack">
-            <button id="cam-toggle-btn">CAM VIEW: LOCKED BEHIND CUE</button>
-
-            <div id="action-panel">
-                <div id="power-bar-wrapper">
-                    <div id="power-bar-label">HIT POWER</div>
-                    <div id="power-bar-container">
-                        <div id="power-bar-fill"></div>
+        <!-- Bottom Controls Wrapper (Prevents Overlap on Small Viewports) -->
+        <div id="bottom-controls-bar">
+            <!-- Dial Control Unit (Bottom-Left) -->
+            <div id="dial-panel">
+                <div id="dial-title">PIVOT AIM DIAL</div>
+                <div id="dial-container">
+                    <div id="dial-ring">
+                        <div id="dial-handle"></div>
                     </div>
                 </div>
-                <button id="shoot-btn">HOLD TO CHARGE &amp; RELEASE</button>
+                <input type="range" id="aim-slider" min="0" max="360" value="0">
+            </div>
+
+            <!-- Right-Side Camera Toggle + Action & Power Bar (Bottom-Right) -->
+            <div id="right-controls-stack">
+                <button id="cam-toggle-btn">CAM VIEW: LOCKED BEHIND CUE</button>
+
+                <div id="action-panel">
+                    <div id="power-bar-wrapper">
+                        <div id="power-bar-label">HIT POWER</div>
+                        <div id="power-bar-container">
+                            <div id="power-bar-fill"></div>
+                        </div>
+                    </div>
+                    <button id="shoot-btn">HOLD TO CHARGE &amp; RELEASE</button>
+                </div>
             </div>
         </div>
     </div>
