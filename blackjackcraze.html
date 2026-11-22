@@ -20,7 +20,7 @@
   <header class="game-header">
     <div class="header-left">
       <a href="https://clicksyncgames.com" class="return-btn">
-        <span>Return to</span>
+        <span class="return-txt">Return to</span>
         <img src="clicksyncgameslogo.jpeg" alt="Click Sync Games" class="site-logo">
       </a>
       <button id="mute-toggle-btn" class="icon-toggle-btn" aria-label="Toggle Sound">
@@ -171,13 +171,13 @@
     <div class="cut-box">
       <h3>DOUBLE DOWN</h3>
       <p>Choose an additional wager up to $<span id="max-double-val">0</span> (max of original hand wager).</p>
-      <div style="margin: 16px 0;">
-        <input type="range" id="double-range" min="1" max="100" value="10" style="width: 80%; accent-color: #ffd866;">
-        <div style="margin-top: 8px; font-weight: 800; font-size: 15px; color: #ffd866;">
+      <div class="modal-slider-wrap">
+        <input type="range" id="double-range" min="1" max="100" value="10" class="gold-slider">
+        <div class="modal-wager-readout">
           Additional Wager: $<span id="double-wager-display">0</span>
         </div>
       </div>
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+      <div class="modal-btn-row">
         <button id="confirm-double-btn" class="primary-btn deal-gold-btn">CONFIRM DOUBLE</button>
         <button id="cancel-double-btn" class="primary-btn alert-btn">CANCEL</button>
       </div>
@@ -189,13 +189,13 @@
     <div class="cut-box">
       <h3>INSURANCE?</h3>
       <p>Dealer shows an Ace. Bet up to half your wager ($<span id="max-insurance-val">0</span>). Pays 2:1 if Dealer has Blackjack.</p>
-      <div style="margin: 15px 0;">
-        <input type="range" id="insurance-range" min="1" max="10" value="1" style="width: 80%; accent-color: #ffd866;">
-        <div style="margin-top: 8px; font-weight: 800; font-size: 14px; color: #ffd866;">
+      <div class="modal-slider-wrap">
+        <input type="range" id="insurance-range" min="1" max="10" value="1" class="gold-slider">
+        <div class="modal-wager-readout">
           Wager: $<span id="insurance-wager-display">0</span>
         </div>
       </div>
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+      <div class="modal-btn-row">
         <button id="accept-insurance-btn" class="primary-btn deal-gold-btn">TAKE INSURANCE</button>
         <button id="decline-insurance-btn" class="primary-btn alert-btn">DECLINE</button>
       </div>
@@ -207,7 +207,7 @@
     <div class="cut-box">
       <h3>EVEN MONEY?</h3>
       <p>You have Blackjack and the Dealer shows an Ace. Take an immediate 1:1 payout instead of risking a push?</p>
-      <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+      <div class="modal-btn-row">
         <button id="accept-even-money-btn" class="primary-btn deal-gold-btn">ACCEPT (1:1)</button>
         <button id="decline-even-money-btn" class="primary-btn alert-btn">DECLINE</button>
       </div>
@@ -216,10 +216,10 @@
 
   <!-- Game Over Modal (Low / Zero Funds) -->
   <div id="game-over-modal" class="overlay-modal hidden">
-    <div class="cut-box" style="border-color: #e74c3c;">
-      <h2 style="color: #e74c3c; font-size: 20px; margin-bottom: 8px;">Game Over</h2>
-      <p style="color: #f5b7b1; font-size: 14px; margin-bottom: 20px;">You ran out of adequate funds.</p>
-      <button id="restart-game-btn" class="primary-btn deal-gold-btn" style="padding: 10px 24px; font-size: 14px;">Start Over</button>
+    <div class="cut-box game-over-box">
+      <h2 class="game-over-title">GAME OVER</h2>
+      <p class="game-over-desc">You ran out of adequate funds.</p>
+      <button id="restart-game-btn" class="primary-btn deal-gold-btn restart-btn">START OVER</button>
     </div>
   </div>
 
@@ -227,7 +227,7 @@
   <div id="cut-shoe-modal" class="overlay-modal hidden">
     <div class="cut-box">
       <h3>CUT THE 6-DECK SHOE</h3>
-      <p>Click along the card spread to place the yellow cut card</p>
+      <p>Tap or click along the card spread to place the yellow cut card</p>
       <div id="shoe-cut-spread" class="shoe-cut-spread">
         <div id="cut-guide-line" class="cut-guide-line"></div>
       </div>
@@ -250,7 +250,7 @@
   <div id="rules-modal" class="overlay-modal hidden">
     <div class="dialog-box">
       <div class="dialog-top">
-        <h3>HOUSE RULES & HI-LO COUNTING</h3>
+        <h3>HOUSE RULES &amp; HI-LO COUNTING</h3>
         <button class="dialog-close" data-close="rules-modal">&times;</button>
       </div>
       <div class="dialog-body">
@@ -264,7 +264,7 @@
           <li>Dealer Ace triggers Insurance (up to half wager, pays 2:1) or Even Money (1:1 on natural player blackjack).</li>
           <li>If Dealer shows a 10 and holds a hole Ace, Blackjack is flipped immediately with no insurance offered.</li>
         </ul>
-        <h4 style="margin-top:12px; color:#ffd866;">Hi-Lo Values:</h4>
+        <h4 class="rules-subhead">Hi-Lo Values:</h4>
         <div class="matrix-grid">
           <div class="matrix-cell"><span class="tag-pos">+1</span> 2, 3, 4, 5, 6</div>
           <div class="matrix-cell"><span class="tag-neu">0</span> 7, 8, 9</div>
