@@ -255,12 +255,6 @@ const BALL_DEFS = [
 window.selectGameMode = function(chosenMode) {
     ensureAudioContext();
     gameMode = chosenMode;
-    const subEl = document.getElementById('customize-subtitle');
-    if (subEl) {
-        subEl.textContent = chosenMode === 'cpu'
-            ? 'Mode: Player 1 vs. Computer • Customize Table & Cue'
-            : 'Mode: 2 Player Match • Customize Table & Cue';
-    }
     const modeModal = document.getElementById('mode-modal');
     const selectionModal = document.getElementById('selection-modal');
     if (modeModal) modeModal.classList.add('hidden');
