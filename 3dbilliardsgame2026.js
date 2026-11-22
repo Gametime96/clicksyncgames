@@ -251,7 +251,6 @@ const BALL_DEFS = [
     { num: 15, color: "#7f1d1d", stripe: true  }
 ];
 
-// Global mode selection handler so Step 1 -> Step 2 always works immediately
 window.selectGameMode = function(chosenMode) {
     ensureAudioContext();
     gameMode = chosenMode;
@@ -366,19 +365,16 @@ function assignSuitIfOpen(ballNum) {
 
 function setHumanControlsEnabled(enabled) {
     const dialPanel = document.getElementById('dial-panel');
-    const rightControls = document.getElementById('right-controls-stack');
+    const actionPanel = document.getElementById('action-panel');
     const opacity = enabled ? '1' : '0.50';
     const pointer = enabled ? 'auto' : 'none';
     if (dialPanel) {
         dialPanel.style.opacity = opacity;
         dialPanel.style.pointerEvents = pointer;
     }
-    if (rightControls) {
-        const actionPanel = document.getElementById('action-panel');
-        if (actionPanel) {
-            actionPanel.style.opacity = opacity;
-            actionPanel.style.pointerEvents = pointer;
-        }
+    if (actionPanel) {
+        actionPanel.style.opacity = opacity;
+        actionPanel.style.pointerEvents = pointer;
     }
 }
 
@@ -1542,6 +1538,74 @@ function getAimStopDistance(startX, startZ, dirX, dirZ) {
     return maxDist;
 }
 
+// Automatically keep buttons/controls from overlapping the projected 3D pool table bounds
+function preventTableOverlap() {
+    if (!camera || !renderer) return;
+    const uiContainer = document.getElementById('ui-container');
+    if (!uiContainer || uiContainer.classList.contains('hidden')) return;
+
+    camera.updateMatrixWorld();
+
+    const halfW = (TABLE_WIDTH / 2) + 1.45;
+    const halfL = (TABLE_LENGTH / 2) + 1.45;
+    const corners = [
+        new THREE.Vector3(-halfW, 0.56, -halfL),
+        new THREE.Vector3( halfW, 0.56, -halfL),
+        new THREE.Vector3(-halfW, 0.56,  halfL),
+        new THREE.Vector3( halfW, 0.56,  halfL),
+        new THREE.Vector3(-halfW, 0, -halfL),
+        new THREE.Vector3( halfW, 0, -halfL),
+        new THREE.Vector3(-halfW, 0,  halfL),
+        new THREE.Vector3( halfW, 0,  halfL)
+    ];
+
+    let minScreenX = Infinity;
+    let maxScreenX = -Infinity;
+    let minScreenY = Infinity;
+    let maxScreenY = -Infinity;
+
+    corners.forEach(c => {
+        const p = c.clone().project(camera);
+        const sx = (p.x * 0.5 + 0.5) * window.innerWidth;
+        const sy = (-p.y * 0.5 + 0.5) * window.innerHeight;
+        if (sx < minScreenX) minScreenX = sx;
+        if (sx > maxScreenX) maxScreenX = sx;
+        if (sy < minScreenY) minScreenY = sy;
+        if (sy > maxScreenY) maxScreenY = sy;
+    });
+
+    const rightStack = document.getElementById('right-controls-stack');
+    const dialPanel = document.getElementById('dial-panel');
+
+    if (rightStack) {
+        rightStack.style.transform = 'translateX(0px)';
+        const rRect = rightStack.getBoundingClientRect();
+        const overlapsY = rRect.bottom > minScreenY && rRect.top < maxScreenY;
+        const overlapsX = rRect.left < (maxScreenX + 8);
+        if (overlapsX && overlapsY) {
+            const maxRightEdge = window.innerWidth - 6;
+            const shiftRight = Math.min(maxRightEdge - rRect.right, (maxScreenX + 8) - rRect.left);
+            if (shiftRight > 0) {
+                rightStack.style.transform = `translateX(${shiftRight}px)`;
+            }
+        }
+    }
+
+    if (dialPanel) {
+        dialPanel.style.transform = 'translateX(0px)';
+        const dRect = dialPanel.getBoundingClientRect();
+        const overlapsY = dRect.bottom > minScreenY && dRect.top < maxScreenY;
+        const overlapsX = dRect.right > (minScreenX - 8);
+        if (overlapsX && overlapsY) {
+            const minLeftEdge = 6;
+            const shiftLeft = Math.max(minLeftEdge - dRect.left, (minScreenX - 8) - dRect.right);
+            if (shiftLeft < 0) {
+                dialPanel.style.transform = `translateX(${shiftLeft}px)`;
+            }
+        }
+    }
+}
+
 function updateCameraAndAim() {
     if (!cueBall) return;
 
@@ -1579,20 +1643,22 @@ function updateCameraAndAim() {
         const isMobilePortrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
 
         if (isMobileLandscape) {
+            // Rotate table 90 degrees horizontally between top HUD and bottom controls,
+            // leaving the far left & far right completely open for Dial, CAM VIEW, and Hit Power
             camera.up.set(1, 0, 0);
 
             const topBarEl = document.getElementById('top-bar');
             const bottomBarEl = document.getElementById('bottom-controls-bar');
-            const topPx = topBarEl ? topBarEl.getBoundingClientRect().bottom + 4 : 44;
-            const bottomPx = bottomBarEl ? (window.innerHeight - bottomBarEl.getBoundingClientRect().top + 4) : 110;
-            const usableHeightFrac = Math.max(0.50, 1 - (topPx + bottomPx) / window.innerHeight);
+            const topPx = topBarEl ? topBarEl.getBoundingClientRect().bottom + 4 : 38;
+            const bottomPx = bottomBarEl ? (window.innerHeight - bottomBarEl.getBoundingClientRect().top + 4) : 112;
+            const usableHeightFrac = Math.max(0.55, 1 - (topPx + bottomPx) / window.innerHeight);
 
             const heightForWidthSpan = (totalTableLen / 2) / (Math.tan(vFovRad / 2) * aspect);
             const heightForHeightSpan = ((totalTableWid / usableHeightFrac) / 2) / Math.tan(vFovRad / 2);
             const camHeight = Math.max(heightForWidthSpan, heightForHeightSpan) * 1.03;
 
             const visibleSpanX = 2 * camHeight * Math.tan(vFovRad / 2);
-            const xShift = -((topPx - bottomPx) / window.innerHeight) * 0.5 * visibleSpanX;
+            const xShift = -((bottomPx - topPx) / window.innerHeight) * 0.5 * visibleSpanX;
 
             camera.position.set(xShift, camHeight, 0);
             camera.lookAt(xShift, 0, 0);
@@ -1624,6 +1690,8 @@ function updateCameraAndAim() {
             camera.lookAt(0, 0, 0);
         }
     }
+
+    preventTableOverlap();
 
     if (canShoot && !cueBallPocketed && !isPaused && !matchOver) {
         cueStickGroup.visible = true;
