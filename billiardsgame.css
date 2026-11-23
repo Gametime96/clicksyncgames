@@ -1,0 +1,181 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #1a1a1a;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0 0 16px 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Mobile Landscape Warning */
+.landscape-warning {
+    display: none;
+}
+
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    .landscape-warning {
+        display: block;
+        background-color: #e74c3c;
+        color: #ffffff;
+        text-align: center;
+        padding: 10px 12px;
+        font-weight: bold;
+        width: 100%;
+        font-size: 14px;
+    }
+}
+
+/* Top Navigation Bar (Sits completely above the canvas so buttons never overlap the table) */
+.top-nav {
+    width: 100%;
+    max-width: 880px;
+    padding: 12px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* Return to ClickSyncGames Button */
+.return-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #262626;
+    color: #ffffff;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    padding: 6px 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.return-btn:hover {
+    background-color: #333333;
+    border-color: #60a5fa;
+}
+
+.nav-logo {
+    height: 26px;
+    width: auto;
+    display: block;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+/* Right-Side Control Buttons */
+.nav-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.control-btn {
+    background-color: #262626;
+    color: #f3f4f6;
+    border: 1px solid #404040;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.1;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.control-btn:hover {
+    background-color: #333333;
+    border-color: #60a5fa;
+}
+
+.control-btn.active-pause {
+    background-color: #d97706;
+    border-color: #f59e0b;
+    color: #ffffff;
+}
+
+.control-btn.muted {
+    background-color: #3f1d1d;
+    border-color: #991b1b;
+    color: #fca5a5;
+}
+
+.cancel-btn {
+    background-color: #dc2626;
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+.cancel-btn:hover {
+    background-color: #b91c1c;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Canvas Container */
+.canvas-container {
+    width: 100%;
+    max-width: 880px;
+    padding: 0 10px;
+    margin: 0 auto;
+    flex-shrink: 0;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 880 / 640;
+    border: none;
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    background-color: #5c4033;
+}
+
+/* Condense buttons cleanly on smaller screens without overlapping the table */
+@media screen and (max-width: 600px) {
+    .top-nav {
+        padding: 8px 10px;
+        gap: 6px;
+    }
+
+    .return-btn {
+        padding: 5px 9px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .nav-logo {
+        height: 20px;
+    }
+
+    .nav-controls {
+        gap: 6px;
+    }
+
+    .control-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
