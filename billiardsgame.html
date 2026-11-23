@@ -5,80 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Play Classic Billiards Online | Free Pool Physics Simulator</title>
     <meta name="description" content="Line up your shots and clear the table in this free physics-based pool simulator. Practice your billiards geometry and trick shots directly in your browser.">
-    <style>
-        body {
-            background-color: #1a1a1a;
-            color: #e5e7eb;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .top-nav {
-            width: 100%;
-            max-width: 880px;
-            padding: 20px;
-            box-sizing: border-box;
-            text-align: left;
-        }
-
-        /* Mobile Landscape Warning */
-        .landscape-warning { display: none; }
-        @media screen and (max-width: 768px) and (orientation: portrait) {
-            .landscape-warning {
-                display: block;
-                background-color: #e74c3c;
-                color: white;
-                text-align: center;
-                padding: 12px;
-                font-weight: bold;
-                width: 100%;
-                font-size: 14px;
-            }
-        }
-
-        /* Responsive Canvas Magic (Fixed for Desktop Aspect Ratio) */
-        .canvas-container {
-            width: 100%;
-            max-width: 880px;
-            padding: 0 10px;
-            box-sizing: border-box;
-            margin: 0 auto;
-            flex-shrink: 0; /* Prevents desktop browser from squishing the height */
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: auto;
-            aspect-ratio: 880 / 640; /* Forces the exact dimensions so it never crunches */
-            border: none; 
-            outline: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            border-radius: 10px;
-            touch-action: none; /* Stops the browser from scrolling when swiping on the pool table */
-            -webkit-touch-callout: none;
-            background-color: #5c4033; /* Matches the wood trim */
-        }
-
-        .site-footer {
-            background-color: #cbd5e1;
-            width: 100%;
-            box-sizing: border-box;
-            padding: 40px 20px;
-            margin-top: auto; 
-            text-align: center;
-            border-top: 2px solid #94a3b8;
-            color: #0f172a;
-        }
-        .legal-text { max-width: 800px; margin: 0 auto 30px auto; font-size: 11px; color: #475569; line-height: 1.6; }
-        .contact-btn { background-color: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; text-decoration: none; display: inline-block; transition: 0.2s; }
-        .contact-btn:hover { background-color: #1d4ed8; }
-    </style>
+    <link rel="stylesheet" href="billiardsgame.css">
 </head>
 <body>
 
@@ -86,20 +13,22 @@
         ⚠️ For the best experience, please rotate your device to Landscape mode.
     </div>
 
-    <div class="top-nav">
-        <a href="index.html" style="color: #60a5fa; text-decoration: none; font-weight: bold; font-size: 16px;">&larr; Back to ClickSync Games</a>
-    </div>
+    <header class="top-nav">
+        <a href="https://clicksyncgames.com/" class="return-btn" title="Return to ClickSync Games">
+            <span>Return to</span>
+            <img src="clicksyncgameslogo.jpeg" alt="ClickSync Games Logo" class="nav-logo">
+        </a>
 
-    <div class="canvas-container">
+        <div class="nav-controls">
+            <button id="cancelAimBtn" class="control-btn cancel-btn hidden" type="button">Cancel Aim</button>
+            <button id="pauseBtn" class="control-btn" type="button" title="Pause or Resume (P)">⏸ Pause (P)</button>
+            <button id="muteBtn" class="control-btn" type="button" title="Mute or Unmute Audio">🔊 Sound On</button>
+        </div>
+    </header>
+
+    <main class="canvas-container">
         <canvas id="gameCanvas" width="880" height="640"></canvas>
-    </div>
-
-    <footer class="site-footer">
-        <p class="legal-text">
-            clicksyncgames.com™ is for gaming purposes only. No person(s) and/or entity/entities shall duplicate any/all of the games as seen on clicksyncgames.com™ without the written and signed permission of the owner of clicksyncgames.com™. Please utilize the "contact us" section for all relevant material regarding gameplay and/or duplication of games.
-        </p>
-        <a href="contact.html" class="contact-btn">Contact Us</a>
-    </footer>
+    </main>
 
     <script src="billiardsgame.js"></script>
 </body>
